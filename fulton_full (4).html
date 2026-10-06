@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Fulton Documentation Generator</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Fulton Docs">
+<meta name="theme-color" content="#5A6B50">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src 'self' https://fulton-proxy.onrender.com https://fonts.googleapis.com https://fonts.gstatic.com; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob:;">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#FFF5E6,#FFE8CC);min-height:100vh;padding:1rem;padding-top:max(1rem,env(safe-area-inset-top));padding-bottom:max(1rem,env(safe-area-inset-bottom))}
+.container{max-width:1500px;margin:0 auto}
+.header{background:white;padding:1rem 1.25rem;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.1);margin-bottom:1rem}
+h1{color:#2C3E50;font-size:1.2rem;line-height:1.3}
+.subtitle{color:#7F8C8D;font-size:.8rem;margin-top:.2rem}
+.badge{display:inline-block;background:linear-gradient(135deg,#7A8B6F,#5A6B50);color:white;padding:.2rem .5rem;border-radius:20px;font-size:.7rem;font-weight:600;margin-left:.4rem}
+.main-content{background:white;padding:1rem;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.1);margin-bottom:1rem}
+.accordion{border:1px solid #e0e0d8;border-radius:10px;margin-bottom:.75rem;overflow:hidden}
+.accordion-header{display:flex;justify-content:space-between;align-items:center;padding:.85rem 1rem;background:#f8f9f6;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.accordion-header:active{background:#eef0eb}
+.accordion-title{font-weight:600;color:#2C3E50;font-size:.95rem}
+.accordion-arrow{color:#7A8B6F;font-size:1rem;transition:transform .2s}
+.accordion.open .accordion-arrow{transform:rotate(180deg)}
+.accordion-body{display:none;padding:1rem;border-top:1px solid #e0e0d8}
+.accordion.open .accordion-body{display:block}
+@media(min-width:900px){
+  .accordion{border:none;margin-bottom:0;overflow:visible}
+  .accordion-header{display:none}
+  .accordion-body{display:block!important;padding:0;border:none}
+  .input-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+  textarea{height:280px}
+}
+.controls{display:grid;gap:.75rem}
+label{display:block;font-weight:600;color:#2C3E50;margin-bottom:.4rem;font-size:.85rem}
+textarea{width:100%;height:200px;padding:.75rem;border:2px solid #E0E0E0;border-radius:8px;font-family:'Courier New',monospace;font-size:.85rem;resize:vertical;transition:border-color .3s}
+textarea:focus,input[type=text]:focus,select:focus{outline:none;border-color:#7A8B6F}
+input[type=text],input[type=date],select{width:100%;padding:.6rem .75rem;border:2px solid #E0E0E0;border-radius:8px;font-size:.85rem;transition:border-color .3s}
+.color-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
+.color-input-wrapper label{font-size:.7rem;margin-bottom:.2rem}
+input[type=color]{width:100%;height:40px;border:2px solid #E0E0E0;border-radius:8px;cursor:pointer}
+input[type=file]{width:100%;padding:.5rem;border:2px dashed #7A8B6F;border-radius:8px;cursor:pointer;font-size:.8rem}
+.checkbox-row{display:flex;align-items:center;gap:.5rem}
+.checkbox-row input[type=checkbox]{width:18px;height:18px;accent-color:#7A8B6F;flex-shrink:0}
+.checkbox-row label{margin-bottom:0;font-weight:600}
+.help-text{font-size:.7rem;color:#7F8C8D;margin-top:.2rem}
+.format-guide{background:#f8f9f7;border:1px solid #e0e4dc;border-radius:8px;padding:.75rem;margin-bottom:.5rem;font-size:.75rem}
+.format-title{font-weight:600;color:#5A6B50;margin-bottom:.5rem;font-size:.8rem}
+.format-content p{margin:.15rem 0;color:#555;line-height:1.4}
+.format-content code{background:#e8ebe5;padding:.1rem .3rem;border-radius:3px;font-family:monospace;font-size:.7rem;color:#5A6B50}
+.button{padding:.95rem 1.5rem;border:none;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer;transition:all .3s;width:100%;min-height:48px}
+.button-primary{background:linear-gradient(135deg,#7A8B6F,#5A6B50);color:white}
+.button-primary:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 20px rgba(122,139,111,.4)}
+.button-primary:disabled{opacity:.7;cursor:not-allowed}
+.button-primary.loading{position:relative;color:transparent}
+.button-primary.loading::after{content:"";position:absolute;width:20px;height:20px;top:50%;left:50%;margin:-10px 0 0 -10px;border:3px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:white;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.button-secondary{background:#2C3E50;color:white;margin-top:.4rem}
+.button-secondary:hover{background:#34495E}
+.button-pdf{background:linear-gradient(135deg,#8B4513,#A0522D);color:white;margin-top:.4rem}
+.results{background:white;padding:1.5rem;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.1);display:none}
+.results.show{display:block}
+.results h2{color:#2C3E50;margin-bottom:1rem;font-size:1.3rem}
+.slides-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.5rem}
+.slide-card{position:relative;border:2px solid #E0E0E0;border-radius:12px;overflow:hidden;transition:transform .3s,box-shadow .3s}
+.slide-card:hover{transform:translateY(-5px);box-shadow:0 8px 30px rgba(0,0,0,.15)}
+.slide-card.bonus{border-color:#7A8B6F}
+.slide-card canvas{width:100%;height:auto;display:block}
+.slide-info{padding:.75rem;text-align:center;background:#f9f9f9}
+.slide-number{font-weight:600;color:#2C3E50;font-size:.85rem}
+.drdp-badge{display:inline-block;background:#7A8B6F;color:white;padding:2px 8px;border-radius:10px;font-size:.7rem;margin-left:.5rem}
+.download-btn{position:absolute;top:.75rem;right:.75rem;background:rgba(255,255,255,.95);border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:opacity .3s,transform .2s;box-shadow:0 2px 10px rgba(0,0,0,.2);font-size:18px}
+.slide-card:hover .download-btn{opacity:1}
+.download-btn:hover{transform:scale(1.1)}
+.status{text-align:center;padding:.75rem;border-radius:8px;margin-top:.75rem;font-weight:600;display:none}
+.status.show{display:block}
+.status.success{background:#D4EDDA;color:#155724}
+.status.error{background:#F8D7DA;color:#721C24}
+.status.info{background:#CCE5FF;color:#004085}
+.drdp-panel{background:#f5f7f4;border-radius:12px;padding:1rem;margin-top:1.5rem}
+.drdp-panel h3{font-size:1rem;color:#5A6B50;margin-bottom:.75rem}
+.drdp-result{background:white;padding:.75rem;border-radius:8px;margin-bottom:.5rem;font-size:.8rem;border-left:3px solid #7A8B6F}
+.drdp-domain{display:inline-block;background:#7A8B6F;color:white;padding:.15rem .4rem;border-radius:3px;font-weight:600;font-size:.7rem;margin-right:.3rem}
+.drdp-level{font-size:.75rem;color:#5A6B50;font-weight:500;margin:.2rem 0}
+.drdp-evidence{font-size:.72rem;color:#666;font-style:italic;margin-top:.3rem;line-height:1.4}
+.drdp-slides{font-size:.68rem;color:#888;margin-top:.2rem}
+.drdp-photo-analysis,.drdp-narrative{background:#f0f4ed;padding:.75rem;border-radius:8px;margin-bottom:.75rem;font-size:.8rem}
+.drdp-photo-analysis strong,.drdp-narrative strong{color:#5A6B50;display:block;margin-bottom:.3rem}
+.drdp-photo-analysis p,.drdp-narrative p{margin:0;color:#444;line-height:1.4}
+.drdp-measures-list{max-height:400px;overflow-y:auto}
+.input-mode-toggle{display:flex;border-radius:6px;overflow:hidden;border:1px solid #ddd}
+.mode-btn{padding:.35rem .75rem;font-size:.75rem;border:none;background:#f5f5f5;color:#666;cursor:pointer;transition:all .2s}
+.mode-btn.active{background:#7A8B6F;color:white}
+.slides-field-container{max-height:500px;overflow-y:auto;padding-right:.5rem}
+.slide-fields{background:#f9f9f7;border:1px solid #e0e0d8;border-radius:8px;padding:1rem;margin-bottom:.75rem}
+.slide-field-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid #e0e0d8}
+.slide-field-header span{font-weight:600;color:#7A8B6F;font-size:.9rem}
+.remove-slide-btn{background:none;border:none;color:#999;font-size:1.4rem;cursor:pointer;padding:0 .25rem;line-height:1;min-width:36px;min-height:36px;display:flex;align-items:center;justify-content:center}
+.remove-slide-btn:hover{color:#c00}
+.field-group{margin-bottom:.6rem}
+.field-group label{font-size:.75rem;color:#666;margin-bottom:.2rem}
+.field-group .optional{color:#999;font-weight:normal}
+.slide-title-field,.slide-subtitle-field{width:100%;padding:.5rem;border:1px solid #ddd;border-radius:4px;font-size:.9rem}
+.slide-content-field{width:100%;min-height:80px;padding:.5rem;border:1px solid #ddd;border-radius:4px;font-size:.85rem;font-family:inherit;resize:vertical}
+.add-slide-btn{width:100%;padding:.75rem;background:#f0f4ed;border:2px dashed #7A8B6F;border-radius:8px;color:#7A8B6F;font-weight:600;cursor:pointer;transition:all .2s;min-height:48px}
+.add-slide-btn:hover{background:#e5ebe0}
+.photo-assignment-grid{display:grid;gap:.5rem;margin-top:.5rem;max-height:200px;overflow-y:auto}
+.photo-assignment-row{display:flex;align-items:center;gap:.5rem;padding:.4rem;background:#f9f9f7;border-radius:6px;font-size:.8rem}
+.photo-assignment-row img{width:40px;height:40px;object-fit:cover;border-radius:4px}
+.photo-assignment-row select{flex:1;padding:.3rem;font-size:.75rem}
+.photo-assignment-row .photo-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#666;font-size:.7rem}
+.section-divider{border-top:1px solid #eee;margin:.75rem 0;padding-top:.75rem}
+.section-title{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:#7A8B6F;margin-bottom:.5rem;font-weight:600}
+.row{display:flex;gap:.5rem}
+.row>*{flex:1}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Fulton Documentation Generator <span class="badge">DRDP 2025</span></h1>
+    <p class="subtitle">Create documentation slides with DRDP 2025 analysis</p>
+  </div>
+
+  <div class="main-content">
+    <div class="input-grid">
+
+      <div class="accordion open">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <span class="accordion-title">✏️ Slide Content</span>
+          <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+            <label style="margin:0">Slide Content</label>
+            <div class="input-mode-toggle">
+              <button type="button" id="textModeBtn" class="mode-btn active" onclick="setInputMode('text')">Text</button>
+              <button type="button" id="fieldModeBtn" class="mode-btn" onclick="setInputMode('fields')">Fields</button>
+            </div>
+          </div>
+          <div id="textModeInput">
+            <div class="format-guide">
+              <div class="format-title">Slide Format</div>
+              <div class="format-content">
+                <p>Start each slide with <code>Slide N:</code></p>
+                <p><code>title:</code> Main heading</p>
+                <p><code>subtitle:</code> Secondary heading</p>
+                <p><code>content:</code> Body text</p>
+                <p><code>•</code> Dark bullet &nbsp; <code>✓</code> Accent bullet</p>
+                <p>Lines ending with <code>:</code> become headers</p>
+              </div>
+            </div>
+            <textarea id="slideText" placeholder="Slide 1:
+title: Your Title Here
+subtitle: Optional Subtitle
+content: Your content here
+content: • Bullet point
+content: ✓ Accent bullet
+
+Slide 2:
+title: Next Slide
+content: More content..."></textarea>
+          </div>
+          <div id="fieldModeInput" style="display:none">
+            <div class="slides-field-container" id="slidesFieldContainer">
+              <div class="slide-fields" data-slide="1">
+                <div class="slide-field-header">
+                  <span>Slide 1</span>
+                  <button type="button" class="remove-slide-btn" onclick="removeSlideField(this)">×</button>
+                </div>
+                <div class="field-group"><label>Title</label><input type="text" class="slide-title-field" placeholder="Main heading"></div>
+                <div class="field-group"><label>Subtitle <span class="optional">(optional)</span></label><input type="text" class="slide-subtitle-field" placeholder="Secondary heading"></div>
+                <div class="field-group"><label>Content</label><textarea class="slide-content-field" placeholder="One line per item&#10;• for bullets, ✓ for accent bullets"></textarea></div>
+              </div>
+            </div>
+            <button type="button" class="add-slide-btn" onclick="addSlideField()">+ Add Another Slide</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <span class="accordion-title">🎨 Design & Photos</span>
+          <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <div class="controls">
+            <div><label>Brand Name</label><input type="text" id="brandName" value="Fulton Community School & Farm"></div>
+            <div class="row">
+              <div><label>Date</label><input type="date" id="slideDate"></div>
+              <div><label>Date Position</label>
+                <select id="datePosition">
+                  <option value="none">Don't show</option>
+                  <option value="header" selected>In header</option>
+                  <option value="footer">In footer</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div><label>Slide Size</label>
+                <select id="slideSize">
+                  <option value="square">Square 1080×1080</option>
+                  <option value="letter">Letter 2550×3300</option>
+                </select>
+              </div>
+              <div><label>Text Size</label>
+                <select id="textSize">
+                  <option value="small">Small</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="large">Large</option>
+                </select>
+              </div>
+            </div>
+            <div><label>Text Alignment</label>
+              <select id="textAlign">
+                <option value="left">Left</option>
+                <option value="center">Center</option>
+                <option value="right">Right</option>
+              </select>
+            </div>
+            <div class="row">
+              <div class="checkbox-row"><input type="checkbox" id="includeBonusSlide" checked><label for="includeBonusSlide">Bonus Quote</label></div>
+              <div class="checkbox-row"><input type="checkbox" id="showSlideNumbers" checked><label for="showSlideNumbers">Slide Numbers</label></div>
+            </div>
+            <div class="section-divider"><div class="section-title">Photo Placement</div></div>
+            <div><label>Default Position</label>
+              <select id="photoPlacement">
+                <option value="none">No photos</option>
+                <option value="top">Top</option>
+                <option value="bottom">Bottom</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+                <option value="center">Center (text overlay)</option>
+              </select>
+            </div>
+            <div id="photoUploadSection" style="display:none">
+              <select id="photoMode">
+                <option value="single">Same photo all slides</option>
+                <option value="multiple">Different per slide</option>
+                <option value="assign">Assign to slides</option>
+              </select>
+              <div id="singlePhotoUpload" style="margin-top:.4rem"><input type="file" id="slidePhoto" accept="image/*"></div>
+              <div id="multiplePhotoUpload" style="display:none;margin-top:.4rem"><input type="file" id="slidePhotosMultiple" accept="image/*" multiple><p class="help-text">Select photos in slide order</p></div>
+              <div id="assignPhotoUpload" style="display:none;margin-top:.4rem">
+                <input type="file" id="slidePhotosAssign" accept="image/*" multiple>
+                <p class="help-text">Upload photos then assign below</p>
+                <div id="photoAssignmentContainer"></div>
+              </div>
+            </div>
+            <div class="section-divider"><div class="section-title">Background</div></div>
+            <div>
+              <select id="backgroundStyle">
+                <option value="solid" selected>Solid Color</option>
+                <option value="gradient">Gradient</option>
+                <option value="image">Custom Image</option>
+                <option value="none">None (White)</option>
+              </select>
+            </div>
+            <div id="imageUploadSection" style="display:none">
+              <select id="imageMode">
+                <option value="single">Same image all slides</option>
+                <option value="multiple">Different per slide</option>
+              </select>
+              <div id="singleImageUpload" style="margin-top:.4rem"><input type="file" id="backgroundImage" accept="image/*"></div>
+              <div id="multipleImageUpload" style="display:none;margin-top:.4rem"><input type="file" id="backgroundImagesMultiple" accept="image/*" multiple></div>
+              <div class="checkbox-row" style="margin-top:.4rem"><input type="checkbox" id="overlayToggle" checked><label for="overlayToggle">Color overlay</label></div>
+              <div class="row" style="align-items:center;margin-top:.3rem">
+                <label style="margin:0;font-size:.75rem">Opacity: <span id="overlayValue">60</span>%</label>
+                <input type="range" id="overlayOpacity" min="0" max="90" value="60" style="flex:2">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <span class="accordion-title">📊 Colors, Fonts & DRDP</span>
+          <span class="accordion-arrow">▼</span>
+        </div>
+        <div class="accordion-body">
+          <div class="controls">
+            <div><label>Color Family</label>
+              <select id="colorFamily">
+                <option value="sage-green">Sage & Terracotta</option>
+                <option value="warm-neutral">Warm Neutral</option>
+                <option value="ocean-blue">Ocean Blues</option>
+                <option value="forest">Forest Greens</option>
+                <option value="lavender">Soft Lavender</option>
+                <option value="coral">Coral & Teal</option>
+                <option value="earthy">Earthy Browns</option>
+                <option value="minimal">Minimal B&W</option>
+                <option value="sunset">Sunset Warm</option>
+                <option value="custom">Custom Colors</option>
+              </select>
+            </div>
+            <div id="customColors" style="display:none">
+              <div class="color-grid">
+                <div class="color-input-wrapper"><label>Background</label><input type="color" id="bgColor" value="#F5F5F0"></div>
+                <div class="color-input-wrapper"><label>Accent</label><input type="color" id="accentColor" value="#7A8B6F"></div>
+                <div class="color-input-wrapper"><label>Dark</label><input type="color" id="darkColor" value="#2C3E50"></div>
+              </div>
+            </div>
+            <div class="row">
+              <div><label>Title Font</label>
+                <select id="titleFont">
+                  <option value="Georgia">Georgia</option>
+                  <option value="Playfair Display">Playfair Display</option>
+                  <option value="Merriweather">Merriweather</option>
+                  <option value="Arial">Arial</option>
+                  <option value="Helvetica">Helvetica</option>
+                  <option value="Trebuchet MS">Trebuchet MS</option>
+                </select>
+              </div>
+              <div><label>Body Font</label>
+                <select id="bodyFont">
+                  <option value="Arial">Arial</option>
+                  <option value="Helvetica">Helvetica</option>
+                  <option value="Verdana">Verdana</option>
+                  <option value="Trebuchet MS">Trebuchet MS</option>
+                  <option value="Georgia">Georgia</option>
+                </select>
+              </div>
+            </div>
+            <div class="section-divider"><div class="section-title">DRDP (2025) Analysis</div></div>
+            <div class="checkbox-row"><input type="checkbox" id="enableDrdp" checked><label for="enableDrdp">Enable measure analysis</label></div>
+            <div id="drdpOptions">
+              <div style="margin:.5rem 0">
+                <label style="font-size:.8rem">Analysis Mode</label>
+                <select id="analysisMode">
+                  <option value="ai">🤖 AI Analysis</option>
+                  <option value="keyword">⚡ Keyword Match (no AI)</option>
+                </select>
+                <p class="help-text" id="analysisModeHelp">AI analyzes photos and text for deeper insights.</p>
+              </div>
+
+              <div class="row">
+                <div class="checkbox-row"><input type="checkbox" id="showFootnotes"><label for="showFootnotes">Codes on slides</label></div>
+                <div class="checkbox-row"><input type="checkbox" id="addSummaryPage" checked><label for="addSummaryPage">Summary page</label></div>
+              </div>
+              <div><label>Age Group</label>
+                <select id="ageGroup">
+                  <option value="ptk">Preschool/TK/K (3-6)</option>
+                  <option value="it">Infant/Toddler (0-3)</option>
+                </select>
+              </div>
+            </div>
+            <div class="section-divider"></div>
+            <button id="generateBtn" class="button button-primary">Generate Slides</button>
+            <button id="downloadAllBtn" class="button button-secondary" style="display:none">Download All (JPG)</button>
+            <button id="downloadPdfBtn" class="button button-pdf" style="display:none">Download PDF</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div id="status" class="status"></div>
+  </div>
+
+  <div id="results" class="results">
+    <h2>Generated Slides (<span id="slideCount">0</span> total)</h2>
+    <div id="slidesGrid" class="slides-grid"></div>
+    <div class="drdp-panel" id="drdpPanel" style="display:none">
+      <h3>📊 DRDP (2025) Measures Identified</h3>
+      <div id="drdpResults"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLOR_FAMILIES = {
+  'warm-neutral':{bg:'#FFFBF5',accent:'#D4A574',dark:'#2C3E50'},
+  'sage-green':{bg:'#F5F5F0',accent:'#B8A398',dark:'#4A5C4E'},
+  'ocean-blue':{bg:'#F0F7FA',accent:'#7BA7BC',dark:'#2C4251'},
+  'forest':{bg:'#F5F7F2',accent:'#8B9A7E',dark:'#3D4A3A'},
+  'lavender':{bg:'#F8F5FA',accent:'#B8A5C8',dark:'#4A3D56'},
+  'coral':{bg:'#FFF7F5',accent:'#E8A598',dark:'#2C4A51'},
+  'earthy':{bg:'#F7F3EE',accent:'#B89D85',dark:'#3D3026'},
+  'minimal':{bg:'#FFFFFF',accent:'#808080',dark:'#000000'},
+  'sunset':{bg:'#FFF5ED',accent:'#E8937A',dark:'#4A3326'}
+};
+
+const QUOTES = [
+  // Loris Malaguzzi
+  ["The environment is the third teacher.","Loris Malaguzzi"],
+  ["Children have a hundred languages, but school steals ninety-nine.","Loris Malaguzzi"],
+  ["Stand aside for a while and leave room for learning.","Loris Malaguzzi"],
+  ["Creativity emerges from multiple experiences, coupled with a sense of freedom to venture beyond the known.","Loris Malaguzzi"],
+  ["Nothing without joy.","Loris Malaguzzi"],
+  ["What children learn does not follow as an automatic result from what is taught.","Loris Malaguzzi"],
+  ["Things about children and for children are only learned from children.","Loris Malaguzzi"],
+  ["Our task is to help children communicate with the world using all their potential, strengths, and languages.","Loris Malaguzzi"],
+  // Carlina Rinaldi
+  ["Listening is not easy. It requires a deep awareness and suspension of our judgments.","Carlina Rinaldi"],
+  ["Documentation is visible listening.","Carlina Rinaldi"],
+  ["Learning is a process of construction that takes place in relationship with others.","Carlina Rinaldi"],
+  ["The child is a rich, capable, competent protagonist of their own growth.","Carlina Rinaldi"],
+  // Lella Gandini
+  ["Children's questions are the curriculum.","Lella Gandini"],
+  ["The space speaks of the values of the people who live and work there.","Lella Gandini"],
+  ["Children need the freedom and time to play. Play is not a luxury; play is a necessity.","Lella Gandini"],
+  // Maria Montessori
+  ["The goal of early childhood education should be to activate the child's own natural desire to learn.","Maria Montessori"],
+  ["The greatest sign of success for a teacher is when children work as if the teacher did not exist.","Maria Montessori"],
+  ["The child is both a hope and a promise for mankind.","Maria Montessori"],
+  ["Free the child's potential, and you will transform him into the world.","Maria Montessori"],
+  ["The hand is the instrument of intelligence.","Maria Montessori"],
+  ["Never help a child with a task at which he feels he can succeed.","Maria Montessori"],
+  ["The land is where our roots are. Children must be taught to feel and live in harmony with the Earth.","Maria Montessori"],
+  // Fred Rogers
+  ["Play gives children a chance to practice what they are learning.","Fred Rogers"],
+  ["Play is often talked about as if it were a relief from serious learning. But for children play is serious learning.","Fred Rogers"],
+  // Harvard Center
+  ["The first years of life lay the foundation for learning, behavior, and health throughout the lifespan.","Harvard Center on the Developing Child"],
+  ["Brains are built over time, from the bottom up.","Harvard Center on the Developing Child"],
+  ["Serve and return interactions shape brain architecture.","Harvard Center on the Developing Child"],
+  // Vygotsky
+  ["What a child can do today with assistance, she will be able to do by herself tomorrow.","Lev Vygotsky"],
+  ["Through others we become ourselves.","Lev Vygotsky"],
+  // Piaget
+  ["The principal goal of education is to create people who are capable of doing new things.","Jean Piaget"],
+  ["Play is the work of childhood.","Jean Piaget"],
+  ["Every time we teach a child something, we keep him from inventing it himself.","Jean Piaget"],
+  ["Intelligence is what you use when you don't know what to do.","Jean Piaget"],
+  // Others
+  ["Education is not preparation for life; education is life itself.","John Dewey"],
+  ["We do not learn from experience. We learn from reflecting on experience.","John Dewey"],
+  ["Children are the R&D department of the human species.","Alison Gopnik"],
+  ["Becoming is better than being.","Carol Dweck"],
+  ["Effort is what ignites ability and turns it into accomplishment.","Carol Dweck"],
+  ["Play is the glue that holds the curriculum together.","Vivian Gussin Paley"],
+  ["Do less, observe more, enjoy most.","Magda Gerber"],
+  ["Allow the child to be competent.","Magda Gerber"],
+  // Nature
+  ["In every walk with nature, one receives far more than he seeks.","John Muir"],
+  ["The clearest way into the universe is through a forest wilderness.","John Muir"],
+  ["Between every two pines is a doorway to a new world.","John Muir"],
+  ["Study nature, love nature, stay close to nature. It will never fail you.","Frank Lloyd Wright"],
+  ["Those who contemplate the beauty of the earth find reserves of strength that will endure as long as life lasts.","Rachel Carson"],
+  ["If a child is to keep alive his inborn sense of wonder, he needs the companionship of at least one adult who can share it.","Rachel Carson"],
+  ["A child's world is fresh and new and beautiful, full of wonder and excitement.","Rachel Carson"],
+  ["Children need nature for the healthy development of their senses, and therefore, for learning and creativity.","Richard Louv"],
+  ["Time in nature is not leisure time; it's an essential investment in our children's health.","Richard Louv"],
+  ["The future will belong to the nature-smart.","Richard Louv"],
+  ["Nature is not a place to visit. It is home.","Gary Snyder"],
+  ["Look deep into nature, and then you will understand everything better.","Albert Einstein"],
+  ["Adopt the pace of nature: her secret is patience.","Ralph Waldo Emerson"],
+  ["In nature, nothing is perfect and everything is perfect.","Alice Walker"],
+  ["Children are born naturalists. They explore the world with all their senses.","David Sobel"],
+  ["If we want children to flourish, we need to give them time to connect with nature.","David Sobel"],
+  ["Let nature be your teacher.","William Wordsworth"],
+  ["Nature does not hurry, yet everything is accomplished.","Lao Tzu"],
+  // Farm & Food
+  ["To plant a garden is to believe in tomorrow.","Audrey Hepburn"],
+  ["The love of gardening is a seed once sown that never dies.","Gertrude Jekyll"],
+  ["We do not inherit the earth from our ancestors; we borrow it from our children.","Native American Proverb"],
+  ["The earth is what we all have in common.","Wendell Berry"],
+  ["The care of the Earth is our most ancient and most worthy responsibility.","Wendell Berry"],
+  ["Eating is an agricultural act.","Wendell Berry"],
+  ["The garden suggests there might be a place where we can meet nature halfway.","Michael Pollan"],
+  ["To forget how to dig the earth and to tend the soil is to forget ourselves.","Mahatma Gandhi"],
+  ["To see things in the seed, that is genius.","Lao Tzu"],
+  ["From tiny seeds grow mighty trees.","Proverb"],
+  // Community
+  ["Alone we can do so little; together we can do so much.","Helen Keller"],
+  ["What we learn with pleasure we never forget.","Alfred Mercier"],
+  ["Tell me and I forget. Teach me and I may remember. Involve me and I learn.","Xunzi"],
+  ["The function of education is to teach one to think intensively and to think critically.","Martin Luther King Jr."],
+  ["Education is the most powerful weapon which you can use to change the world.","Nelson Mandela"],
+  // Wonder
+  ["The important thing is not to stop questioning. Curiosity has its own reason for existing.","Albert Einstein"],
+  ["Imagination is more important than knowledge.","Albert Einstein"],
+  ["The mind is not a vessel to be filled but a fire to be kindled.","Plutarch"],
+  ["Curiosity is the wick in the candle of learning.","William Arthur Ward"],
+  ["Wonder is the beginning of wisdom.","Socrates"],
+  ["The world is full of magical things patiently waiting for our senses to grow sharper.","W.B. Yeats"],
+  // Respect
+  ["Respect the child. Wait and see what he will become.","Rudolf Steiner"],
+  ["Children must be taught how to think, not what to think.","Margaret Mead"],
+  ["There can be no keener revelation of a society's soul than the way in which it treats its children.","Nelson Mandela"],
+  ["Children see magic because they look for it.","Christopher Moore"],
+  ["The child must know that he is a miracle.","Pablo Casals"],
+  ["It takes a village to raise a child.","African Proverb"],
+  ["Children learn what they live.","Dorothy Law Nolte"],
+  ["The way we talk to our children becomes their inner voice.","Peggy O'Mara"],
+  ["Every child deserves a champion.","Rita Pierson"],
+  ["It is easier to build strong children than to repair broken men.","Frederick Douglass"],
+  ["While we try to teach our children all about life, our children teach us what life is all about.","Angela Schwindt"],
+  // More nature
+  ["The best classroom and the richest cupboard is roofed only by the sky.","Margaret McMillan"],
+  ["Nature holds the key to our aesthetic, intellectual, cognitive, and even spiritual satisfaction.","E.O. Wilson"],
+  ["We need the tonic of wildness.","Henry David Thoreau"],
+  ["I go to nature to be soothed and healed, and to have my senses put in order.","John Burroughs"],
+  // Reggio extras
+  ["The atelier is a place where children's different languages can be explored and developed.","Vea Vecchi"],
+  ["Children have their own ways of seeing, thinking, and knowing.","Reggio Emilia Philosophy"],
+  // Misc
+  ["What we learn to do, we learn by doing.","Aristotle"],
+  ["Every moment is a teachable moment.","Childhood Education Wisdom"],
+  ["Connection is why we are here; it is what gives purpose and meaning to our lives.","Brene Brown"],
+  ["If you have a garden and a library, you have everything you need.","Cicero"],
+  ["Every child is an artist. The problem is how to remain an artist once we grow up.","Pablo Picasso"],
+  ["The soul is healed by being with children.","Fyodor Dostoevsky"],
+  ["People will forget what you said, but people will never forget how you made them feel.","Maya Angelou"]
+];
+
+let usedQ = [];
+function generateBonusQuote() {
+  if (usedQ.length > QUOTES.length / 2) usedQ = [];
+  const avail = QUOTES.map((_,i) => i).filter(i => !usedQ.includes(i));
+  const idx = avail[Math.floor(Math.random() * avail.length)];
+  usedQ.push(idx);
+  return { quote: QUOTES[idx][0], author: QUOTES[idx][1] };
+}
+
+const DRDP = {
+  ptk: {
+    ATL:{name:"Approaches to Learning",measures:{
+      "ATL 1":{name:"Engagement, Attention, Persistence",kw:["attention","focus","persist","engaged","concentrate","sustained","extended","return","continue","complete","finish","work on","stay with","paying attention","focused"]},
+      "ATL 2":{name:"Curiosity, Interest, Initiative",kw:["curious","interest","explore","investigate","wonder","question","ask","discover","try","initiate","seek","examine","wondering","exploring"]},
+      "ATL 3":{name:"Problem-Solving",kw:["problem","solve","figure out","try different","strategy","solution","work through","overcome","challenge","figured out"]},
+      "ATL 4":{name:"Planning",kw:["plan","organize","prepare","step","sequence","order","goal","ahead","next","planning"]}
+    }},
+    SED:{name:"Social Emotional Development",measures:{
+      "SED 1":{name:"Self-Awareness",kw:["self","identity","preference","like","don't like","favorite","who I am","my","mine","myself"]},
+      "SED 2":{name:"Social Awareness",kw:["others","friend","peer","feeling","emotion","understand","perspective","empathy","notice","aware","noticed"]},
+      "SED 3":{name:"Relationships with Adults",kw:["adult","teacher","parent","caregiver","trust","comfort","seek","relationship","bond","connection"]},
+      "SED 4":{name:"Relationships with Peers",kw:["peer","friend","play together","share","turn","cooperate","collaborate","together","social","playing with"]},
+      "SED 5":{name:"Emotional Regulation",kw:["emotion","feeling","calm","regulate","control","manage","express","happy","sad","angry","frustrated","cope","self-regulation"]}
+    }},
+    FLD:{name:"Foundational Language Development",measures:{
+      "FLD 1":{name:"Understanding Language",kw:["understand","listen","follow direction","comprehend","respond to","recognize word","listening"]},
+      "FLD 2":{name:"Using Language",kw:["speak","talk","communicate","express","tell","describe","explain","word","sentence","language","said","asked","told","describing"]},
+      "FLD 3":{name:"Shared Communication",kw:["conversation","back and forth","dialogue","discuss","respond","reply","exchange","talking with"]},
+      "FLD 4":{name:"Foundational Literacy",kw:["rhyme","sound","syllable","phoneme","letter sound","phonological"]},
+      "FLD 5":{name:"Alphabetics and Print",kw:["letter","alphabet","print","book","read","word","text","writing","reading"]},
+      "FLD 6":{name:"Writing",kw:["write","draw","mark","scribble","letter","name","pencil","crayon","drawing","writing"]}
+    }},
+    MATH:{name:"Math",measures:{
+      "MATH 1":{name:"Spatial Thinking",kw:["spatial","shape","position","location","direction","above","below","beside","in front","behind","build","construct","building"]},
+      "MATH 2":{name:"Classification",kw:["sort","group","classify","category","same","different","match","compare","attribute","sorting"]},
+      "MATH 3":{name:"Number and Counting",kw:["count","number","how many","quantity","more","less","few","one","two","three","counting"]},
+      "MATH 4":{name:"Number Operations",kw:["add","subtract","combine","take away","plus","minus","total","altogether"]},
+      "MATH 5":{name:"Measurement",kw:["measure","size","big","small","long","short","tall","heavy","light","compare size"]}
+    }},
+    SCI:{name:"Science",measures:{
+      "SCI 1":{name:"Cause and Effect",kw:["cause","effect","because","if then","what happens","result","make happen","when I"]},
+      "SCI 2":{name:"Inquiry Through Observation",kw:["observe","notice","investigate","experiment","test","try","explore","discover","find out","watching","looking closely","observed"]},
+      "SCI 3":{name:"Documentation of Inquiry",kw:["document","record","share","explain finding","describe observation","tell about","draw what"]}
+    }},
+    PD:{name:"Physical Development",measures:{
+      "PD 1":{name:"Perceptual-Motor Skills",kw:["body","movement","balance","coordinate","space","body awareness","control body"]},
+      "PD 2":{name:"Gross Locomotor Skills",kw:["walk","run","jump","hop","skip","climb","crawl","move","running","jumping","climbing"]},
+      "PD 3":{name:"Gross Motor Manipulative",kw:["throw","catch","kick","ball","strike","bounce","roll","throwing","catching"]},
+      "PD 4":{name:"Fine Motor Skills",kw:["fine motor","pinch","grasp","hold","manipulate","finger","hand","scissors","pencil grip","button","zip","cutting","holding"]}
+    }}
+  },
+  it: {
+    ATL:{name:"Approaches to Learning",measures:{
+      "ATL 1":{name:"Engagement and Attention",kw:["attention","engaged","looking at","watching","interested in"]},
+      "ATL 2":{name:"Curiosity and Initiative",kw:["curious","explore","reaching","touching","examining"]},
+      "ATL 3":{name:"Problem-Solving",kw:["problem","solve","try","figure out"]}
+    }},
+    SED:{name:"Social Emotional Development",measures:{
+      "SED 1":{name:"Self-Awareness",kw:["self","own","my","me"]},
+      "SED 3":{name:"Relationships with Adults",kw:["adult","caregiver","comfort","trust","attachment"]},
+      "SED 4":{name:"Relationships with Peers",kw:["peer","other children","together"]},
+      "SED 5":{name:"Emotional Regulation",kw:["emotion","calm","soothe","cry","comfort"]}
+    }},
+    FLD:{name:"Foundational Language Development",measures:{
+      "FLD 1":{name:"Understanding Language",kw:["understand","respond","look when","turn toward"]},
+      "FLD 2":{name:"Using Language",kw:["babble","coo","vocalize","gesture","point","word"]},
+      "FLD 3":{name:"Shared Communication",kw:["back and forth","respond","vocalize"]}
+    }},
+    PD:{name:"Physical Development",measures:{
+      "PD 1":{name:"Perceptual-Motor Skills",kw:["body","reach","grasp","movement"]},
+      "PD 2":{name:"Gross Locomotor Skills",kw:["crawl","walk","move","sit","stand"]},
+      "PD 4":{name:"Fine Motor Skills",kw:["grasp","pinch","hold","finger"]}
+    }}
+  }
+};
+
+const SIZES = {square:{w:1080,h:1080,s:1},letter:{w:2550,h:3300,s:2.36}};
+let usedQuotes=[],generatedSlides=[],uploadedBgImg=null,uploadedBgImgs=[],uploadedSlidePhoto=null,uploadedSlidePhotos=[],uploadedSlidePhotoB64=null,uploadedSlidePhotosB64=[],assignedPhotos={},assignedPhotoList=[];
+let currentMode='text';
+
+function hexToRgb(h){const r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h);return r?{r:parseInt(r[1],16),g:parseInt(r[2],16),b:parseInt(r[3],16)}:null}
+function wrapText(ctx,text,maxW){const words=text.split(' ');const lines=[];let cur='';for(const w of words){const t=cur+(cur?' ':'')+w;if(ctx.measureText(t).width>maxW&&cur){lines.push(cur);cur=w;}else cur=t;}if(cur)lines.push(cur);return lines;}
+function parseSlideText(text){const slides=[];let cur=null;for(let line of text.split('\n')){line=line.trim();const m=line.match(/^Slide\s+(\d+):/i);if(m){if(cur)slides.push(cur);cur={number:parseInt(m[1]),title:'',subtitle:'',content:[]};continue;}if(!cur)continue;if(line.toLowerCase().startsWith('title:'))cur.title=line.slice(6).trim();else if(line.toLowerCase().startsWith('subtitle:'))cur.subtitle=line.slice(9).trim();else if(line.toLowerCase().startsWith('content:'))cur.content.push(line.slice(8).trim());}if(cur)slides.push(cur);return slides;}
+function parseContentLine(line){if(!line)return{type:'space'};if(line.endsWith(':'))return{type:'header',text:line};if(line.startsWith('•'))return{type:'bullet-dark',text:line.slice(1).trim()};if(line.startsWith('✓'))return{type:'bullet-accent',text:line.slice(1).trim()};return{type:'text',text:line};}
+function showStatus(msg,type){const s=document.getElementById('status');s.textContent=msg;s.className='status show '+type;}
+function downloadSlide(canvas,name){canvas.toBlob(b=>{if(!b)return;const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(u),100);},'image/jpeg',.95);}
+function escHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML.replace(/"/g,'&quot;');}
+function toggleAccordion(header){if(window.innerWidth>=900)return;header.closest('.accordion').classList.toggle('open');}
+function setInputMode(mode){currentMode=mode;document.getElementById('textModeBtn').classList.toggle('active',mode==='text');document.getElementById('fieldModeBtn').classList.toggle('active',mode==='fields');document.getElementById('textModeInput').style.display=mode==='text'?'block':'none';document.getElementById('fieldModeInput').style.display=mode==='fields'?'block':'none';if(mode==='fields')syncTextToFields();else syncFieldsToText();}
+function addSlideField(){const c=document.getElementById('slidesFieldContainer');const n=c.querySelectorAll('.slide-fields').length+1;const d=document.createElement('div');d.className='slide-fields';d.dataset.slide=n;d.innerHTML=`<div class="slide-field-header"><span>Slide ${n}</span><button type="button" class="remove-slide-btn" onclick="removeSlideField(this)">×</button></div><div class="field-group"><label>Title</label><input type="text" class="slide-title-field" placeholder="Main heading"></div><div class="field-group"><label>Subtitle <span class="optional">(optional)</span></label><input type="text" class="slide-subtitle-field" placeholder="Secondary heading"></div><div class="field-group"><label>Content</label><textarea class="slide-content-field" placeholder="One line per item"></textarea></div>`;c.appendChild(d);d.scrollIntoView({behavior:'smooth',block:'nearest'});}
+function removeSlideField(btn){const c=document.getElementById('slidesFieldContainer');if(c.children.length>1){btn.closest('.slide-fields').remove();renumberSlides();}}
+function renumberSlides(){const c=document.getElementById('slidesFieldContainer');c.querySelectorAll('.slide-fields').forEach((s,i)=>{s.dataset.slide=i+1;s.querySelector('.slide-field-header span').textContent=`Slide ${i+1}`;});}
+function syncTextToFields(){const slides=parseSlideText(document.getElementById('slideText').value);if(!slides.length)return;const c=document.getElementById('slidesFieldContainer');c.innerHTML='';slides.forEach((sl,i)=>{const d=document.createElement('div');d.className='slide-fields';d.dataset.slide=i+1;d.innerHTML=`<div class="slide-field-header"><span>Slide ${i+1}</span><button type="button" class="remove-slide-btn" onclick="removeSlideField(this)">×</button></div><div class="field-group"><label>Title</label><input type="text" class="slide-title-field" value="${escHtml(sl.title||'')}"></div><div class="field-group"><label>Subtitle</label><input type="text" class="slide-subtitle-field" value="${escHtml(sl.subtitle||'')}"></div><div class="field-group"><label>Content</label><textarea class="slide-content-field">${escHtml(sl.content.join('\n'))}</textarea></div>`;c.appendChild(d);});}
+function syncFieldsToText(){let txt='';document.getElementById('slidesFieldContainer').querySelectorAll('.slide-fields').forEach((d,i)=>{const t=d.querySelector('.slide-title-field').value;const sub=d.querySelector('.slide-subtitle-field').value;const con=d.querySelector('.slide-content-field').value;if(t||sub||con){txt+=`Slide ${i+1}:\n`;if(t)txt+=`title: ${t}\n`;if(sub)txt+=`subtitle: ${sub}\n`;con.split('\n').forEach(l=>{if(l.trim())txt+=`content: ${l}\n`;});txt+='\n';}});document.getElementById('slideText').value=txt.trim();}
+function getSlideText(){if(currentMode==='fields')syncFieldsToText();return document.getElementById('slideText').value;}
+function updatePhotoAssignUI(){const c=document.getElementById('photoAssignmentContainer');if(!c)return;if(!assignedPhotoList.length){c.innerHTML='<p class="help-text">No photos uploaded yet</p>';return;}const slides=parseSlideText(getSlideText());const sc=slides.length||5;const bonus=document.getElementById('includeBonusSlide')?.checked;let html='<div class="photo-assignment-grid">';assignedPhotoList.forEach((p,i)=>{let opts=`<option value="">No slide</option>`;for(let j=1;j<=sc;j++){const sel=assignedPhotos[j]?.idx===i?'selected':'';opts+=`<option value="${j}" ${sel}>Slide ${j}</option>`;}if(bonus){const sel=assignedPhotos['bonus']?.idx===i?'selected':'';opts+=`<option value="bonus" ${sel}>Bonus</option>`;}html+=`<div class="photo-assignment-row"><img src="${p.b64}"><span class="photo-name">${p.name}</span><select onchange="assignPhoto(${i},this.value)">${opts}</select></div>`;});html+='</div>';c.innerHTML=html;}
+function assignPhoto(idx,slide){for(const k in assignedPhotos)if(assignedPhotos[k]?.idx===idx)delete assignedPhotos[k];if(slide){const p=assignedPhotoList[idx];assignedPhotos[slide]={image:p.img,b64:p.b64,idx};}updatePhotoAssignUI();}
+function loadImg(file,cb){const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>cb(img,e.target.result);img.src=e.target.result;};r.readAsDataURL(file);}
+
+// Event listeners
+document.getElementById('photoPlacement').addEventListener('change',e=>{document.getElementById('photoUploadSection').style.display=e.target.value!=='none'?'block':'none';});
+document.getElementById('photoMode').addEventListener('change',e=>{['single','multiple','assign'].forEach(m=>document.getElementById(m+'PhotoUpload').style.display=e.target.value===m?'block':'none');if(e.target.value==='assign')updatePhotoAssignUI();});
+document.getElementById('backgroundStyle').addEventListener('change',e=>{document.getElementById('imageUploadSection').style.display=e.target.value==='image'?'block':'none';});
+document.getElementById('imageMode').addEventListener('change',e=>{document.getElementById('singleImageUpload').style.display=e.target.value==='single'?'block':'none';document.getElementById('multipleImageUpload').style.display=e.target.value==='multiple'?'block':'none';});
+document.getElementById('colorFamily').addEventListener('change',e=>{document.getElementById('customColors').style.display=e.target.value==='custom'?'block':'none';});
+document.getElementById('overlayOpacity').addEventListener('input',e=>{document.getElementById('overlayValue').textContent=e.target.value;});
+document.getElementById('enableDrdp')?.addEventListener('change',e=>{document.getElementById('drdpOptions').style.display=e.target.checked?'block':'none';});
+
+document.getElementById('analysisMode')?.addEventListener('change',e=>{document.getElementById('analysisModeHelp').textContent=e.target.value==='ai'?'AI analyzes photos and text for deeper insights.':'Fast keyword matching. No photo analysis.';});
+document.getElementById('includeBonusSlide')?.addEventListener('change',()=>{if(document.getElementById('photoMode')?.value==='assign')updatePhotoAssignUI();});
+document.getElementById('slidePhoto').addEventListener('change',e=>{if(e.target.files[0])loadImg(e.target.files[0],(img,b64)=>{uploadedSlidePhoto=img;uploadedSlidePhotoB64=b64;});});
+document.getElementById('slidePhotosMultiple').addEventListener('change',e=>{uploadedSlidePhotos=[];uploadedSlidePhotosB64=[];[...e.target.files].forEach((f,i)=>loadImg(f,(img,b64)=>{uploadedSlidePhotos[i]=img;uploadedSlidePhotosB64[i]=b64;}));});
+document.getElementById('slidePhotosAssign').addEventListener('change',async e=>{assignedPhotoList=[];assignedPhotos={};for(const f of e.target.files){await new Promise(res=>{loadImg(f,(img,b64)=>{assignedPhotoList.push({img,b64,name:f.name});res();});});}updatePhotoAssignUI();});
+document.getElementById('backgroundImage').addEventListener('change',e=>{if(e.target.files[0])loadImg(e.target.files[0],(img)=>uploadedBgImg=img);});
+document.getElementById('backgroundImagesMultiple').addEventListener('change',e=>{uploadedBgImgs=[];[...e.target.files].forEach((f,i)=>loadImg(f,(img)=>uploadedBgImgs[i]=img));});
+
+// DRDP
+function kwAnalysis(slides){
+  const db=DRDP[document.getElementById('ageGroup').value];
+  const map=new Map();
+  slides.forEach((sl,i)=>{
+    const txt=[sl.title,sl.subtitle,...sl.content].join(' ').toLowerCase();
+    for(const[dc,dom] of Object.entries(db)){
+      for(const[mc,m] of Object.entries(dom.measures)){
+        const score=m.kw.filter(k=>txt.includes(k)).length;
+        if(score<1)continue;
+        const lvl=txt.includes('independently')||txt.includes('on own')?'Integrating':txt.includes('with support')?'Building':'Building Middle';
+        if(!map.has(mc))map.set(mc,{code:mc,name:m.name,domain:dom.name,domainCode:dc,estimatedLevel:lvl,evidence:'Keyword match in text',slideNumbers:[i+1],score});
+        else{map.get(mc).slideNumbers.push(i+1);map.get(mc).score+=score;}
+      }
+    }
+  });
+  return{measures:[...map.values()].sort((a,b)=>b.score-a.score).slice(0,6),photoAnalysis:'',narrativeSummary:'Analysis based on keyword matching.'};
+}
+
+async function compressForAPI(b64url){
+  const MAX=3.5*1024*1024;
+  const data=b64url.split(',')[1]||b64url;
+  const raw=data.length/1.37;
+  if(raw<=MAX)return b64url;
+  return new Promise(res=>{
+    const img=new Image();
+    img.onload=()=>{
+      const c=document.createElement('canvas');
+      const ratio=Math.sqrt(MAX/raw)*0.9;
+      c.width=Math.round(img.width*ratio);c.height=Math.round(img.height*ratio);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      let result=c.toDataURL('image/jpeg',.92),q=.92;
+      while((result.split(',')[1].length/1.37)>MAX&&q>.5){q-=.05;result=c.toDataURL('image/jpeg',q);}
+      res(result);
+    };
+    img.onerror=()=>res(null);img.src=b64url;
+  });
+}
+
+async function aiAnalysis(slides,photoB64s){
+  const ag=document.getElementById('ageGroup').value;
+  const db=DRDP[ag];
+  let ref='';
+  for(const[dc,dom] of Object.entries(db))ref+=`${dc}: `+Object.entries(dom.measures).map(([c,m])=>`${c}-${m.name}`).join(', ')+'\n';
+  let content='';
+  slides.forEach((sl,i)=>{content+=`\nSlide ${i+1}: ${sl.title} ${sl.subtitle} ${sl.content.filter(c=>c).join(' ')}`;});
+  const hasPhotos=photoB64s.some(p=>p);
+  const prompt=`Analyze this early childhood documentation for DRDP (2025) measures.
+Age Group: ${ag==='ptk'?'Preschool/TK/K (3-6)':'Infant/Toddler (0-3)'}
+DRDP Measures:\n${ref}
+Documentation:${content}
+${hasPhotos?'Photos attached - describe what you observe.':'No photos.'}
+
+Return ONLY a JSON object. Use straight double quotes only. No apostrophes in values - rephrase instead. No newlines in string values. No trailing commas.
+{"measures":[{"code":"ATL 1","name":"measure name","domain":"domain name","domainCode":"ATL","estimatedLevel":"Building Middle","evidence":"brief evidence","slideNumbers":[1]}],"photoAnalysis":"brief description","narrativeSummary":"brief summary"}`;
+
+  const msgContent=[];
+  let photoCount=0;
+  for(const b64 of photoB64s){
+    if(!b64||photoCount>=3)continue;
+    try{const c=await compressForAPI(b64);if(!c)continue;msgContent.push({type:'image',source:{type:'base64',media_type:'image/jpeg',data:c.split(',')[1]}});photoCount++;}catch(e){console.warn('photo error',e);}
+  }
+  msgContent.push({type:'text',text:prompt});
+
+  const API_ENDPOINT='https://fulton-proxy.onrender.com';
+  const isClaudeArtifact=window.location.hostname.includes('claude.ai')||window.location.hostname.includes('claudeusercontent')||window.location.hostname.includes('anthropic')||document.referrer.includes('claude.ai');
+  async function callAPI(c,attempt=0){
+    const useBackend=API_ENDPOINT&&API_ENDPOINT.length>0;
+    const endpoint=useBackend?API_ENDPOINT:'https://api.anthropic.com/v1/messages';
+    const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),90000));
+    let fetchPromise;
+    if(useBackend){
+      if(attempt===0)showStatus('Connecting to AI (may take up to 60s on first use)...','info');
+      else showStatus('AI server is waking up, retrying...','info');
+      fetchPromise=fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:c})});
+    }else{
+      fetchPromise=fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-opus-4-5',max_tokens:1500,messages:[{role:'user',content:c}]})});
+    }
+    let r;
+    try{
+      r=await Promise.race([fetchPromise,timeout]);
+    }catch(e){
+      if(attempt<2){
+        showStatus('Connection failed, retrying in 5s... (attempt '+(attempt+2)+'/3)','info');
+        await new Promise(res=>setTimeout(res,5000));
+        return callAPI(c,attempt+1);
+      }
+      throw new Error('Failed to reach AI server after 3 attempts. The server may be starting up. Wait 60 seconds and try again.');
+    }
+    if(!r.ok){const t=await r.text();console.error('API error:',r.status,t);throw new Error(`API ${r.status}: ${t}`);}
+    return r.json();
+  }
+
+  try{
+    let data;
+    try{data=await callAPI(msgContent);}
+    catch(e){
+      const isPhotoError=photoCount>0&&(e.message.includes('400')||e.message.includes('image')||e.message.includes('media'));
+      if(isPhotoError){showStatus('Retrying without photos...','info');data=await callAPI([{type:'text',text:prompt.replace('Photos attached - describe what you observe.','No photos.')}]);}
+      else throw e;
+    }
+    let txt=data.content[0].text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+    const m=txt.match(/\{[\s\S]*\}/);if(!m)throw new Error('No JSON');
+    let js=m[0].replace(/[\u201C\u201D]/g,'"').replace(/[\u2018\u2019]/g,"'").replace(/,\s*([}\]])/g,'$1');
+    js=js.replace(/([^"\\])\n/g,'$1 ').replace(/([^"\\])\t/g,'$1 ');
+    try{return JSON.parse(js);}
+    catch(pe){
+      console.warn('JSON parse failed, extracting fields:',pe.message);
+      const measures=[];
+      js.split(/(?<=\}),\s*(?=\{)/).forEach(chunk=>{
+        if(!/"code"/.test(chunk))return;
+        const get=k=>chunk.match(new RegExp(`"${k}"\\s*:\\s*"([^"]*)"`)) ?.[1]||'';
+        const nums=[...(chunk.match(/"slideNumbers"\s*:\s*\[([^\]]*)\]/)?.[1]||'').matchAll(/\d+/g)].map(m=>+m[0]);
+        measures.push({code:get('code'),name:get('name'),domain:get('domain'),domainCode:get('domainCode'),estimatedLevel:get('estimatedLevel'),evidence:get('evidence'),slideNumbers:nums});
+      });
+      if(!measures.length)throw new Error('No measures: '+pe.message);
+      return{measures,photoAnalysis:js.match(/"photoAnalysis"\s*:\s*"([^"]*)"/)?.[1]||'',narrativeSummary:js.match(/"narrativeSummary"\s*:\s*"([^"]*)"/)?.[1]||''};
+    }
+  }catch(e){console.error('AI failed:',e);throw new Error('AI failed: '+e.message);}
+}
+
+function renderSlide(canvas,slide,idx,total,opts){
+  const ctx=canvas.getContext('2d');
+  const{w,h,s}=SIZES[opts.size];
+  const tm={small:.75,medium:1,large:1.25}[opts.textSize];
+  canvas.width=w;canvas.height=h;
+  const mg=Math.round(80*s);
+
+  if(opts.bgStyle==='none'){ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);}
+  else if(opts.bgStyle==='image'&&opts.bgImg){ctx.drawImage(opts.bgImg,0,0,w,h);if(opts.overlayOn){const rgb=hexToRgb(opts.palette.bg);ctx.fillStyle=`rgba(${rgb.r},${rgb.g},${rgb.b},${opts.overlayOp/100})`;ctx.fillRect(0,0,w,h);}}
+  else if(opts.bgStyle==='gradient'){const g=ctx.createLinearGradient(0,0,0,h);const rgb=hexToRgb(opts.palette.accent);g.addColorStop(0,opts.palette.bg);g.addColorStop(1,`rgba(${rgb.r},${rgb.g},${rgb.b},.3)`);ctx.fillStyle=g;ctx.fillRect(0,0,w,h);}
+  else{ctx.fillStyle=opts.palette.bg;ctx.fillRect(0,0,w,h);}
+
+  if(opts.bgStyle!=='image'&&opts.bgStyle!=='none'&&opts.photoPos==='none'){const rgb=hexToRgb(opts.palette.accent);ctx.fillStyle=`rgba(${rgb.r},${rgb.g},${rgb.b},.25)`;ctx.beginPath();ctx.arc(w-Math.round(100*s),Math.round(100*s),Math.round(150*s),0,Math.PI*2);ctx.fill();}
+
+  let y=mg+Math.round(60*s),textEndY=h-Math.round(100*s),tLeft=mg,tRight=w-mg;
+  const ph=opts.slidePhoto;
+  let pX,pY,pW,pH2;
+
+  if(ph&&opts.photoPos!=='none'){
+    const pa=ph.width/ph.height;
+    if(opts.photoPos==='top'){pH2=Math.round(h*.6);pW=pH2*pa;pX=(w-pW)/2;pY=mg;y=pY+pH2+Math.round(60*s);}
+    else if(opts.photoPos==='bottom'){pH2=Math.round(h*.6);pW=pH2*pa;if(pW>w-mg*2){pW=w-mg*2;pH2=pW/pa;}pX=(w-pW)/2;pY=h-pH2-mg;textEndY=pY-Math.round(20*s);y=mg;}
+    else if(opts.photoPos==='left'||opts.photoPos==='right'){pW=Math.round(w*.4);pH2=pW/pa;pX=opts.photoPos==='left'?mg:w-pW-mg;}
+    else if(opts.photoPos==='center'){const mx=Math.round(Math.min(w,h)*.65);pW=pa<1?mx*pa:mx;pH2=pa<1?mx:mx/pa;pX=(w-pW)/2;pY=(h-pH2)/2;}
+    if(opts.photoPos!=='left'&&opts.photoPos!=='right'&&!slide.isBonus){ctx.save();ctx.beginPath();ctx.roundRect(pX,pY,pW,pH2,12);ctx.clip();ctx.drawImage(ph,pX,pY,pW,pH2);ctx.restore();ctx.strokeStyle=opts.palette.accent;ctx.lineWidth=4;ctx.beginPath();ctx.roundRect(pX,pY,pW,pH2,12);ctx.stroke();}
+  }
+
+  let tW=tRight-tLeft;
+  const align=opts.textAlign;
+  const tX=()=>align==='center'?tLeft+tW/2:align==='right'?tRight:tLeft;
+
+  ctx.font=`bold ${Math.round(64*s*tm)}px ${opts.fonts.title},sans-serif`;
+  ctx.fillStyle=opts.palette.dark;ctx.textAlign=align;ctx.textBaseline='top';
+  const tLines=wrapText(ctx,slide.title||'',tW);
+  const tH=tLines.length*Math.round(76*s*tm);
+  if(ph&&opts.photoPos==='center'){const rgb=hexToRgb(opts.palette.bg);ctx.fillStyle=`rgba(${rgb.r},${rgb.g},${rgb.b},.65)`;ctx.beginPath();ctx.roundRect(tLeft-Math.round(15*s),y-Math.round(10*s),tW+Math.round(30*s),tH+Math.round(15*s),8);ctx.fill();}
+  ctx.fillStyle=opts.palette.dark;
+  for(const l of tLines){ctx.fillText(l,tX(),y);y+=Math.round(76*s*tm);}
+  y+=Math.round(40*s);
+
+  if(slide.subtitle){
+    ctx.font=`600 ${Math.round(36*s*tm)}px ${opts.fonts.body},sans-serif`;
+    ctx.fillStyle=opts.palette.accent;ctx.textAlign=align;
+    const sLines=wrapText(ctx,slide.subtitle,tW);
+    const sH=sLines.length*Math.round(44*s*tm);
+    if(ph&&opts.photoPos==='center'){const rgb=hexToRgb(opts.palette.bg);ctx.fillStyle=`rgba(${rgb.r},${rgb.g},${rgb.b},.65)`;ctx.beginPath();ctx.roundRect(tLeft-Math.round(15*s),y-Math.round(10*s),tW+Math.round(30*s),sH+Math.round(15*s),8);ctx.fill();ctx.fillStyle=opts.palette.accent;}
+    for(const l of sLines){ctx.fillText(l,tX(),y);y+=Math.round(44*s*tm);}
+    y+=Math.round(15*s);
+  }
+
+  if(ph&&(opts.photoPos==='left'||opts.photoPos==='right')&&!slide.isBonus){
+    pY=y+Math.round(60*s);
+    ctx.save();ctx.beginPath();ctx.roundRect(pX,pY,pW,pH2,12);ctx.clip();ctx.drawImage(ph,pX,pY,pW,pH2);ctx.restore();
+    ctx.strokeStyle=opts.palette.accent;ctx.lineWidth=4;ctx.beginPath();ctx.roundRect(pX,pY,pW,pH2,12);ctx.stroke();
+    if(opts.photoPos==='left')tLeft=pX+pW+Math.round(60*s);else tRight=pX-Math.round(60*s);
+    tW=tRight-tLeft;y=pY;textEndY=pY+pH2;
+  }
+  y+=Math.round(40*s);
+
+  if(slide.isBonus){
+    if(ph&&opts.photoPos!=='none'&&opts.photoPos!=='center'){
+      const pa=ph.width/ph.height;const mx=Math.round(Math.min(w,h)*.85);
+      const bW=pa<1?mx*pa:mx;const bH=pa<1?mx:mx/pa;
+      const bX=(w-bW)/2;const bY=(h-bH)/2;
+      ctx.save();ctx.beginPath();ctx.roundRect(bX,bY,bW,bH,12);ctx.clip();ctx.drawImage(ph,bX,bY,bW,bH);ctx.restore();
+      ctx.strokeStyle=opts.palette.accent;ctx.lineWidth=4;ctx.beginPath();ctx.roundRect(bX,bY,bW,bH,12);ctx.stroke();
+    }
+    const qY=h/2-Math.round(100*s);
+    ctx.font=`italic ${Math.round(42*s*tm)}px ${opts.fonts.body},sans-serif`;ctx.fillStyle=opts.palette.dark;ctx.textAlign='center';
+    const qLines=wrapText(ctx,`"${slide.quote}"`,w-mg*3);let qy=qY;
+    if(ph&&opts.photoPos!=='none'){const rgb=hexToRgb(opts.palette.bg);ctx.fillStyle=`rgba(${rgb.r},${rgb.g},${rgb.b},.65)`;ctx.beginPath();ctx.roundRect(mg+Math.round(40*s),qy-Math.round(30*s),w-mg*2-Math.round(80*s),qLines.length*Math.round(56*s*tm)+Math.round(150*s),12);ctx.fill();ctx.fillStyle=opts.palette.dark;}
+    for(const l of qLines){ctx.fillText(l,w/2,qy);qy+=Math.round(56*s*tm);}
+    qy+=Math.round(40*s);ctx.font=`600 ${Math.round(32*s*tm)}px ${opts.fonts.body},sans-serif`;ctx.fillStyle=opts.palette.accent;ctx.fillText(`— ${slide.author}`,w/2,qy);
+  }else{
+    ctx.textAlign=align;
+    for(const item of slide.content){
+      if(y>textEndY-Math.round(50*s))break;
+      const p=parseContentLine(item);
+      if(p.type==='space'){y+=Math.round(30*s);continue;}
+      const cX=tX();
+      if(p.type==='header'){
+        ctx.font=`600 ${Math.round(38*s*tm)}px ${opts.fonts.body},sans-serif`;
+        const lines=wrapText(ctx,p.text,tW);
+        if(ph&&opts.photoPos==='center'){const rgb=hexToRgb(opts.palette.bg);ctx.fillStyle=`rgba(${rgb.r},${rgb.g},${rgb.b},.65)`;ctx.beginPath();ctx.roundRect(tLeft-Math.round(15*s),y-Math.round(10*s),tW+Math.round(30*s),lines.length*Math.round(48*s*tm)+Math.round(20*s),8);ctx.fill();}
+        ctx.fillStyle=opts.palette.dark;for(const l of lines){ctx.fillText(l,cX,y);y+=Math.round(48*s*tm);}y+=Math.round(20*s);
+      }else if(p.type==='bullet-dark'||p.type==='bullet-accent'){
+        ctx.font=`400 ${Math.round(32*s*tm)}px ${opts.fonts.body},sans-serif`;
+        const lines=wrapText(ctx,p.text,tW-Math.round(40*s));
+        if(ph&&opts.photoPos==='center'){const rgb=hexToRgb(opts.palette.bg);ctx.fillStyle=`rgba(${rgb.r},${rgb.g},${rgb.b},.65)`;ctx.beginPath();ctx.roundRect(tLeft-Math.round(15*s),y-Math.round(8*s),tW+Math.round(30*s),lines.length*Math.round(42*s*tm)+Math.round(18*s),8);ctx.fill();}
+        ctx.fillStyle=p.type==='bullet-accent'?opts.palette.accent:opts.palette.dark;ctx.textAlign='left';ctx.fillText(p.type==='bullet-accent'?'✓':'•',tLeft,y);
+        ctx.fillStyle=opts.palette.dark;for(let i=0;i<lines.length;i++){ctx.fillText(lines[i],tLeft+Math.round(40*s),y);if(i<lines.length-1)y+=Math.round(42*s*tm);}ctx.textAlign=align;y+=Math.round(60*s*tm);
+      }else{
+        ctx.font=`400 ${Math.round(32*s*tm)}px ${opts.fonts.body},sans-serif`;
+        const lines=wrapText(ctx,p.text,tW);
+        if(ph&&opts.photoPos==='center'){const rgb=hexToRgb(opts.palette.bg);ctx.fillStyle=`rgba(${rgb.r},${rgb.g},${rgb.b},.65)`;ctx.beginPath();ctx.roundRect(tLeft-Math.round(15*s),y-Math.round(8*s),tW+Math.round(30*s),lines.length*Math.round(42*s*tm)+Math.round(30*s),8);ctx.fill();}
+        ctx.fillStyle=opts.palette.dark;for(const l of lines){ctx.fillText(l,cX,y);y+=Math.round(42*s*tm);}y+=Math.round(30*s);
+      }
+    }
+  }
+
+  if(opts.showFootnote&&slide.drdpMeasures?.length){ctx.fillStyle=opts.palette.accent;ctx.font=`500 ${Math.round(20*s)}px ${opts.fonts.body},sans-serif`;ctx.textAlign='left';ctx.fillText('DRDP: '+slide.drdpMeasures.slice(0,2).join(', '),mg,h-Math.round(80*s));}
+
+  const fy=h-Math.round(50*s);
+  ctx.font=`400 ${Math.round(24*s*tm)}px ${opts.fonts.body},sans-serif`;
+  const drk=hexToRgb(opts.palette.dark);ctx.fillStyle=`rgba(${drk.r},${drk.g},${drk.b},.6)`;
+  if(!slide.isBonus&&opts.showNums){ctx.textAlign='left';ctx.fillText(`${idx+1}/${total}`,mg,fy);}
+  let dateStr='';
+  if(opts.date&&opts.datePos!=='none'){const d=new Date(opts.date+'T00:00:00');dateStr=d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});}
+  ctx.textAlign='right';ctx.fillText(opts.datePos==='footer'&&dateStr?`${opts.brand}  •  ${dateStr}`:opts.brand,w-mg,fy);
+  if(opts.datePos==='header'&&dateStr){ctx.font=`400 ${Math.round(22*s*tm)}px ${opts.fonts.body},sans-serif`;ctx.fillStyle=`rgba(${drk.r},${drk.g},${drk.b},.5)`;ctx.textAlign='right';ctx.fillText(dateStr,w-mg,mg);}
+}
+
+function renderSummarySlide(canvas,analysis,opts){
+  const ctx=canvas.getContext('2d');const{w,h,s}=SIZES[opts.size];
+  canvas.width=w;canvas.height=h;const mg=Math.round(80*s);
+  ctx.fillStyle='#FAFAFA';ctx.fillRect(0,0,w,h);
+  ctx.fillStyle=opts.palette.accent;ctx.fillRect(0,0,w,Math.round(110*s));
+  ctx.fillStyle='white';ctx.font=`600 ${Math.round(38*s)}px ${opts.fonts.title},serif`;ctx.textAlign='center';ctx.fillText('DRDP (2025) Measures Identified',w/2,Math.round(72*s));
+  let y=Math.round(150*s);const textW=w-mg*2;
+  const bodyF=`400 ${Math.round(22*s)}px ${opts.fonts.body},sans-serif`;
+  const labelF=`600 ${Math.round(22*s)}px ${opts.fonts.body},sans-serif`;
+  const lineH=Math.round(32*s);
+  const drawBlock=(text,font,color)=>{ctx.font=font;ctx.fillStyle=color;ctx.textAlign='left';for(const l of wrapText(ctx,text,textW)){ctx.fillText(l,mg,y);y+=lineH;}};
+  const photo=analysis.photoAnalysis;
+  if(photo&&photo!=='No photos.'&&photo!=='No photos analyzed (fallback mode)'&&photo!==''){ctx.fillStyle=opts.palette.accent;ctx.font=labelF;ctx.textAlign='left';ctx.fillText('📷 Photo Analysis',mg,y);y+=Math.round(34*s);drawBlock(photo,bodyF,'#444');y+=Math.round(18*s);}
+  const summ=analysis.narrativeSummary;
+  if(summ&&summ!=='2 sentence summary'&&summ!==''){ctx.fillStyle=opts.palette.accent;ctx.font=labelF;ctx.textAlign='left';ctx.fillText('📝 Summary',mg,y);y+=Math.round(34*s);drawBlock(summ,`italic ${bodyF}`,'#444');y+=Math.round(18*s);}
+  ctx.strokeStyle=opts.palette.accent;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(mg,y);ctx.lineTo(w-mg,y);ctx.stroke();y+=Math.round(35*s);
+  ctx.fillStyle=opts.palette.accent;ctx.font=labelF;ctx.textAlign='left';ctx.fillText('📊 Measures Observed',mg,y);y+=Math.round(35*s);
+  for(const m of analysis.measures){
+    if(y>h-Math.round(100*s))break;
+    ctx.fillStyle=opts.palette.accent;ctx.font=`600 ${Math.round(16*s)}px ${opts.fonts.body},sans-serif`;
+    const bw=ctx.measureText(m.domainCode).width+Math.round(16*s);
+    ctx.beginPath();ctx.roundRect(mg,y-Math.round(18*s),bw,Math.round(24*s),4);ctx.fill();
+    ctx.fillStyle='white';ctx.fillText(m.domainCode,mg+Math.round(8*s),y);
+    ctx.fillStyle=opts.palette.dark;ctx.font=`600 ${Math.round(24*s)}px ${opts.fonts.body},sans-serif`;ctx.fillText(`${m.code}: ${m.name}`,mg+bw+Math.round(12*s),y);
+    y+=Math.round(28*s);ctx.font=`400 ${Math.round(18*s)}px ${opts.fonts.body},sans-serif`;ctx.fillStyle='#666';
+    ctx.font=`400 ${Math.round(18*s)}px ${opts.fonts.body},sans-serif`;ctx.fillStyle=opts.palette.text;ctx.textAlign="left";for(const evLine of wrapText(ctx,(m.evidence||""),textW-Math.round(10*s))){ctx.fillText(evLine,mg+Math.round(10*s),y);y+=Math.round(28*s);}
+    y+=Math.round(35*s);
+  }
+  const drk=hexToRgb(opts.palette.dark);ctx.fillStyle=`rgba(${drk.r},${drk.g},${drk.b},.6)`;ctx.font=`400 ${Math.round(24*s)}px ${opts.fonts.body},sans-serif`;ctx.textAlign='right';ctx.fillText(opts.brand,w-mg,h-Math.round(50*s));
+}
+
+document.getElementById('generateBtn').addEventListener('click',async()=>{
+  const btn=document.getElementById('generateBtn');
+  btn.disabled=true;btn.classList.add('loading');btn.textContent='Generating...';
+  try{
+    const text=getSlideText();const slides=parseSlideText(text);
+    if(!slides.length){showStatus('No slides found. Add slide content first.','error');return;}
+    const cf=document.getElementById('colorFamily').value;
+    const palette=cf==='custom'?{bg:document.getElementById('bgColor').value,accent:document.getElementById('accentColor').value,dark:document.getElementById('darkColor').value}:COLOR_FAMILIES[cf];
+    const photoMode=document.getElementById('photoMode').value;const imgMode=document.getElementById('imageMode').value;const photoPos=document.getElementById('photoPlacement').value;
+    const getSlidePhoto=(i)=>{if(photoPos==='none')return null;if(photoMode==='single')return uploadedSlidePhoto;if(photoMode==='multiple')return uploadedSlidePhotos[i]||uploadedSlidePhotos[uploadedSlidePhotos.length-1]||null;if(photoMode==='assign')return assignedPhotos[i+1]?.image||null;return null;};
+    const getBgImg=(i)=>{if(document.getElementById('backgroundStyle').value!=='image')return null;if(imgMode==='single')return uploadedBgImg;return uploadedBgImgs[i]||uploadedBgImgs[uploadedBgImgs.length-1]||null;};
+    const opts={brand:document.getElementById('brandName').value,date:document.getElementById('slideDate').value,datePos:document.getElementById('datePosition').value,size:document.getElementById('slideSize').value,textSize:document.getElementById('textSize').value,textAlign:document.getElementById('textAlign').value,showNums:document.getElementById('showSlideNumbers').checked,photoPos,bgStyle:document.getElementById('backgroundStyle').value,overlayOn:document.getElementById('overlayToggle').checked,overlayOp:parseInt(document.getElementById('overlayOpacity').value),palette,fonts:{title:document.getElementById('titleFont').value,body:document.getElementById('bodyFont').value},showFootnote:document.getElementById('showFootnotes').checked};
+    const enableDrdp=document.getElementById('enableDrdp').checked;const mode=document.getElementById('analysisMode')?.value||'ai';let drdpResult=null;
+    const photoB64s=slides.map((_,i)=>{if(photoPos==='none')return null;if(photoMode==='single')return uploadedSlidePhotoB64;if(photoMode==='multiple')return uploadedSlidePhotosB64[i]||uploadedSlidePhotosB64[uploadedSlidePhotosB64.length-1]||null;if(photoMode==='assign')return assignedPhotos[i+1]?.b64||null;return null;});
+    if(enableDrdp){btn.textContent=mode==='ai'?'Analyzing with AI...':'Matching keywords...';showStatus(mode==='ai'?'Analyzing for DRDP measures...':'Matching DRDP keywords...','info');drdpResult=mode==='ai'?await aiAnalysis(slides,photoB64s):kwAnalysis(slides);if(drdpResult?.measures)slides.forEach((sl,i)=>{sl.drdpMeasures=drdpResult.measures.filter(m=>m.slideNumbers?.includes(i+1)).map(m=>m.code);});}
+    btn.textContent='Rendering slides...';generatedSlides=[];const grid=document.getElementById('slidesGrid');grid.innerHTML='';const total=slides.length;
+    for(let i=0;i<slides.length;i++){
+      const canvas=document.createElement('canvas');renderSlide(canvas,slides[i],i,total,{...opts,slidePhoto:getSlidePhoto(i),bgImg:getBgImg(i)});
+      const card=document.createElement('div');card.className='slide-card';const top=slides[i].drdpMeasures?.[0]||null;
+      card.innerHTML=`<div class="download-btn">↓</div><div class="slide-info"><span class="slide-number">Slide ${slides[i].number}</span>${top?`<span class="drdp-badge">${top}</span>`:''}</div>`;
+      card.insertBefore(canvas,card.firstChild);card.querySelector('.download-btn').addEventListener('click',e=>{e.stopPropagation();downloadSlide(canvas,`slide-${String(slides[i].number).padStart(2,'0')}.jpg`);});
+      grid.appendChild(card);generatedSlides.push(canvas);
+    }
+    if(document.getElementById('includeBonusSlide').checked){
+      const q=generateBonusQuote();const bCanvas=document.createElement('canvas');
+      const bonusPhoto=photoMode==='assign'?assignedPhotos['bonus']?.image||null:photoMode==='single'?uploadedSlidePhoto:uploadedSlidePhotos[uploadedSlidePhotos.length-1]||uploadedSlidePhoto;
+      renderSlide(bCanvas,{isBonus:true,title:'',subtitle:'',content:[],quote:q.quote,author:q.author},slides.length,total,{...opts,slidePhoto:bonusPhoto,bgImg:getBgImg(slides.length)});
+      const bCard=document.createElement('div');bCard.className='slide-card bonus';bCard.innerHTML=`<div class="download-btn">↓</div><div class="slide-info"><span class="slide-number">Bonus Quote</span></div>`;
+      bCard.insertBefore(bCanvas,bCard.firstChild);bCard.querySelector('.download-btn').addEventListener('click',e=>{e.stopPropagation();downloadSlide(bCanvas,'slide-bonus-quote.jpg');});
+      grid.appendChild(bCard);generatedSlides.push(bCanvas);
+    }
+    if(enableDrdp&&document.getElementById('addSummaryPage').checked&&drdpResult?.measures?.length){
+      const sCanvas=document.createElement('canvas');renderSummarySlide(sCanvas,drdpResult,opts);
+      const sCard=document.createElement('div');sCard.className='slide-card';sCard.innerHTML=`<div class="download-btn">↓</div><div class="slide-info"><span class="slide-number">DRDP Summary</span></div>`;
+      sCard.insertBefore(sCanvas,sCard.firstChild);sCard.querySelector('.download-btn').addEventListener('click',e=>{e.stopPropagation();downloadSlide(sCanvas,'slide-drdp-summary.jpg');});
+      grid.appendChild(sCard);generatedSlides.push(sCanvas);
+    }
+    if(enableDrdp&&drdpResult)displayDRDP(drdpResult);else document.getElementById('drdpPanel').style.display='none';
+    document.getElementById('results').classList.add('show');document.getElementById('slideCount').textContent=generatedSlides.length;
+    document.getElementById('downloadAllBtn').style.display='inline-block';document.getElementById('downloadPdfBtn').style.display='inline-block';
+    showStatus(`✓ Generated ${generatedSlides.length} slides!`,'success');
+  }catch(e){console.error(e);showStatus('Error: '+e.message,'error');}
+  finally{btn.disabled=false;btn.classList.remove('loading');btn.textContent='Generate Slides';}
+});
+
+function displayDRDP(r){
+  const panel=document.getElementById('drdpPanel');const div=document.getElementById('drdpResults');
+  if(!r?.measures?.length){panel.style.display='none';return;}
+  let html='';
+  if(r.photoAnalysis&&r.photoAnalysis!=='No photos.'&&r.photoAnalysis!=='')html+=`<div class="drdp-photo-analysis"><strong>📷 Photo Analysis:</strong><p>${r.photoAnalysis}</p></div>`;
+  if(r.narrativeSummary&&r.narrativeSummary!=='')html+=`<div class="drdp-narrative"><strong>📝 Summary:</strong><p>${r.narrativeSummary}</p></div>`;
+  html+='<div class="drdp-measures-list">';
+  for(const m of r.measures)html+=`<div class="drdp-result"><span class="drdp-domain">${m.domainCode}</span> <strong>${m.code}:</strong> ${m.name}<div class="drdp-level">${m.estimatedLevel}</div><div class="drdp-evidence">${m.evidence||''}</div>${m.slideNumbers?`<div class="drdp-slides">Slides: ${m.slideNumbers.join(', ')}</div>`:''}</div>`;
+  html+='</div>';div.innerHTML=html;panel.style.display='block';
+}
+
+document.getElementById('downloadAllBtn').addEventListener('click',()=>{generatedSlides.forEach((c,i)=>setTimeout(()=>downloadSlide(c,`slide-${String(i+1).padStart(2,'0')}.jpg`),i*300));});
+
+document.getElementById('downloadPdfBtn').addEventListener('click',async()=>{
+  const btn=document.getElementById('downloadPdfBtn');btn.disabled=true;btn.textContent='Creating PDF...';
+  try{
+    showStatus('Generating PDF...','info');const pdf=await buildPDF(generatedSlides);
+    const blob=new Blob([pdf],{type:'application/pdf'});const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=`slides-${new Date().toISOString().slice(0,10)}.pdf`;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showStatus('✓ PDF downloaded!','success');
+  }catch(e){showStatus('PDF error: '+e.message,'error');}
+  finally{btn.disabled=false;btn.textContent='Download PDF';}
+});
+
+async function buildPDF(canvases){
+  const enc=new TextEncoder();const parts=[];let offset=0;const offsets=[];const objects=[];let oNum=1;
+  const addObj=content=>{objects.push({num:oNum++,content});return oNum-1;};
+  addObj('<<\n/Type /Catalog\n/Pages 2 0 R\n>>');addObj('');
+  const pageRefs=[];const imgData=[];
+  for(let i=0;i<canvases.length;i++){
+    const c=canvases[i];const b64=c.toDataURL('image/jpeg',.92).split(',')[1];const bin=atob(b64);
+    const iNum=addObj(`<<\n/Type /XObject\n/Subtype /Image\n/Width ${c.width}\n/Height ${c.height}\n/ColorSpace /DeviceRGB\n/BitsPerComponent 8\n/Filter /DCTDecode\n/Length ${bin.length}\n>>\nstream\n`);
+    imgData.push({num:iNum,bin});
+    const cs=`q\n${c.width} 0 0 ${c.height} 0 0 cm\n/Img${i} Do\nQ\n`;
+    const cNum=addObj(`<<\n/Length ${cs.length}\n>>\nstream\n${cs}\nendstream`);
+    const pNum=addObj(`<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [0 0 ${c.width} ${c.height}]\n/Contents ${cNum} 0 R\n/Resources <<\n/XObject << /Img${i} ${iNum} 0 R >>\n>>\n>>`);
+    pageRefs.push(`${pNum} 0 R`);
+  }
+  objects[1].content=`<<\n/Type /Pages\n/Kids [${pageRefs.join(' ')}]\n/Count ${canvases.length}\n>>`;
+  const header='%PDF-1.4\n%\xFF\xFF\xFF\xFF\n';parts.push(enc.encode(header));offset+=header.length;
+  for(const obj of objects){
+    offsets.push(offset);const img=imgData.find(d=>d.num===obj.num);
+    if(img){const pre=`${obj.num} 0 obj\n${obj.content}`;parts.push(enc.encode(pre));offset+=pre.length;const ba=new Uint8Array(img.bin.length);for(let i=0;i<img.bin.length;i++)ba[i]=img.bin.charCodeAt(i);parts.push(ba);offset+=ba.length;const post='\nendstream\nendobj\n';parts.push(enc.encode(post));offset+=post.length;}
+    else{const s=`${obj.num} 0 obj\n${obj.content}\nendobj\n`;parts.push(enc.encode(s));offset+=s.length;}
+  }
+  const xrefOff=offset;let xref=`xref\n0 ${objects.length+1}\n0000000000 65535 f \n`;
+  for(const o of offsets)xref+=`${String(o).padStart(10,'0')} 00000 n \n`;parts.push(enc.encode(xref));
+  const trailer=`trailer\n<<\n/Size ${objects.length+1}\n/Root 1 0 R\n>>\nstartxref\n${xrefOff}\n%%EOF`;parts.push(enc.encode(trailer));
+  const total=parts.reduce((s,p)=>s+p.length,0);const result=new Uint8Array(total);let off=0;
+  for(const p of parts){result.set(p,off);off+=p.length;}return result;
+}
+
+document.getElementById('slideDate').value=new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>
