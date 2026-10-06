@@ -687,14 +687,28 @@ Return ONLY a JSON object. Use straight double quotes only. No apostrophes in va
 
   const API_ENDPOINT='https://fulton-proxy.onrender.com';
   const isClaudeArtifact=window.location.hostname.includes('claude.ai')||window.location.hostname.includes('claudeusercontent')||window.location.hostname.includes('anthropic')||document.referrer.includes('claude.ai');
-  async function callAPI(c){
+  async function callAPI(c,attempt=0){
     const useBackend=API_ENDPOINT&&API_ENDPOINT.length>0;
     const endpoint=useBackend?API_ENDPOINT:'https://api.anthropic.com/v1/messages';
-    let r;
+    const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),90000));
+    let fetchPromise;
     if(useBackend){
-      r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:c})});
+      if(attempt===0)showStatus('Connecting to AI (may take up to 60s on first use)...','info');
+      else showStatus('AI server is waking up, retrying...','info');
+      fetchPromise=fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:c})});
     }else{
-      r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,messages:[{role:'user',content:c}]})});
+      fetchPromise=fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-opus-4-5',max_tokens:1500,messages:[{role:'user',content:c}]})});
+    }
+    let r;
+    try{
+      r=await Promise.race([fetchPromise,timeout]);
+    }catch(e){
+      if(attempt<2){
+        showStatus('Connection failed, retrying in 5s... (attempt '+(attempt+2)+'/3)','info');
+        await new Promise(res=>setTimeout(res,5000));
+        return callAPI(c,attempt+1);
+      }
+      throw new Error('Failed to reach AI server after 3 attempts. The server may be starting up. Wait 60 seconds and try again.');
     }
     if(!r.ok){const t=await r.text();console.error('API error:',r.status,t);throw new Error(`API ${r.status}: ${t}`);}
     return r.json();
@@ -703,7 +717,11 @@ Return ONLY a JSON object. Use straight double quotes only. No apostrophes in va
   try{
     let data;
     try{data=await callAPI(msgContent);}
-    catch(e){if(photoCount>0){showStatus('Retrying without photos...','info');data=await callAPI([{type:'text',text:prompt.replace('Photos attached - describe what you observe.','No photos.')}]);}else throw e;}
+    catch(e){
+      const isPhotoError=photoCount>0&&(e.message.includes('400')||e.message.includes('image')||e.message.includes('media'));
+      if(isPhotoError){showStatus('Retrying without photos...','info');data=await callAPI([{type:'text',text:prompt.replace('Photos attached - describe what you observe.','No photos.')}]);}
+      else throw e;
+    }
     let txt=data.content[0].text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
     const m=txt.match(/\{[\s\S]*\}/);if(!m)throw new Error('No JSON');
     let js=m[0].replace(/[\u201C\u201D]/g,'"').replace(/[\u2018\u2019]/g,"'").replace(/,\s*([}\]])/g,'$1');
@@ -721,7 +739,7 @@ Return ONLY a JSON object. Use straight double quotes only. No apostrophes in va
       if(!measures.length)throw new Error('No measures: '+pe.message);
       return{measures,photoAnalysis:js.match(/"photoAnalysis"\s*:\s*"([^"]*)"/)?.[1]||'',narrativeSummary:js.match(/"narrativeSummary"\s*:\s*"([^"]*)"/)?.[1]||''};
     }
-  }catch(e){console.error('AI failed:',e);showStatus('AI error: '+e.message+' — falling back to keyword matching','error');return kwAnalysis(slides);}
+  }catch(e){console.error('AI failed:',e);throw new Error('AI failed: '+e.message);}
 }
 
 function renderSlide(canvas,slide,idx,total,opts){
@@ -879,7 +897,7 @@ document.getElementById('generateBtn').addEventListener('click',async()=>{
     const getSlidePhoto=(i)=>{if(photoPos==='none')return null;if(photoMode==='single')return uploadedSlidePhoto;if(photoMode==='multiple')return uploadedSlidePhotos[i]||uploadedSlidePhotos[uploadedSlidePhotos.length-1]||null;if(photoMode==='assign')return assignedPhotos[i+1]?.image||null;return null;};
     const getBgImg=(i)=>{if(document.getElementById('backgroundStyle').value!=='image')return null;if(imgMode==='single')return uploadedBgImg;return uploadedBgImgs[i]||uploadedBgImgs[uploadedBgImgs.length-1]||null;};
     const opts={brand:document.getElementById('brandName').value,date:document.getElementById('slideDate').value,datePos:document.getElementById('datePosition').value,size:document.getElementById('slideSize').value,textSize:document.getElementById('textSize').value,textAlign:document.getElementById('textAlign').value,showNums:document.getElementById('showSlideNumbers').checked,photoPos,bgStyle:document.getElementById('backgroundStyle').value,overlayOn:document.getElementById('overlayToggle').checked,overlayOp:parseInt(document.getElementById('overlayOpacity').value),palette,fonts:{title:document.getElementById('titleFont').value,body:document.getElementById('bodyFont').value},showFootnote:document.getElementById('showFootnotes').checked};
-    const enableDrdp=document.getElementById('enableDrdp').checked;const mode=document.getElementById('analysisMode')?.value||'keyword';let drdpResult=null;
+    const enableDrdp=document.getElementById('enableDrdp').checked;const mode=document.getElementById('analysisMode')?.value||'ai';let drdpResult=null;
     const photoB64s=slides.map((_,i)=>{if(photoPos==='none')return null;if(photoMode==='single')return uploadedSlidePhotoB64;if(photoMode==='multiple')return uploadedSlidePhotosB64[i]||uploadedSlidePhotosB64[uploadedSlidePhotosB64.length-1]||null;if(photoMode==='assign')return assignedPhotos[i+1]?.b64||null;return null;});
     if(enableDrdp){btn.textContent=mode==='ai'?'Analyzing with AI...':'Matching keywords...';showStatus(mode==='ai'?'Analyzing for DRDP measures...':'Matching DRDP keywords...','info');drdpResult=mode==='ai'?await aiAnalysis(slides,photoB64s):kwAnalysis(slides);if(drdpResult?.measures)slides.forEach((sl,i)=>{sl.drdpMeasures=drdpResult.measures.filter(m=>m.slideNumbers?.includes(i+1)).map(m=>m.code);});}
     btn.textContent='Rendering slides...';generatedSlides=[];const grid=document.getElementById('slidesGrid');grid.innerHTML='';const total=slides.length;
