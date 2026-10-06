@@ -37,7 +37,12 @@ const server = http.createServer((req, res) => {
     };
 
     const apiReq = https.request(options, apiRes => {
-      res.writeHead(apiRes.statusCode, { 'Content-Type': 'application/json' });
+      res.writeHead(apiRes.statusCode, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+      });
       apiRes.pipe(res);
     });
 
