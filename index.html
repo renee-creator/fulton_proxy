@@ -66,6 +66,7 @@ input[type=file]{width:100%;padding:.5rem;border:2px dashed #7A8B6F;border-radiu
 .button-secondary{background:#2C3E50;color:white;margin-top:.4rem}
 .button-secondary:hover{background:#34495E}
 .button-pdf{background:linear-gradient(135deg,#8B4513,#A0522D);color:white;margin-top:.4rem}
+.button-docx{background:linear-gradient(135deg,#2B4C7E,#3A6398);color:white;margin-top:.4rem}
 .results{background:white;padding:1.5rem;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.1);display:none}
 .results.show{display:block}
 .results h2{color:#2C3E50;margin-bottom:1rem;font-size:1.3rem}
@@ -429,6 +430,7 @@ content: More content..."></textarea>
       <button type="button" id="generateBtn" class="button button-primary">Generate Slides</button>
       <button type="button" id="downloadAllBtn" class="button button-secondary" hidden>Download All (JPG)</button>
       <button type="button" id="downloadPdfBtn" class="button button-pdf" hidden>Download PDF</button>
+      <button type="button" id="downloadDocxBtn" class="button button-docx" hidden>Download Word (DOCX)</button>
     </div>
     <div id="status" class="status" role="status" aria-live="polite"></div>
   </div>
@@ -723,7 +725,7 @@ const DRDP = {
 
 const PROXY_URL = 'https://fulton-proxy.onrender.com';
 const MAX_AI_PHOTOS = 3;
-const BUILD = '2026.10.06.7';
+const BUILD = '2026.10.06.8';
 const SIZES = { square: { w: 1080, h: 1080, s: 1 }, squareprint: { w: 2550, h: 2550, s: 2.36 }, letter: { w: 2550, h: 3300, s: 2.36 } };
 const API_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const CLAUDE_PHOTO_MAX_BYTES = 20 * 1024 * 1024;   // largest photo file Claude accepts from a page
@@ -2017,10 +2019,11 @@ async function generate() {
     btn.textContent = 'Rendering slides...';
     await ensureFonts(opts.fonts);
     generatedSlides = [];
-    prepared = { all: null, pdf: null };
+    prepared = { all: null, pdf: null, docx: null };
     $('slidesGrid').innerHTML = '';
     const total = slides.length;
     const cutSlides = [], smallSlides = [];
+    let usedQuote = null;
     wordWidths.clear();
     for (let i = 0; i < slides.length; i++) {
       const canvas = document.createElement('canvas');
@@ -2030,6 +2033,7 @@ async function generate() {
     }
     if ($('includeBonusSlide').checked) {
       const q = generateBonusQuote();
+      usedQuote = q;
       const bCanvas = document.createElement('canvas');
       let bonusPhoto = null;
       if (photoPos !== 'none') bonusPhoto = photoMode === 'assign' ? (assignedPhotos.bonus ? assignedPhotos.bonus.image : null) : photoMode === 'single' ? uploadedSlidePhoto : (lastOf(uploadedSlidePhotos) || uploadedSlidePhoto);
@@ -2045,6 +2049,14 @@ async function generate() {
     $('results').classList.add('show');
     $('slideCount').textContent = generatedSlides.length;
     $('downloadAllBtn').hidden = false; $('downloadPdfBtn').hidden = false;
+    // Kept for the Word export. It holds the words and the analysis, not the finished slide pictures.
+    let dateText = '';
+    if (opts.date) { const dd = new Date(opts.date + 'T00:00:00'); if (!isNaN(dd)) dateText = dd.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }); }
+    lastDoc = {
+      slides: slides.map((sl, i) => ({ title: sl.title, subtitle: sl.subtitle, content: sl.content.slice(), items: (sl.drdpItems || []).slice(), photo: getSlidePhoto(i) })),
+      quote: usedQuote, drdp: enableDrdp ? drdpResult : null, notice, brand: opts.brand, dateText
+    };
+    $('downloadDocxBtn').hidden = false;
 
     const lines = [];
     if (aiProblem) lines.push('AI analysis did not run. ' + aiProblem, 'Your ' + generatedSlides.length + ' slides were made with keyword matching instead.');
@@ -2183,7 +2195,7 @@ async function downloadOne(canvas, name) {
   } catch (e) { showStatus('Could not save the slide. ' + ((e && e.message) || ''), 'error'); }
 }
 
-let prepared = { all: null, pdf: null };
+let prepared = { all: null, pdf: null, docx: null };
 
 async function downloadAll() {
   const btn = $('downloadAllBtn');
@@ -2230,6 +2242,201 @@ async function downloadPdf() {
     else { showStatus('This view cannot save a PDF. Save the slides as images instead.', 'warn'); openSaveOverlay(generatedSlides, 'Press and hold each slide, then choose Save to Photos or Save Image.'); }
   } catch (e) { showStatus('Could not create the PDF. ' + ((e && e.message) || ''), 'error'); }
   finally { btn.disabled = false; btn.textContent = 'Download PDF'; }
+}
+
+// ---------- Word export ----------
+// Builds a .docx file in the browser. The slides and the DRDP analysis go in as ordinary editable text,
+// with real headings and bullet lists, so a teacher can revise them in Word, Pages or Google Docs.
+let lastDoc = null;   // what the last Generate produced, kept for the Word export
+
+function docText(s) {
+  // Characters that are not allowed in a Word file are dropped. Line breaks become spaces.
+  let out = '';
+  for (const ch of String(s == null ? '' : s)) {
+    const c = ch.codePointAt(0);
+    if (c === 9 || c === 10 || c === 13) { out += ' '; continue; }
+    if (c < 32 || c === 0xFFFE || c === 0xFFFF || (c >= 0xD800 && c <= 0xDFFF)) continue;
+    out += ch;
+  }
+  return out.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function docRun(text, o) {
+  o = o || {};
+  const props = (o.bold ? '<w:b/>' : '') + (o.italic ? '<w:i/>' : '') + (o.color ? '<w:color w:val="' + o.color + '"/>' : '') + (o.size ? '<w:sz w:val="' + o.size + '"/><w:szCs w:val="' + o.size + '"/>' : '');
+  return '<w:r>' + (props ? '<w:rPr>' + props + '</w:rPr>' : '') + '<w:t xml:space="preserve">' + docText(text) + '</w:t></w:r>';
+}
+const DOC_TAB = '<w:r><w:tab/></w:r>';
+function docPara(runs, o) {
+  o = o || {};
+  const props = (o.style ? '<w:pStyle w:val="' + o.style + '"/>' : '') + (o.keepNext ? '<w:keepNext/>' : '') +
+    (o.list ? '<w:numPr><w:ilvl w:val="0"/><w:numId w:val="' + o.list + '"/></w:numPr>' : '') +
+    (o.labelled ? '<w:tabs><w:tab w:val="left" w:pos="1440"/></w:tabs>' : '') +
+    (o.after != null ? '<w:spacing w:after="' + o.after + '"/>' : '') +
+    (o.labelled ? '<w:ind w:left="1440" w:hanging="1440"/>' : '') +
+    (o.center ? '<w:jc w:val="center"/>' : '');
+  return '<w:p>' + (props ? '<w:pPr>' + props + '</w:pPr>' : '') + (runs || '') + '</w:p>';
+}
+// A line such as  Level, then a tab, then the value. Long values wrap in line with the value, not the label.
+function docLabelled(label, value) { return docPara(docRun(label, { bold: true, color: '5A6B50' }) + DOC_TAB + docRun(value), { labelled: true, after: 60 }); }
+
+function docPicture(rid, n, wEmu, hEmu, alt) {
+  const a = 'http://schemas.openxmlformats.org/drawingml/2006/main', pic = 'http://schemas.openxmlformats.org/drawingml/2006/picture';
+  return '<w:p><w:pPr><w:spacing w:before="120" w:after="160"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0">' +
+    '<wp:extent cx="' + wEmu + '" cy="' + hEmu + '"/><wp:docPr id="' + n + '" name="Photo ' + n + '" descr="' + docText(alt) + '"/>' +
+    '<wp:cNvGraphicFramePr><a:graphicFrameLocks xmlns:a="' + a + '" noChangeAspect="1"/></wp:cNvGraphicFramePr>' +
+    '<a:graphic xmlns:a="' + a + '"><a:graphicData uri="' + pic + '"><pic:pic xmlns:pic="' + pic + '">' +
+    '<pic:nvPicPr><pic:cNvPr id="' + n + '" name="photo' + n + '.jpeg"/><pic:cNvPicPr/></pic:nvPicPr>' +
+    '<pic:blipFill><a:blip r:embed="' + rid + '"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>' +
+    '<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' + wEmu + '" cy="' + hEmu + '"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr>' +
+    '</pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>';
+}
+
+// A smaller JPEG copy of a photo for the Word file. The original is not changed.
+async function docPhotoBytes(img) {
+  const sw = img.naturalWidth || img.width, sh = img.naturalHeight || img.height;
+  const k = Math.min(1, 1600 / Math.max(sw, sh));
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(sw * k)); c.height = Math.max(1, Math.round(sh * k));
+  const cx = c.getContext('2d');
+  cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height);
+  drawSharp(cx, img, 0, 0, c.width, c.height);
+  const bytes = new Uint8Array(await (await canvasToBlob(c, 'image/jpeg', 0.9)).arrayBuffer());
+  const out = { bytes, w: c.width, h: c.height };
+  c.width = 0; c.height = 0;
+  return out;
+}
+
+const DOC_STYLES = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+  '<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">' +
+  '<w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:eastAsia="Arial" w:cs="Arial"/><w:color w:val="2C3E50"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:lang w:val="en-US"/></w:rPr></w:rPrDefault>' +
+  '<w:pPrDefault><w:pPr><w:spacing w:after="140" w:line="288" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>' +
+  '<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style>' +
+  '<w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:spacing w:after="60"/></w:pPr><w:rPr><w:b/><w:color w:val="2C3E50"/><w:sz w:val="48"/><w:szCs w:val="48"/></w:rPr></w:style>' +
+  '<w:style w:type="paragraph" w:styleId="Subtitle"><w:name w:val="Subtitle"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:spacing w:after="60"/></w:pPr><w:rPr><w:color w:val="7F8C8D"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:style>' +
+  '<w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="480" w:after="160"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:color w:val="5A6B50"/><w:sz w:val="34"/><w:szCs w:val="34"/></w:rPr></w:style>' +
+  '<w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="320" w:after="100"/><w:outlineLvl w:val="1"/></w:pPr><w:rPr><w:b/><w:color w:val="2C3E50"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></w:style>' +
+  '<w:style w:type="paragraph" w:styleId="Heading3"><w:name w:val="heading 3"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="220" w:after="80"/><w:outlineLvl w:val="2"/></w:pPr><w:rPr><w:b/><w:color w:val="2C3E50"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:style>' +
+  '<w:style w:type="paragraph" w:styleId="ListParagraph"><w:name w:val="List Paragraph"/><w:basedOn w:val="Normal"/><w:qFormat/><w:pPr><w:spacing w:after="80"/></w:pPr></w:style>' +
+  '</w:styles>';
+const docBulletLevel = (id, mark) => '<w:abstractNum w:abstractNumId="' + id + '"><w:multiLevelType w:val="hybridMultilevel"/><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="bullet"/><w:lvlText w:val="' + mark + '"/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="720" w:hanging="360"/></w:pPr><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial" w:hint="default"/></w:rPr></w:lvl></w:abstractNum>';
+const DOC_NUMBERING = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+  '<w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">' + docBulletLevel(0, '•') + docBulletLevel(1, '✓') +
+  '<w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num><w:num w:numId="2"><w:abstractNumId w:val="1"/></w:num></w:numbering>';
+
+async function buildDocx(doc) {
+  const enc = new TextEncoder();
+  const body = [];
+  const media = [];                 // [{ name, bytes }]
+  const rels = ['<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>',
+    '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>'];
+  const photoRefs = new Map();      // the same photo on several slides is stored once
+  let picN = 0;
+
+  const firstTitle = (doc.slides.find(sl => sl.title) || {}).title;
+  body.push(docPara(docRun(firstTitle || 'Documentation'), { style: 'Title' }));
+  if (doc.brand) body.push(docPara(docRun(doc.brand), { style: 'Subtitle' }));
+  if (doc.dateText) body.push(docPara(docRun(doc.dateText), { style: 'Subtitle' }));
+
+  body.push(docPara(docRun('Documentation'), { style: 'Heading1' }));
+  for (let i = 0; i < doc.slides.length; i++) {
+    const sl = doc.slides[i];
+    body.push(docPara(docRun(sl.title || 'Slide ' + (i + 1)), { style: 'Heading2' }));
+    if (sl.subtitle) body.push(docPara(docRun(sl.subtitle, { bold: true, color: '7A8B6F' }), { keepNext: true }));
+    if (sl.photo) {
+      let ref = photoRefs.get(sl.photo);
+      if (!ref) {
+        const p = await docPhotoBytes(sl.photo);
+        const n = media.length + 1;
+        media.push({ name: 'word/media/photo' + n + '.jpeg', bytes: p.bytes });
+        rels.push('<Relationship Id="rId' + (n + 2) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/photo' + n + '.jpeg"/>');
+        ref = { rid: 'rId' + (n + 2), w: p.w, h: p.h };
+        photoRefs.set(sl.photo, ref);
+      }
+      // At most 4.5 inches wide and 4.5 inches tall, in the units Word uses.
+      const maxEmu = 4.5 * 914400, k = Math.min(maxEmu / ref.w, maxEmu / ref.h);
+      body.push(docPicture(ref.rid, ++picN, Math.round(ref.w * k), Math.round(ref.h * k), 'Photo for ' + (sl.title || 'slide ' + (i + 1))));
+    }
+    for (const line of sl.content) {
+      const p = parseContentLine(line);
+      if (p.type === 'space' || !p.text) continue;
+      if (p.type === 'header') body.push(docPara(docRun(p.text), { style: 'Heading3' }));
+      else if (p.type === 'bullet-dark') body.push(docPara(docRun(p.text), { style: 'ListParagraph', list: 1 }));
+      else if (p.type === 'bullet-accent') body.push(docPara(docRun(p.text), { style: 'ListParagraph', list: 2 }));
+      else body.push(docPara(docRun(p.text)));
+    }
+    if (sl.items && sl.items.length) {
+      let runs = docRun('DRDP measures seen here   ', { bold: true, color: '5A6B50', size: 18 });
+      sl.items.forEach((it, k) => { runs += docRun(it.code, { bold: true, size: 18 }) + docRun(' ' + it.name + (k < sl.items.length - 1 ? ',  ' : ''), { size: 18 }); });
+      body.push(docPara(runs, { labelled: false, after: 120 }));
+    }
+  }
+
+  if (doc.quote) {
+    body.push(docPara(docRun('Quote'), { style: 'Heading2' }));
+    body.push(docPara(docRun('"' + doc.quote.quote + '"', { italic: true })));
+    body.push(docPara(docRun(doc.quote.author, { bold: true, color: '7A8B6F' })));
+  }
+
+  const d = doc.drdp;
+  if (d && d.measures && d.measures.length) {
+    body.push(docPara(docRun('DRDP (2025) Analysis'), { style: 'Heading1' }));
+    if (doc.notice) body.push(docPara(docRun(doc.notice, { italic: true, color: '7A5B00' })));
+    if (d.photoAnalysis) { body.push(docPara(docRun('Photo analysis'), { style: 'Heading3' })); body.push(docPara(docRun(d.photoAnalysis))); }
+    if (d.narrativeSummary) { body.push(docPara(docRun('Summary'), { style: 'Heading3' })); body.push(docPara(docRun(d.narrativeSummary))); }
+    body.push(docPara(docRun('Measures observed'), { style: 'Heading2' }));
+    for (const m of d.measures) {
+      body.push(docPara(docRun(m.code, { color: '5A6B50' }) + docRun('  ' + (m.name || '')), { style: 'Heading3' }));
+      if (m.domain) body.push(docLabelled('Domain', m.domain));
+      if (m.estimatedLevel) body.push(docLabelled('Level', m.estimatedLevel));
+      if (m.evidence) body.push(docLabelled('Evidence', m.evidence));
+      if (m.slideNumbers && m.slideNumbers.length) body.push(docLabelled(m.slideNumbers.length === 1 ? 'Slide' : 'Slides', m.slideNumbers.join(', ')));
+    }
+    body.push(docPara(docRun('Based on DRDP (2025). Analysis is suggestive, not diagnostic.', { italic: true, color: '7F8C8D', size: 18 }), { after: 0 }));
+  }
+
+  const documentXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">' +
+    '<w:body>' + body.join('') +
+    '<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr>' +
+    '</w:body></w:document>';
+  const types = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="jpeg" ContentType="image/jpeg"/>' +
+    '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' +
+    '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>' +
+    '<Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>' +
+    '</Types>';
+  const rootRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>';
+  const docRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' + rels.join('') + '</Relationships>';
+  const files = [
+    { name: '[Content_Types].xml', data: enc.encode(types) },
+    { name: '_rels/.rels', data: enc.encode(rootRels) },
+    { name: 'word/document.xml', data: enc.encode(documentXml) },
+    { name: 'word/_rels/document.xml.rels', data: enc.encode(docRels) },
+    { name: 'word/styles.xml', data: enc.encode(DOC_STYLES) },
+    { name: 'word/numbering.xml', data: enc.encode(DOC_NUMBERING) }
+  ].concat(media.map(m => ({ name: m.name, data: m.bytes })));
+  return new Blob([buildZip(files)], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+}
+
+async function downloadDocx() {
+  const btn = $('downloadDocxBtn');
+  if (!lastDoc || btn.disabled) return;
+  btn.disabled = true; btn.textContent = 'Creating Word file...';
+  try {
+    showStatus('Creating the Word document...', 'info');
+    const name = 'documentation-' + localDateString() + '.docx';
+    if (!prepared.docx) prepared.docx = await buildDocx(lastDoc);
+    const res = await saveFiles([{ blob: prepared.docx, name }]);
+    if (res === 'saved') showStatus('✓ Word document saved as ' + name + '.', 'success');
+    else if (res === 'shared') showStatus('✓ Word document is ready to save or share.', 'success');
+    else if (res === 'declined') showStatus('Word document was not saved.', 'info');
+    else if (res === 'tap-again') showStatus('The Word document is ready. Tap Download Word once more to save it.', 'info');
+    else showStatus('This view cannot save a Word document.', 'warn');
+  } catch (e) { console.error(e); showStatus('Could not create the Word document. ' + ((e && e.message) || ''), 'error'); }
+  finally { btn.disabled = false; btn.textContent = 'Download Word (DOCX)'; }
 }
 
 // ---------- Home screen banner and icon ----------
@@ -2416,6 +2623,7 @@ function init() {
   $('generateBtn').addEventListener('click', generate);
   $('downloadAllBtn').addEventListener('click', downloadAll);
   $('downloadPdfBtn').addEventListener('click', downloadPdf);
+  $('downloadDocxBtn').addEventListener('click', downloadDocx);
   $('installBannerOk').addEventListener('click', hideInstallBanner);
   $('installBannerClose').addEventListener('click', hideInstallBanner);
   $('saveOverlayClose').addEventListener('click', () => { $('saveOverlay').classList.remove('show'); $('saveOverlayImages').innerHTML = ''; });
