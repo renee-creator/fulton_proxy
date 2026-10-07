@@ -15,7 +15,7 @@ const UPSTREAM_TIMEOUT_MS = Number(process.env.UPSTREAM_TIMEOUT_MS) || 120000;
 
 // Models are tried in this order. If Anthropic retires one, the next takes over.
 // Set ANTHROPIC_MODEL on Render to put a different model first.
-const MODELS = [process.env.ANTHROPIC_MODEL, 'claude-opus-4-5', 'claude-sonnet-5-5', 'claude-sonnet-4-6']
+const MODELS = [process.env.ANTHROPIC_MODEL, 'claude-haiku-4-5-20251001', 'claude-opus-4-5', 'claude-sonnet-5-5', 'claude-sonnet-4-6']
   .map(m => (m || '').trim())
   .filter((m, i, all) => m && all.indexOf(m) === i);
 let modelIndex = 0;
