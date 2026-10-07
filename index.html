@@ -42,8 +42,8 @@ h1{color:#2C3E50;font-size:1.2rem;line-height:1.3}
 .controls{display:grid;gap:.75rem}
 label{display:block;font-weight:600;color:#2C3E50;margin-bottom:.4rem;font-size:.85rem}
 textarea{width:100%;height:200px;padding:.75rem;border:2px solid #E0E0E0;border-radius:8px;font-family:'Courier New',monospace;font-size:.85rem;resize:vertical;transition:border-color .3s}
-textarea:focus,input[type=text]:focus,select:focus{outline:none;border-color:#7A8B6F}
-input[type=text],input[type=date],select{width:100%;padding:.6rem .75rem;border:2px solid #E0E0E0;border-radius:8px;font-size:.85rem;transition:border-color .3s}
+textarea:focus,input[type=text]:focus,input[type=password]:focus,select:focus{outline:none;border-color:#7A8B6F}
+input[type=text],input[type=password],input[type=date],select{width:100%;padding:.6rem .75rem;border:2px solid #E0E0E0;border-radius:8px;font-size:.85rem;transition:border-color .3s}
 .color-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
 .color-input-wrapper label{font-size:.7rem;margin-bottom:.2rem}
 input[type=color]{width:100%;height:40px;border:2px solid #E0E0E0;border-radius:8px;cursor:pointer}
@@ -158,6 +158,16 @@ h1.brand{font-size:1.5rem;letter-spacing:.08em;line-height:1.2}
 .fit-line.small{border-left-color:#C99A2E;color:#6b5200}
 .fit-line.over{border-left-color:#B5483A;color:#7a2318;font-weight:600}
 .fit-line.note{border-left-color:#bbb;color:#777}
+
+.gate{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;overflow-y:auto;padding:1rem;padding-top:max(1rem,env(safe-area-inset-top));padding-bottom:max(1rem,env(safe-area-inset-bottom));background:#FFF5E6 linear-gradient(135deg,#FFF5E6,#FFE8CC)}
+.gate.show{display:flex}
+.gate-card{background:white;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.1);padding:1.5rem 1.25rem;width:100%;max-width:380px;display:grid;gap:.8rem}
+.gate-title{color:#2C3E50;font-size:1.5rem;letter-spacing:.08em;line-height:1.2}
+.gate-sub{color:#7F8C8D;font-size:.8rem;margin-top:-.6rem}
+.gate-lead{color:#2C3E50;font-size:.9rem;line-height:1.45}
+.gate-msg{min-height:1.3em;font-size:.82rem;line-height:1.4;color:#5A6B50}
+.gate-msg.bad{color:#7a2318;font-weight:600}
+.link-btn{background:none;border:none;color:#5A6B50;font-size:.68rem;text-decoration:underline;cursor:pointer;padding:.2rem .4rem}
 
 </style>
 </head>
@@ -432,7 +442,22 @@ content: More content..."></textarea>
       <p class="drdp-disclaimer">Based on DRDP (2025). Analysis is suggestive, not diagnostic.</p>
     </div>
   </div>
-  <p class="build-line"><span class="build-tag" id="buildTag"></span></p>
+  <p class="build-line"><span class="build-tag" id="buildTag"></span> <button type="button" class="link-btn" id="signOutBtn" hidden>Sign out</button></p>
+</div>
+
+<div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
+  <form class="gate-card" id="gateForm" autocomplete="off">
+    <h2 class="gate-title" id="gateTitle">TREE</h2>
+    <p class="gate-sub">Pedagogical Documentation Studio</p>
+    <p class="gate-lead">This studio is for our school. Enter the school passcode to continue.</p>
+    <div>
+      <label for="gateCode">School passcode</label>
+      <input type="password" id="gateCode" autocapitalize="off" autocorrect="off" spellcheck="false" disabled>
+    </div>
+    <div class="checkbox-row"><input type="checkbox" id="gateShow"><label for="gateShow">Show passcode</label></div>
+    <button type="submit" class="button button-primary" id="gateBtn" disabled>Sign in</button>
+    <p class="gate-msg" id="gateMsg" role="status" aria-live="polite"></p>
+  </form>
 </div>
 
 <div class="save-overlay" id="saveOverlay" role="dialog" aria-modal="true" aria-label="Save slides">
@@ -698,7 +723,7 @@ const DRDP = {
 
 const PROXY_URL = 'https://fulton-proxy.onrender.com';
 const MAX_AI_PHOTOS = 3;
-const BUILD = '2026.10.06.6';
+const BUILD = '2026.10.06.7';
 const SIZES = { square: { w: 1080, h: 1080, s: 1 }, squareprint: { w: 2550, h: 2550, s: 2.36 }, letter: { w: 2550, h: 3300, s: 2.36 } };
 const API_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const CLAUDE_PHOTO_MAX_BYTES = 20 * 1024 * 1024;   // largest photo file Claude accepts from a page
@@ -1137,11 +1162,15 @@ function normalizeAnalysis(obj, slideCount, db, ag) {
 }
 
 // --- Standalone path. The proxy holds the API key.
+let lastHealth = null;   // what the server last said about itself
 async function proxyAwake(onWait) {
   const start = Date.now();
   let told = false;
   for (;;) {
-    try { const r = await withTimeout(fetch(PROXY_URL + '/health', { cache: 'no-store' }), 12000); if (r.status > 0) return true; } catch (e) { /* asleep or unreachable */ }
+    try {
+      const r = await withTimeout(fetch(PROXY_URL + '/health', { cache: 'no-store' }), 12000);
+      if (r.status > 0) { try { lastHealth = await r.json(); } catch (e) { /* older server or an error page */ } return true; }
+    } catch (e) { /* asleep or unreachable */ }
     if (Date.now() - start > 90000) return false;
     if (!told && onWait) { onWait(); told = true; }
     await sleep(4000);
@@ -1151,7 +1180,7 @@ async function proxyAwake(onWait) {
 async function postToProxy(content) {
   let r;
   try {
-    r = await withTimeout(fetch(PROXY_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content }) }), 150000, 'The AI server took too long to answer.');
+    r = await withTimeout(fetch(PROXY_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(accessCode ? { content, access: accessCode } : { content }) }), 150000, 'The AI server took too long to answer.');
   } catch (e) {
     const err = new Error(e && e.message === 'The AI server took too long to answer.' ? e.message : 'Could not reach the AI server.');
     err.network = true;
@@ -1162,6 +1191,12 @@ async function postToProxy(content) {
   try { data = JSON.parse(text); } catch (e) { /* not JSON */ }
   if (!r.ok) {
     const detail = data && data.error && (data.error.message || data.error) ? String(data.error.message || data.error) : text.slice(0, 200);
+    if (data && data.error && data.error.type === 'access_denied') {
+      if (r.status === 403) { saveAccess(''); showGate('ready', 'Your school passcode is needed. Enter it to continue.'); }
+      const denied = new Error(r.status === 429 ? detail : 'Sign in with your school passcode, then press Generate again.');
+      denied.status = r.status;
+      throw denied;
+    }
     let msg = 'The AI server answered with error ' + r.status + '. ' + detail;
     if (r.status === 401) msg = 'Anthropic rejected the API key saved on the AI server. Open ' + PROXY_URL.replace('https://', '') + ' in a browser to see what to fix.';
     else if (r.status === 429) msg = 'The AI service limit was reached. Try again in a minute. ' + detail;
@@ -2249,6 +2284,81 @@ async function describeAISource() {
   if (awake) set('The AI server is ready.'); else set('The AI server is not responding. Keyword matching will be used until it is back.', true);
 }
 
+// ---------- School sign-in ----------
+// When the server has a school passcode set, the web version asks for it once on each device.
+// The server does the checking. The passcode is kept on this device so teachers are not asked again.
+const ACCESS_KEY = 'tree.access';
+let accessCode = '';
+let serverLocked = false;
+function usesServer() { return !inClaude && /^https?:$/.test(location.protocol); }
+function storedAccess() { try { return localStorage.getItem(ACCESS_KEY) || ''; } catch (e) { return ''; } }
+function saveAccess(code) {
+  accessCode = code || '';
+  try { if (accessCode) localStorage.setItem(ACCESS_KEY, accessCode); else localStorage.removeItem(ACCESS_KEY); } catch (e) { /* private window. The passcode lasts until the page closes. */ }
+  updateSignOut();
+}
+function updateSignOut() { const b = $('signOutBtn'); if (b) b.hidden = !(serverLocked && accessCode); }
+function showGate(state, message) {
+  const gate = $('gate');
+  if (!gate) return;
+  const ready = state === 'ready';
+  gate.classList.add('show');
+  document.querySelector('.container').inert = true;
+  $('gateCode').disabled = !ready; $('gateBtn').disabled = !ready;
+  $('gateBtn').textContent = state === 'offline' ? 'Try again' : 'Sign in';
+  if (state === 'offline') $('gateBtn').disabled = false;
+  gate.dataset.state = state;
+  $('gateMsg').textContent = message || (state === 'checking' ? 'Connecting to the sign-in server...' : '');
+  $('gateMsg').className = 'gate-msg' + (state === 'offline' || (ready && message && !/signed out/.test(message)) ? ' bad' : '');
+  if (ready) setTimeout(() => { try { $('gateCode').focus(); } catch (e) {} }, 50);
+}
+function hideGate() {
+  const gate = $('gate');
+  if (!gate) return;
+  gate.classList.remove('show');
+  document.querySelector('.container').inert = false;
+  $('gateCode').value = '';
+}
+// Asks the server whether a passcode is right. This never calls the AI and costs nothing.
+async function checkAccess(code) {
+  try {
+    const r = await withTimeout(fetch(PROXY_URL + '/check', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ access: code }) }), 20000);
+    if (r.ok) return 'ok';
+    if (r.status === 429) return 'wait';
+    if (r.status === 403) return 'denied';
+    return 'offline';
+  } catch (e) { return 'offline'; }
+}
+async function startAccess() {
+  if (!usesServer()) return;
+  accessCode = storedAccess();
+  if (!accessCode) showGate('checking');
+  const awake = await proxyAwake(() => { if (!accessCode) showGate('checking', 'The sign-in server is waking up. This takes about a minute.'); });
+  if (!awake) { if (!accessCode) showGate('offline', 'The sign-in server is not answering. Check your connection, then press Try again.'); return; }
+  serverLocked = !!(lastHealth && lastHealth.locked);
+  if (!serverLocked) { hideGate(); updateSignOut(); return; }
+  if (!accessCode) { showGate('ready'); return; }
+  // A saved passcode lets the teacher start right away. It is checked in the background.
+  const res = await checkAccess(accessCode);
+  if (res === 'denied') { saveAccess(''); showGate('ready', 'The school passcode has changed. Enter the new one.'); }
+  updateSignOut();
+}
+async function submitGate(e) {
+  if (e) e.preventDefault();
+  const gate = $('gate');
+  if (gate.dataset.state === 'offline') { startAccess(); return; }
+  const code = $('gateCode').value.trim();
+  if (!code) { $('gateMsg').className = 'gate-msg bad'; $('gateMsg').textContent = 'Type the school passcode first.'; return; }
+  $('gateBtn').disabled = true; $('gateMsg').className = 'gate-msg'; $('gateMsg').textContent = 'Checking...';
+  const res = await checkAccess(code);
+  $('gateBtn').disabled = false;
+  if (res === 'ok') { saveAccess(code); hideGate(); describeAISource(); return; }
+  $('gateMsg').className = 'gate-msg bad';
+  $('gateMsg').textContent = res === 'denied' ? 'That passcode did not match. Check the spelling, or ask your director.'
+    : res === 'wait' ? 'Too many tries. Wait ten minutes, then try again.'
+    : 'Could not reach the sign-in server. Check your connection and try again.';
+}
+
 // ---------- Version ----------
 // A page left open, or saved to a phone's Home Screen, can keep running an old copy for days.
 // This looks for a newer copy on the web address and offers a one press update.
@@ -2268,6 +2378,9 @@ async function checkForUpdate() {
 // ---------- Wiring ----------
 function init() {
   $('buildTag').textContent = 'Version ' + BUILD;
+  $('gateForm').addEventListener('submit', submitGate);
+  $('gateShow').addEventListener('change', e => { $('gateCode').type = e.target.checked ? 'text' : 'password'; });
+  $('signOutBtn').addEventListener('click', () => { saveAccess(''); showGate('ready', 'You are signed out on this device.'); });
   $('updateNow').addEventListener('click', () => { location.replace(location.pathname + '?v=' + encodeURIComponent(newerBuild || Date.now())); });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkForUpdate(); });
   window.addEventListener('pageshow', e => { if (e.persisted) { lastUpdateCheck = 0; checkForUpdate(); } });
@@ -2313,6 +2426,7 @@ function init() {
   setTimeout(checkInstallBanner, 2000);
   setTimeout(checkForUpdate, 4000);
   scheduleFitGuide();
+  startAccess();
   describeAISource();
 }
 
