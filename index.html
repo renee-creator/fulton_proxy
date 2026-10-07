@@ -725,7 +725,7 @@ const DRDP = {
 
 const PROXY_URL = 'https://fulton-proxy.onrender.com';
 const MAX_AI_PHOTOS = 3;
-const BUILD = '2026.10.06.8';
+const BUILD = '2026.10.07.1';
 const SIZES = { square: { w: 1080, h: 1080, s: 1 }, squareprint: { w: 2550, h: 2550, s: 2.36 }, letter: { w: 2550, h: 3300, s: 2.36 } };
 const API_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const CLAUDE_PHOTO_MAX_BYTES = 20 * 1024 * 1024;   // largest photo file Claude accepts from a page
@@ -1560,7 +1560,8 @@ function drawBand(ctx, band, palette, bodyFont) {
 // then the text is printed smaller. Only when neither is enough is the text shortened, and that is reported.
 function planSlide(ctx, slide, opts) {
   const { w, h, s } = SIZES[opts.size];
-  const tm = TEXT_SCALE[opts.textSize] || 1;
+  // textBoost is used by the Word export only. It plans for slightly larger words so the Word page has room to spare.
+  const tm = (TEXT_SCALE[opts.textSize] || 1) * (opts.textBoost || 1);
   const R = n => Math.round(n * s);
   const env = { s, tm, titleFont: fontStack(opts.fonts.title, 'sans-serif'), bodyFont: fontStack(opts.fonts.body, 'sans-serif') };
   const mg = R(80), X0 = mg, Wc = w - mg * 2;
@@ -2023,7 +2024,7 @@ async function generate() {
     $('slidesGrid').innerHTML = '';
     const total = slides.length;
     const cutSlides = [], smallSlides = [];
-    let usedQuote = null;
+    let usedQuote = null, usedQuotePhoto = null;
     wordWidths.clear();
     for (let i = 0; i < slides.length; i++) {
       const canvas = document.createElement('canvas');
@@ -2037,6 +2038,7 @@ async function generate() {
       const bCanvas = document.createElement('canvas');
       let bonusPhoto = null;
       if (photoPos !== 'none') bonusPhoto = photoMode === 'assign' ? (assignedPhotos.bonus ? assignedPhotos.bonus.image : null) : photoMode === 'single' ? uploadedSlidePhoto : (lastOf(uploadedSlidePhotos) || uploadedSlidePhoto);
+      usedQuotePhoto = bonusPhoto;
       renderSlide(bCanvas, { isBonus: true, title: '', subtitle: '', content: [], quote: q.quote, author: q.author }, slides.length, total, Object.assign({}, opts, { slidePhoto: bonusPhoto, bgImg: getBgImg(slides.length) }));
       addSlideCard(bCanvas, 'Bonus Quote', 'slide-bonus-quote.jpg', null, true);
     }
@@ -2053,8 +2055,10 @@ async function generate() {
     let dateText = '';
     if (opts.date) { const dd = new Date(opts.date + 'T00:00:00'); if (!isNaN(dd)) dateText = dd.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }); }
     lastDoc = {
+      opts: Object.assign({}, opts),
       slides: slides.map((sl, i) => ({ title: sl.title, subtitle: sl.subtitle, content: sl.content.slice(), items: (sl.drdpItems || []).slice(), photo: getSlidePhoto(i) })),
-      quote: usedQuote, drdp: enableDrdp ? drdpResult : null, notice, brand: opts.brand, dateText
+      quote: usedQuote, quotePhoto: usedQuote ? usedQuotePhoto : null,
+      drdp: enableDrdp ? drdpResult : null, summary: enableDrdp && $('addSummaryPage').checked, dateText
     };
     $('downloadDocxBtn').hidden = false;
 
@@ -2245,8 +2249,9 @@ async function downloadPdf() {
 }
 
 // ---------- Word export ----------
-// Builds a .docx file in the browser. The slides and the DRDP analysis go in as ordinary editable text,
-// with real headings and bullet lists, so a teacher can revise them in Word, Pages or Google Docs.
+// Builds a .docx file in the browser. Each page of the Word file is laid out like its slide, with the same
+// page shape, background color, fonts, sizes, photo placement, measures strip, date and school name.
+// Everything is ordinary editable text, so a teacher can revise it in Word, Pages or Google Docs.
 let lastDoc = null;   // what the last Generate produced, kept for the Word export
 
 function docText(s) {
@@ -2260,164 +2265,288 @@ function docText(s) {
   }
   return out.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
+function docHex(c) { return String(c || '#000000').replace('#', '').toUpperCase(); }
+// A see-through color on the slide becomes the solid color it looks like against the page.
+function docMix(fg, bg, a) {
+  const f = hexToRgb(fg), b = hexToRgb(bg);
+  const ch = (x, y) => Math.round(x * a + y * (1 - a)).toString(16).padStart(2, '0');
+  return (ch(f.r, b.r) + ch(f.g, b.g) + ch(f.b, b.b)).toUpperCase();
+}
+// o: font, size (half points), bold, italic, color, spacing (twentieths of a point), fill
 function docRun(text, o) {
   o = o || {};
-  const props = (o.bold ? '<w:b/>' : '') + (o.italic ? '<w:i/>' : '') + (o.color ? '<w:color w:val="' + o.color + '"/>' : '') + (o.size ? '<w:sz w:val="' + o.size + '"/><w:szCs w:val="' + o.size + '"/>' : '');
+  const props = (o.font ? '<w:rFonts w:ascii="' + docText(o.font) + '" w:hAnsi="' + docText(o.font) + '" w:cs="' + docText(o.font) + '"/>' : '') +
+    (o.bold ? '<w:b/>' : '') + (o.italic ? '<w:i/>' : '') + (o.color ? '<w:color w:val="' + o.color + '"/>' : '') +
+    (o.spacing ? '<w:spacing w:val="' + o.spacing + '"/>' : '') +
+    (o.size ? '<w:sz w:val="' + o.size + '"/><w:szCs w:val="' + o.size + '"/>' : '') +
+    (o.fill ? '<w:shd w:val="clear" w:color="auto" w:fill="' + o.fill + '"/>' : '');
   return '<w:r>' + (props ? '<w:rPr>' + props + '</w:rPr>' : '') + '<w:t xml:space="preserve">' + docText(text) + '</w:t></w:r>';
 }
 const DOC_TAB = '<w:r><w:tab/></w:r>';
+// o: style, keepNext, list, listInd, borderTop {color, size}, tabRight, before, after, line, indLeft, indRight, align, sect
 function docPara(runs, o) {
   o = o || {};
+  const spacing = (o.before != null || o.after != null || o.line != null) ? '<w:spacing' + (o.before != null ? ' w:before="' + o.before + '"' : '') + (o.after != null ? ' w:after="' + o.after + '"' : '') + (o.line != null ? ' w:line="' + o.line + '" w:lineRule="' + (o.exact ? 'exact' : 'atLeast') + '"' : '') + '/>' : '';
+  const ind = o.list ? '<w:ind w:left="' + o.listInd + '" w:hanging="' + o.listInd + '"/>' : (o.indLeft != null || o.indRight != null) ? '<w:ind' + (o.indLeft != null ? ' w:left="' + o.indLeft + '"' : '') + (o.indRight != null ? ' w:right="' + o.indRight + '"' : '') + '/>' : '';
   const props = (o.style ? '<w:pStyle w:val="' + o.style + '"/>' : '') + (o.keepNext ? '<w:keepNext/>' : '') +
     (o.list ? '<w:numPr><w:ilvl w:val="0"/><w:numId w:val="' + o.list + '"/></w:numPr>' : '') +
-    (o.labelled ? '<w:tabs><w:tab w:val="left" w:pos="1440"/></w:tabs>' : '') +
-    (o.after != null ? '<w:spacing w:after="' + o.after + '"/>' : '') +
-    (o.labelled ? '<w:ind w:left="1440" w:hanging="1440"/>' : '') +
-    (o.center ? '<w:jc w:val="center"/>' : '');
+    (o.borderTop ? '<w:pBdr><w:top w:val="single" w:sz="' + o.borderTop.size + '" w:space="' + (o.borderTop.space || 6) + '" w:color="' + o.borderTop.color + '"/></w:pBdr>' : '') +
+    (o.tabRight ? '<w:tabs><w:tab w:val="right" w:pos="' + o.tabRight + '"/></w:tabs>' : '') +
+    spacing + ind +
+    (o.align && o.align !== 'left' ? '<w:jc w:val="' + o.align + '"/>' : '') +
+    (o.sect || '');
   return '<w:p>' + (props ? '<w:pPr>' + props + '</w:pPr>' : '') + (runs || '') + '</w:p>';
 }
-// A line such as  Level, then a tab, then the value. Long values wrap in line with the value, not the label.
-function docLabelled(label, value) { return docPara(docRun(label, { bold: true, color: '5A6B50' }) + DOC_TAB + docRun(value), { labelled: true, after: 60 }); }
 
-function docPicture(rid, n, wEmu, hEmu, alt) {
+function docPicture(rid, n, wEmu, hEmu, alt, lineHex, lineEmu) {
   const a = 'http://schemas.openxmlformats.org/drawingml/2006/main', pic = 'http://schemas.openxmlformats.org/drawingml/2006/picture';
-  return '<w:p><w:pPr><w:spacing w:before="120" w:after="160"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0">' +
-    '<wp:extent cx="' + wEmu + '" cy="' + hEmu + '"/><wp:docPr id="' + n + '" name="Photo ' + n + '" descr="' + docText(alt) + '"/>' +
+  return '<w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0">' +
+    '<wp:extent cx="' + wEmu + '" cy="' + hEmu + '"/><wp:effectExtent l="' + lineEmu + '" t="' + lineEmu + '" r="' + lineEmu + '" b="' + lineEmu + '"/><wp:docPr id="' + n + '" name="Photo ' + n + '" descr="' + docText(alt) + '"/>' +
     '<wp:cNvGraphicFramePr><a:graphicFrameLocks xmlns:a="' + a + '" noChangeAspect="1"/></wp:cNvGraphicFramePr>' +
     '<a:graphic xmlns:a="' + a + '"><a:graphicData uri="' + pic + '"><pic:pic xmlns:pic="' + pic + '">' +
     '<pic:nvPicPr><pic:cNvPr id="' + n + '" name="photo' + n + '.jpeg"/><pic:cNvPicPr/></pic:nvPicPr>' +
     '<pic:blipFill><a:blip r:embed="' + rid + '"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>' +
-    '<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' + wEmu + '" cy="' + hEmu + '"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr>' +
-    '</pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>';
+    '<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' + wEmu + '" cy="' + hEmu + '"/></a:xfrm><a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val 2600"/></a:avLst></a:prstGeom>' +
+    '<a:ln w="' + lineEmu + '"><a:solidFill><a:srgbClr val="' + lineHex + '"/></a:solidFill></a:ln></pic:spPr>' +
+    '</pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>';
 }
 
 // A smaller JPEG copy of a photo for the Word file. The original is not changed.
 async function docPhotoBytes(img) {
   const sw = img.naturalWidth || img.width, sh = img.naturalHeight || img.height;
-  const k = Math.min(1, 1600 / Math.max(sw, sh));
+  const k = Math.min(1, 2000 / Math.max(sw, sh));
   const c = document.createElement('canvas');
   c.width = Math.max(1, Math.round(sw * k)); c.height = Math.max(1, Math.round(sh * k));
   const cx = c.getContext('2d');
   cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height);
   drawSharp(cx, img, 0, 0, c.width, c.height);
-  const bytes = new Uint8Array(await (await canvasToBlob(c, 'image/jpeg', 0.9)).arrayBuffer());
+  const bytes = new Uint8Array(await (await canvasToBlob(c, 'image/jpeg', 0.92)).arrayBuffer());
   const out = { bytes, w: c.width, h: c.height };
   c.width = 0; c.height = 0;
   return out;
 }
 
-const DOC_STYLES = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
-  '<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">' +
-  '<w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:eastAsia="Arial" w:cs="Arial"/><w:color w:val="2C3E50"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:lang w:val="en-US"/></w:rPr></w:rPrDefault>' +
-  '<w:pPrDefault><w:pPr><w:spacing w:after="140" w:line="288" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>' +
-  '<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style>' +
-  '<w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:spacing w:after="60"/></w:pPr><w:rPr><w:b/><w:color w:val="2C3E50"/><w:sz w:val="48"/><w:szCs w:val="48"/></w:rPr></w:style>' +
-  '<w:style w:type="paragraph" w:styleId="Subtitle"><w:name w:val="Subtitle"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:spacing w:after="60"/></w:pPr><w:rPr><w:color w:val="7F8C8D"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:style>' +
-  '<w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="480" w:after="160"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:color w:val="5A6B50"/><w:sz w:val="34"/><w:szCs w:val="34"/></w:rPr></w:style>' +
-  '<w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="320" w:after="100"/><w:outlineLvl w:val="1"/></w:pPr><w:rPr><w:b/><w:color w:val="2C3E50"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></w:style>' +
-  '<w:style w:type="paragraph" w:styleId="Heading3"><w:name w:val="heading 3"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="220" w:after="80"/><w:outlineLvl w:val="2"/></w:pPr><w:rPr><w:b/><w:color w:val="2C3E50"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr></w:style>' +
-  '<w:style w:type="paragraph" w:styleId="ListParagraph"><w:name w:val="List Paragraph"/><w:basedOn w:val="Normal"/><w:qFormat/><w:pPr><w:spacing w:after="80"/></w:pPr></w:style>' +
-  '</w:styles>';
-const docBulletLevel = (id, mark) => '<w:abstractNum w:abstractNumId="' + id + '"><w:multiLevelType w:val="hybridMultilevel"/><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="bullet"/><w:lvlText w:val="' + mark + '"/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="720" w:hanging="360"/></w:pPr><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial" w:hint="default"/></w:rPr></w:lvl></w:abstractNum>';
-const DOC_NUMBERING = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
-  '<w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">' + docBulletLevel(0, '•') + docBulletLevel(1, '✓') +
-  '<w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num><w:num w:numId="2"><w:abstractNumId w:val="1"/></w:num></w:numbering>';
-
 async function buildDocx(doc) {
   const enc = new TextEncoder();
-  const body = [];
-  const media = [];                 // [{ name, bytes }]
-  const rels = ['<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>',
-    '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>'];
+  const o = doc.opts, size = SIZES[o.size], pal = o.palette;
+  // The slide is measured in the same units the slide drawing uses, 1080 across. The Word page is 8.5 inches across.
+  const unitsH = Math.round(size.h / size.s);
+  const TW = 12240 / 1080;                         // twentieths of a point for one slide unit
+  const tw = n => Math.round(n * TW), hp = n => Math.max(4, Math.round(n * TW / 10)), emu = n => Math.round(n * TW * 635);
+  const tm = TEXT_SCALE[o.textSize] || 1;
+  const pageBg = o.bgStyle === 'solid' || o.bgStyle === 'gradient' ? pal.bg : '#FFFFFF';
+  const dark = docHex(pal.dark), accent = docHex(pal.accent);
+  const soft = a => docMix(pal.dark, pageBg, a);
+  const titleFont = o.fonts.title, bodyFont = o.fonts.body;
+  const Wc = 1080 - 160;                            // width between the margins, in slide units
+  const NBSP = String.fromCharCode(160);
+  const xmlHead = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  const NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"';
+
+  const parts = [];                 // extra package parts: headers, footers, photos
+  const rels = [];                  // relationships of the main document
+  const overrides = [];
+  let relN = 0;
+  const addRel = (type, target) => { relN++; rels.push('<Relationship Id="rId' + relN + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/' + type + '" Target="' + target + '"/>'); return 'rId' + relN; };
+  addRel('styles', 'styles.xml'); addRel('numbering', 'numbering.xml'); addRel('settings', 'settings.xml');
+
+  let hfN = 0;
+  const addHeader = xml => { hfN++; const name = 'header' + hfN + '.xml'; parts.push({ name: 'word/' + name, data: enc.encode(xmlHead + '<w:hdr ' + NS + '>' + xml + '</w:hdr>') }); overrides.push('<Override PartName="/word/' + name + '" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/>'); return addRel('header', name); };
+  const addFooter = xml => { hfN++; const name = 'footer' + hfN + '.xml'; parts.push({ name: 'word/' + name, data: enc.encode(xmlHead + '<w:ftr ' + NS + '>' + xml + '</w:ftr>') }); overrides.push('<Override PartName="/word/' + name + '" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/>'); return addRel('footer', name); };
+
   const photoRefs = new Map();      // the same photo on several slides is stored once
-  let picN = 0;
+  let mediaN = 0, picN = 0;
+  const photoRef = async img => {
+    let ref = photoRefs.get(img);
+    if (!ref) {
+      const p = await docPhotoBytes(img);
+      mediaN++;
+      parts.push({ name: 'word/media/photo' + mediaN + '.jpeg', data: p.bytes });
+      ref = { rid: addRel('image', 'media/photo' + mediaN + '.jpeg'), w: p.w, h: p.h };
+      photoRefs.set(img, ref);
+    }
+    return ref;
+  };
+  const picture = (ref, wUnits, hUnits, alt) => docPicture(ref.rid, ++picN, emu(wUnits), emu(hUnits), alt, accent, emu(4));
 
-  const firstTitle = (doc.slides.find(sl => sl.title) || {}).title;
-  body.push(docPara(docRun(firstTitle || 'Documentation'), { style: 'Title' }));
-  if (doc.brand) body.push(docPara(docRun(doc.brand), { style: 'Subtitle' }));
-  if (doc.dateText) body.push(docPara(docRun(doc.dateText), { style: 'Subtitle' }));
+  // One section per slide. Each section carries its own date line and footer.
+  const section = (headerRid, footerRid, extra) =>
+    '<w:sectPr><w:headerReference w:type="default" r:id="' + headerRid + '"/><w:footerReference w:type="default" r:id="' + footerRid + '"/>' +
+    '<w:pgSz w:w="12240" w:h="' + tw(unitsH) + '"/>' +
+    '<w:pgMar w:top="' + tw(extra && extra.top != null ? extra.top : 80) + '" w:right="' + tw(80) + '" w:bottom="' + tw(100) + '" w:left="' + tw(80) + '" w:header="' + tw(extra && extra.header != null ? extra.header : 38) + '" w:footer="' + tw(24) + '" w:gutter="0"/>' +
+    (extra && extra.center ? '<w:vAlign w:val="center"/>' : '') + '</w:sectPr>';
+  const endOfSection = sect => docPara('', { before: 0, after: 0, line: 20, exact: true, sect });
 
-  body.push(docPara(docRun('Documentation'), { style: 'Heading1' }));
+  let dateText = doc.dateText || '';
+  const dateHeader = o.datePos === 'header' && dateText
+    ? addHeader(docPara(docRun(dateText, { font: bodyFont, size: hp(22 * tm), color: soft(0.5) }), { align: 'right', after: 0 }))
+    : addHeader(docPara('', { after: 0 }));
+  const brandLine = o.datePos === 'footer' && dateText ? o.brand + '  •  ' + dateText : o.brand;
+  const footerLine = left => docPara(
+    (left ? docRun(left, { font: bodyFont, size: hp(24 * tm), color: soft(0.6) }) : '') + DOC_TAB + docRun(brandLine, { font: bodyFont, size: hp(24 * tm), color: soft(0.6) }),
+    { tabRight: tw(Wc), before: tw(14), after: 0 });
+  // The measures strip, as on the slide. A thin rule, a small heading, then each measure as a dark tag with its name.
+  const strip = items => {
+    if (!o.showFootnote || !items || !items.length) return '';
+    let runs = '';
+    items.forEach((it, k) => {
+      runs += docRun(NBSP + String(it.code).split(' ').join(NBSP) + NBSP, { font: bodyFont, bold: true, size: hp(14), color: 'FFFFFF', fill: dark }) +
+        docRun(NBSP + NBSP + String(it.name || '').split(' ').join(NBSP) + (k < items.length - 1 ? '     ' : ''), { font: bodyFont, size: hp(16), color: soft(0.88) });
+    });
+    return docPara(docRun('LEARNING MADE VISIBLE', { font: bodyFont, bold: true, size: hp(13), color: accent, spacing: 30 }) + DOC_TAB + docRun('DRDP (2025)', { font: bodyFont, bold: true, size: hp(13), color: soft(0.5), spacing: 30 }),
+      { borderTop: { color: docMix(pal.accent, pageBg, 0.55), size: 8, space: 8 }, tabRight: tw(Wc), after: tw(8) }) +
+      docPara(runs, { after: 0, line: tw(32) });
+  };
+
+  // The words of one slide, at the sizes and spacing the slide uses.
+  const slideWords = (sl, f, widthUnits) => {
+    const parts2 = slideParts(sl);
+    const out = [];
+    let extraBefore = 0, lastHead = -1;
+    const fs = n => hp(n * tm * f), gap = n => tw(n * f), lh = n => tw(n * tm * f);
+    const push = (xml, isHead) => { out.push(xml); if (isHead) lastHead = out.length - 1; };
+    const all = parts2.head.concat(parts2.body);
+    let headGap = false;
+    all.forEach(it => {
+      if (it.kind === 'space') { extraBefore += gap(30); return; }
+      if (!it.text) return;
+      const isHead = it.kind === 'title' || it.kind === 'subtitle';
+      let before = extraBefore; extraBefore = 0;
+      if (headGap && !isHead) { before += gap(40); headGap = false; }
+      if (it.kind === 'title') push(docPara(docRun(it.text, { font: titleFont, bold: true, size: fs(64), color: dark }), { style: 'Heading2', before, after: gap(40), line: lh(76), align: o.textAlign }), true);
+      else if (it.kind === 'subtitle') push(docPara(docRun(it.text, { font: bodyFont, bold: true, size: fs(36), color: accent }), { before, after: gap(15), line: lh(44), align: o.textAlign }), true);
+      else if (it.kind === 'header') push(docPara(docRun(it.text, { font: bodyFont, bold: true, size: fs(38), color: dark }), { style: 'Heading3', before, after: gap(20), line: lh(48), align: o.textAlign }));
+      else if (it.kind === 'bullet-dark' || it.kind === 'bullet-accent') push(docPara(docRun(it.text, { font: bodyFont, size: fs(32), color: dark }), { list: it.kind === 'bullet-dark' ? 1 : 2, listInd: gap(40), before, after: Math.max(0, lh(60) - lh(42)), line: lh(42) }));
+      else push(docPara(docRun(it.text, { font: bodyFont, size: fs(32), color: dark }), { before, after: gap(30), line: lh(42), align: o.textAlign }));
+      if (isHead) headGap = true;
+    });
+    return { head: out.slice(0, lastHead + 1), body: out.slice(lastHead + 1) };
+  };
+
+  const body = [];
+  const planCtx = document.createElement('canvas').getContext('2d');
+  const total = doc.slides.length;
+
   for (let i = 0; i < doc.slides.length; i++) {
     const sl = doc.slides[i];
-    body.push(docPara(docRun(sl.title || 'Slide ' + (i + 1)), { style: 'Heading2' }));
-    if (sl.subtitle) body.push(docPara(docRun(sl.subtitle, { bold: true, color: '7A8B6F' }), { keepNext: true }));
-    if (sl.photo) {
-      let ref = photoRefs.get(sl.photo);
-      if (!ref) {
-        const p = await docPhotoBytes(sl.photo);
-        const n = media.length + 1;
-        media.push({ name: 'word/media/photo' + n + '.jpeg', bytes: p.bytes });
-        rels.push('<Relationship Id="rId' + (n + 2) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/photo' + n + '.jpeg"/>');
-        ref = { rid: 'rId' + (n + 2), w: p.w, h: p.h };
-        photoRefs.set(sl.photo, ref);
+    const slide = { title: sl.title, subtitle: sl.subtitle, content: sl.content, drdpItems: sl.items };
+    // Word breaks lines a little differently from the slide drawing. Planning for words 7 percent larger
+    // leaves spare room, so a slide that just fits does not spill onto a second Word page.
+    const want = Object.assign({}, o, { slidePhoto: sl.photo || null, textBoost: 1.07 });
+    // Words over a full page photo cannot be done in Word, so that arrangement becomes photo on top.
+    if (want.photoPos === 'center') want.photoPos = 'top';
+    const plan = planSlide(planCtx, slide, want);
+    const words = slideWords(slide, plan.f);
+    const photo = sl.photo && plan.photo ? { ref: await photoRef(sl.photo), w: plan.photo.w / size.s, h: plan.photo.h / size.s } : null;
+    const alt = 'Photo for ' + (sl.title || 'slide ' + (i + 1));
+    const block = [];
+    if (!photo) {
+      // On a slide with no photo the words start a little lower, under the date.
+      block.push(docPara('', { before: 0, after: 0, line: tw(60), exact: true }));
+      block.push(words.head.join('') + words.body.join(''));
+    } else if (plan.pos === 'top') {
+      block.push(docPara(picture(photo.ref, photo.w, photo.h, alt), { align: 'center', after: tw(40) }));
+      block.push(words.head.join('') + words.body.join(''));
+    } else if (plan.pos === 'bottom') {
+      block.push(words.head.join('') + words.body.join(''));
+      block.push(docPara(picture(photo.ref, photo.w, photo.h, alt), { align: 'center', before: tw(10), after: 0 }));
+    } else {
+      // Photo beside the words. A two column table with no lines holds them side by side.
+      block.push(words.head.join(''));
+      const photoCol = tw(photo.w + 50), textCol = tw(Wc) - photoCol;
+      const photoCell = '<w:tc><w:tcPr><w:tcW w:w="' + photoCol + '" w:type="dxa"/></w:tcPr>' + docPara(picture(photo.ref, photo.w, photo.h, alt), { align: plan.pos === 'left' ? 'left' : 'right', after: 0 }) + '</w:tc>';
+      const textCell = '<w:tc><w:tcPr><w:tcW w:w="' + textCol + '" w:type="dxa"/></w:tcPr>' + (words.body.join('') || docPara('', { after: 0 })) + '</w:tc>';
+      const cols = plan.pos === 'left' ? [photoCol, textCol] : [textCol, photoCol];
+      if (words.body.length) {
+        block.push('<w:tbl><w:tblPr><w:tblW w:w="' + tw(Wc) + '" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="0" w:type="dxa"/><w:right w:w="0" w:type="dxa"/></w:tblCellMar></w:tblPr>' +
+          '<w:tblGrid><w:gridCol w:w="' + cols[0] + '"/><w:gridCol w:w="' + cols[1] + '"/></w:tblGrid><w:tr>' + (plan.pos === 'left' ? photoCell + textCell : textCell + photoCell) + '</w:tr></w:tbl>');
+      } else {
+        block.push(docPara(picture(photo.ref, photo.w, photo.h, alt), { align: 'center', after: 0 }));
       }
-      // At most 4.5 inches wide and 4.5 inches tall, in the units Word uses.
-      const maxEmu = 4.5 * 914400, k = Math.min(maxEmu / ref.w, maxEmu / ref.h);
-      body.push(docPicture(ref.rid, ++picN, Math.round(ref.w * k), Math.round(ref.h * k), 'Photo for ' + (sl.title || 'slide ' + (i + 1))));
     }
-    for (const line of sl.content) {
-      const p = parseContentLine(line);
-      if (p.type === 'space' || !p.text) continue;
-      if (p.type === 'header') body.push(docPara(docRun(p.text), { style: 'Heading3' }));
-      else if (p.type === 'bullet-dark') body.push(docPara(docRun(p.text), { style: 'ListParagraph', list: 1 }));
-      else if (p.type === 'bullet-accent') body.push(docPara(docRun(p.text), { style: 'ListParagraph', list: 2 }));
-      else body.push(docPara(docRun(p.text)));
-    }
-    if (sl.items && sl.items.length) {
-      let runs = docRun('DRDP measures seen here   ', { bold: true, color: '5A6B50', size: 18 });
-      sl.items.forEach((it, k) => { runs += docRun(it.code, { bold: true, size: 18 }) + docRun(' ' + it.name + (k < sl.items.length - 1 ? ',  ' : ''), { size: 18 }); });
-      body.push(docPara(runs, { labelled: false, after: 120 }));
-    }
+    const footer = addFooter(strip(sl.items) + footerLine(o.showNums ? (i + 1) + '/' + total : ''));
+    body.push(block.join(''));
+    body.push({ sect: section(dateHeader, footer) });
   }
 
+  // Quote page. The quote sits in the middle of the page as on the slide.
   if (doc.quote) {
-    body.push(docPara(docRun('Quote'), { style: 'Heading2' }));
-    body.push(docPara(docRun('"' + doc.quote.quote + '"', { italic: true })));
-    body.push(docPara(docRun(doc.quote.author, { bold: true, color: '7A8B6F' })));
-  }
-
-  const d = doc.drdp;
-  if (d && d.measures && d.measures.length) {
-    body.push(docPara(docRun('DRDP (2025) Analysis'), { style: 'Heading1' }));
-    if (doc.notice) body.push(docPara(docRun(doc.notice, { italic: true, color: '7A5B00' })));
-    if (d.photoAnalysis) { body.push(docPara(docRun('Photo analysis'), { style: 'Heading3' })); body.push(docPara(docRun(d.photoAnalysis))); }
-    if (d.narrativeSummary) { body.push(docPara(docRun('Summary'), { style: 'Heading3' })); body.push(docPara(docRun(d.narrativeSummary))); }
-    body.push(docPara(docRun('Measures observed'), { style: 'Heading2' }));
-    for (const m of d.measures) {
-      body.push(docPara(docRun(m.code, { color: '5A6B50' }) + docRun('  ' + (m.name || '')), { style: 'Heading3' }));
-      if (m.domain) body.push(docLabelled('Domain', m.domain));
-      if (m.estimatedLevel) body.push(docLabelled('Level', m.estimatedLevel));
-      if (m.evidence) body.push(docLabelled('Evidence', m.evidence));
-      if (m.slideNumbers && m.slideNumbers.length) body.push(docLabelled(m.slideNumbers.length === 1 ? 'Slide' : 'Slides', m.slideNumbers.join(', ')));
+    const q = [];
+    if (doc.quotePhoto) {
+      const ref = await photoRef(doc.quotePhoto);
+      const maxW = Wc * 0.62, maxH = (unitsH - 190) * 0.5, k = Math.min(maxW / ref.w, maxH / ref.h);
+      q.push(docPara(picture(ref, ref.w * k, ref.h * k, 'Photo for the quote page'), { align: 'center', after: tw(50) }));
     }
-    body.push(docPara(docRun('Based on DRDP (2025). Analysis is suggestive, not diagnostic.', { italic: true, color: '7F8C8D', size: 18 }), { after: 0 }));
+    q.push(docPara(docRun('"' + doc.quote.quote + '"', { font: bodyFont, italic: true, size: hp(42 * tm), color: dark }), { align: 'center', after: tw(40), line: tw(56 * tm), indLeft: tw(40), indRight: tw(40) }));
+    q.push(docPara(docRun('— ' + doc.quote.author, { font: bodyFont, bold: true, size: hp(32 * tm), color: accent }), { align: 'center', after: 0 }));
+    body.push(q.join(''));
+    body.push({ sect: section(dateHeader, addFooter(footerLine('')), { center: true }) });
   }
 
-  const documentXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
-    '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">' +
-    '<w:body>' + body.join('') +
-    '<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr>' +
-    '</w:body></w:document>';
-  const types = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
-    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+  // DRDP summary page, laid out like the summary slide.
+  const d = doc.drdp;
+  if (doc.summary && d && d.measures && d.measures.length) {
+    const s = [];
+    const label = text => docPara(docRun(text, { font: bodyFont, bold: true, size: hp(22), color: accent }), { keepNext: true, after: tw(6), line: tw(34) });
+    if (d.photoAnalysis) { s.push(label('📷 Photo Analysis')); s.push(docPara(docRun(d.photoAnalysis, { font: bodyFont, size: hp(22), color: '444444' }), { after: tw(18), line: tw(32) })); }
+    if (d.narrativeSummary) { s.push(label('📝 Summary')); s.push(docPara(docRun(d.narrativeSummary, { font: bodyFont, italic: true, size: hp(22), color: '444444' }), { after: tw(30), line: tw(32) })); }
+    s.push(docPara(docRun('📊 Measures Observed', { font: bodyFont, bold: true, size: hp(22), color: accent }), { borderTop: { color: accent, size: 12, space: 14 }, keepNext: true, after: tw(14), line: tw(35) }));
+    for (const m of d.measures) {
+      s.push(docPara(
+        docRun(NBSP + m.domainCode + NBSP, { font: bodyFont, bold: true, size: hp(16), color: 'FFFFFF', fill: accent }) +
+        docRun(NBSP + NBSP + m.code + (m.name ? ': ' + m.name : ''), { font: bodyFont, bold: true, size: hp(24), color: dark }) +
+        (m.estimatedLevel ? docRun('   • ' + m.estimatedLevel, { font: bodyFont, size: hp(20), color: accent }) : ''),
+        { style: 'Heading3', keepNext: !!m.evidence, after: tw(2), line: tw(30) }));
+      s.push(docPara(m.evidence ? docRun(m.evidence, { font: bodyFont, size: hp(18), color: '666666' }) : '', { after: tw(35), line: tw(28), indLeft: tw(10) }));
+    }
+    // The colored band across the top is the page header, so it repeats if the summary runs onto another page.
+    const band = '<w:tbl><w:tblPr><w:tblW w:w="12240" w:type="dxa"/><w:tblInd w:w="' + (-tw(80)) + '" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="0" w:type="dxa"/><w:right w:w="0" w:type="dxa"/></w:tblCellMar></w:tblPr>' +
+      '<w:tblGrid><w:gridCol w:w="12240"/></w:tblGrid><w:tr><w:trPr><w:trHeight w:val="' + tw(110) + '" w:hRule="exact"/></w:trPr>' +
+      '<w:tc><w:tcPr><w:tcW w:w="12240" w:type="dxa"/><w:shd w:val="clear" w:color="auto" w:fill="' + accent + '"/><w:vAlign w:val="center"/></w:tcPr>' +
+      docPara(docRun('DRDP (2025) Measures Identified', { font: titleFont, bold: true, size: hp(38), color: 'FFFFFF' }), { align: 'center', after: 0 }) +
+      '</w:tc></w:tr></w:tbl>' + docPara('', { after: 0, line: 20, exact: true });
+    body.push(s.join(''));
+    body.push({ sect: section(addHeader(band), addFooter(footerLine('')), { top: 150, header: 0 }) });
+  }
+
+  // Every section but the last closes with a tiny paragraph that carries its page setup. The last one closes the body.
+  let bodyXml = '';
+  body.forEach((b, i) => {
+    if (typeof b === 'string') { bodyXml += b; return; }
+    bodyXml += i === body.length - 1 ? docPara('', { before: 0, after: 0, line: 20, exact: true }) + b.sect : endOfSection(b.sect);
+  });
+
+  const documentXml = xmlHead + '<w:document ' + NS + '><w:background w:color="' + docHex(pageBg) + '"/><w:body>' + bodyXml + '</w:body></w:document>';
+  const stylesXml = xmlHead + '<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">' +
+    '<w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="' + docText(bodyFont) + '" w:hAnsi="' + docText(bodyFont) + '" w:eastAsia="' + docText(bodyFont) + '" w:cs="' + docText(bodyFont) + '"/><w:color w:val="' + dark + '"/><w:sz w:val="' + hp(32) + '"/><w:szCs w:val="' + hp(32) + '"/><w:lang w:val="en-US"/></w:rPr></w:rPrDefault>' +
+    '<w:pPrDefault><w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>' +
+    '<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style>' +
+    '<w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:outlineLvl w:val="1"/></w:pPr></w:style>' +
+    '<w:style w:type="paragraph" w:styleId="Heading3"><w:name w:val="heading 3"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:outlineLvl w:val="2"/></w:pPr></w:style>' +
+    '</w:styles>';
+  const bullet = (id, mark, color) => '<w:abstractNum w:abstractNumId="' + id + '"><w:multiLevelType w:val="hybridMultilevel"/><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="bullet"/><w:lvlText w:val="' + mark + '"/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="' + tw(40) + '" w:hanging="' + tw(40) + '"/></w:pPr><w:rPr><w:rFonts w:ascii="' + docText(bodyFont) + '" w:hAnsi="' + docText(bodyFont) + '" w:cs="' + docText(bodyFont) + '" w:hint="default"/><w:color w:val="' + color + '"/></w:rPr></w:lvl></w:abstractNum>';
+  const numberingXml = xmlHead + '<w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">' + bullet(0, '•', dark) + bullet(1, '✓', accent) +
+    '<w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num><w:num w:numId="2"><w:abstractNumId w:val="1"/></w:num></w:numbering>';
+  // This setting makes Word show the page color on screen.
+  const settingsXml = xmlHead + '<w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:displayBackgroundShape/></w:settings>';
+  const types = xmlHead + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
     '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="jpeg" ContentType="image/jpeg"/>' +
     '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' +
     '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>' +
     '<Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>' +
-    '</Types>';
-  const rootRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
-    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>';
-  const docRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
-    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' + rels.join('') + '</Relationships>';
+    '<Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/>' +
+    overrides.join('') + '</Types>';
+  const rootRels = xmlHead + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>';
+  const docRels = xmlHead + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' + rels.join('') + '</Relationships>';
   const files = [
     { name: '[Content_Types].xml', data: enc.encode(types) },
     { name: '_rels/.rels', data: enc.encode(rootRels) },
     { name: 'word/document.xml', data: enc.encode(documentXml) },
     { name: 'word/_rels/document.xml.rels', data: enc.encode(docRels) },
-    { name: 'word/styles.xml', data: enc.encode(DOC_STYLES) },
-    { name: 'word/numbering.xml', data: enc.encode(DOC_NUMBERING) }
-  ].concat(media.map(m => ({ name: m.name, data: m.bytes })));
+    { name: 'word/styles.xml', data: enc.encode(stylesXml) },
+    { name: 'word/numbering.xml', data: enc.encode(numberingXml) },
+    { name: 'word/settings.xml', data: enc.encode(settingsXml) }
+  ].concat(parts);
   return new Blob([buildZip(files)], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
 }
 
