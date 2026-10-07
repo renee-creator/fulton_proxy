@@ -4,13 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Fulton Documentation Generator</title>
+<meta name="application-name" content="Fulton Documentation Generator">
+<meta name="description" content="Create documentation slides with DRDP 2025 developmental analysis">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Fulton Docs">
 <meta name="theme-color" content="#5A6B50">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src 'self' https://fulton-proxy.onrender.com https://fonts.googleapis.com https://fonts.gstatic.com; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob:;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://fulton-proxy.onrender.com">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%235A6B50' width='180' height='180' rx='40'/><rect fill='white' x='45' y='40' width='100' height='75'/><rect fill='%235A6B50' x='55' y='55' width='60' height='6'/><rect fill='%237A8B6F' x='55' y='68' width='80' height='4'/><rect fill='%237A8B6F' x='55' y='78' width='70' height='4'/><rect fill='white' x='50' y='125' width='15' height='30'/><rect fill='white' x='70' y='115' width='15' height='40'/><rect fill='white' x='90' y='105' width='15' height='50'/><rect fill='white' x='110' y='120' width='15' height='35'/></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%235A6B50' width='180' height='180' rx='40'/><rect fill='white' x='45' y='40' width='100' height='75'/><rect fill='%235A6B50' x='55' y='55' width='60' height='6'/><rect fill='%237A8B6F' x='55' y='68' width='80' height='4'/><rect fill='%237A8B6F' x='55' y='78' width='70' height='4'/><rect fill='white' x='50' y='125' width='15' height='30'/><rect fill='white' x='70' y='115' width='15' height='40'/><rect fill='white' x='90' y='105' width='15' height='50'/><rect fill='white' x='110' y='120' width='15' height='35'/></svg>">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#FFF5E6,#FFE8CC);min-height:100vh;padding:1rem;padding-top:max(1rem,env(safe-area-inset-top));padding-bottom:max(1rem,env(safe-area-inset-bottom))}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:#2C3E50;background:#FFF5E6 linear-gradient(135deg,#FFF5E6,#FFE8CC);min-height:100vh;padding:1rem;padding-top:max(1rem,env(safe-area-inset-top));padding-bottom:max(1rem,env(safe-area-inset-bottom))}
 .container{max-width:1500px;margin:0 auto}
 .header{background:white;padding:1rem 1.25rem;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.1);margin-bottom:1rem}
 h1{color:#2C3E50;font-size:1.2rem;line-height:1.3}
@@ -70,8 +77,9 @@ input[type=file]{width:100%;padding:.5rem;border:2px dashed #7A8B6F;border-radiu
 .slide-info{padding:.75rem;text-align:center;background:#f9f9f9}
 .slide-number{font-weight:600;color:#2C3E50;font-size:.85rem}
 .drdp-badge{display:inline-block;background:#7A8B6F;color:white;padding:2px 8px;border-radius:10px;font-size:.7rem;margin-left:.5rem}
-.download-btn{position:absolute;top:.75rem;right:.75rem;background:rgba(255,255,255,.95);border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:opacity .3s,transform .2s;box-shadow:0 2px 10px rgba(0,0,0,.2);font-size:18px}
-.slide-card:hover .download-btn{opacity:1}
+.download-btn{-webkit-appearance:none;appearance:none;color:#2C3E50;padding:0;position:absolute;top:.75rem;right:.75rem;background:rgba(255,255,255,.95);border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:opacity .3s,transform .2s;box-shadow:0 2px 10px rgba(0,0,0,.2);font-size:18px}
+.slide-card:hover .download-btn,.download-btn:focus-visible{opacity:1}
+@media(hover:none){.download-btn{opacity:1}}
 .download-btn:hover{transform:scale(1.1)}
 .status{text-align:center;padding:.75rem;border-radius:8px;margin-top:.75rem;font-weight:600;display:none}
 .status.show{display:block}
@@ -114,10 +122,37 @@ input[type=file]{width:100%;padding:.5rem;border:2px dashed #7A8B6F;border-radiu
 .section-title{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:#7A8B6F;margin-bottom:.5rem;font-weight:600}
 .row{display:flex;gap:.5rem}
 .row>*{flex:1}
+.status{white-space:pre-line}
+.status.warn{background:#FFF3CD;color:#7A5B00}
+.actions{display:grid;gap:.1rem;margin-top:.25rem}
+@media(min-width:900px){.actions{width:calc((100% - 3rem)/3);margin-left:auto}}
+.ai-source{font-size:.72rem;color:#5A6B50;background:#f0f4ed;border-radius:6px;padding:.35rem .5rem;margin-top:.35rem;line-height:1.35}
+.ai-source.off{color:#7A5B00;background:#FFF3CD}
+.drdp-notice{background:#FFF3CD;color:#7A5B00;padding:.6rem .75rem;border-radius:8px;margin-bottom:.75rem;font-size:.8rem;line-height:1.4}
+.drdp-disclaimer{font-size:.7rem;color:#888;margin-top:.6rem}
+.install-banner{display:none;background:linear-gradient(135deg,#5A6B50,#7A8B6F);color:white;padding:.75rem 1rem;border-radius:12px;margin-bottom:1rem;align-items:center;justify-content:space-between;gap:1rem}
+.install-banner.show{display:flex}
+.install-banner p{margin:0;font-size:.9rem}
+.install-banner button{background:white;color:#5A6B50;border:none;padding:.5rem 1rem;border-radius:6px;font-weight:600;cursor:pointer;white-space:nowrap}
+.install-banner .close-btn{background:transparent;color:white;font-size:1.2rem;padding:.25rem .5rem}
+@media(display-mode:standalone){.install-banner{display:none!important}}
+.save-overlay{position:fixed;inset:0;background:rgba(20,25,20,.92);z-index:1000;overflow-y:auto;padding:1rem;padding-top:max(1rem,env(safe-area-inset-top));padding-bottom:max(1rem,env(safe-area-inset-bottom));display:none}
+.save-overlay.show{display:block}
+.save-overlay-inner{max-width:640px;margin:0 auto;display:grid;gap:1rem}
+.save-overlay-bar{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;gap:1rem;background:#2C3E50;color:white;padding:.75rem 1rem;border-radius:10px;font-size:.9rem;line-height:1.35}
+.save-overlay-bar button{background:white;color:#2C3E50;border:none;border-radius:6px;padding:.5rem .9rem;font-weight:600;cursor:pointer;min-height:40px}
+.save-overlay img{width:100%;height:auto;display:block;border-radius:8px;background:white;-webkit-touch-callout:default;user-select:auto;-webkit-user-select:auto}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,.accordion-header:focus-visible{outline:2px solid #5A6B50;outline-offset:2px}
+
 </style>
 </head>
 <body>
 <div class="container">
+  <div class="install-banner" id="installBanner">
+    <p>📱 Add to Home Screen for the best experience</p>
+    <button type="button" id="installBannerOk">Got it</button>
+    <button type="button" class="close-btn" id="installBannerClose" aria-label="Close">×</button>
+  </div>
   <div class="header">
     <h1>Fulton Documentation Generator <span class="badge">DRDP 2025</span></h1>
     <p class="subtitle">Create documentation slides with DRDP 2025 analysis</p>
@@ -127,13 +162,13 @@ input[type=file]{width:100%;padding:.5rem;border:2px dashed #7A8B6F;border-radiu
     <div class="input-grid">
 
       <div class="accordion open">
-        <div class="accordion-header" onclick="toggleAccordion(this)">
+        <div class="accordion-header" role="button" tabindex="0" onclick="toggleAccordion(this)">
           <span class="accordion-title">✏️ Slide Content</span>
           <span class="accordion-arrow">▼</span>
         </div>
         <div class="accordion-body">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
-            <label style="margin:0">Slide Content</label>
+            <label for="slideText" style="margin:0">Slide Content</label>
             <div class="input-mode-toggle">
               <button type="button" id="textModeBtn" class="mode-btn active" onclick="setInputMode('text')">Text</button>
               <button type="button" id="fieldModeBtn" class="mode-btn" onclick="setInputMode('fields')">Fields</button>
@@ -146,7 +181,8 @@ input[type=file]{width:100%;padding:.5rem;border:2px dashed #7A8B6F;border-radiu
                 <p>Start each slide with <code>Slide N:</code></p>
                 <p><code>title:</code> Main heading</p>
                 <p><code>subtitle:</code> Secondary heading</p>
-                <p><code>content:</code> Body text</p>
+                <p><code>content:</code> Body text, one line each</p>
+                <p>Empty <code>content:</code> lines add spacing</p>
                 <p><code>•</code> Dark bullet &nbsp; <code>✓</code> Accent bullet</p>
                 <p>Lines ending with <code>:</code> become headers</p>
               </div>
@@ -171,7 +207,7 @@ content: More content..."></textarea>
                 </div>
                 <div class="field-group"><label>Title</label><input type="text" class="slide-title-field" placeholder="Main heading"></div>
                 <div class="field-group"><label>Subtitle <span class="optional">(optional)</span></label><input type="text" class="slide-subtitle-field" placeholder="Secondary heading"></div>
-                <div class="field-group"><label>Content</label><textarea class="slide-content-field" placeholder="One line per item&#10;• for bullets, ✓ for accent bullets"></textarea></div>
+                <div class="field-group"><label>Content</label><textarea class="slide-content-field" placeholder="One line per item&#10;• for bullets, ✓ for accent bullets&#10;End a line with : for a header&#10;Leave a blank line for spacing"></textarea></div>
               </div>
             </div>
             <button type="button" class="add-slide-btn" onclick="addSlideField()">+ Add Another Slide</button>
@@ -180,16 +216,16 @@ content: More content..."></textarea>
       </div>
 
       <div class="accordion">
-        <div class="accordion-header" onclick="toggleAccordion(this)">
+        <div class="accordion-header" role="button" tabindex="0" onclick="toggleAccordion(this)">
           <span class="accordion-title">🎨 Design & Photos</span>
           <span class="accordion-arrow">▼</span>
         </div>
         <div class="accordion-body">
           <div class="controls">
-            <div><label>Brand Name</label><input type="text" id="brandName" value="Fulton Community School & Farm"></div>
+            <div><label for="brandName">Brand Name</label><input type="text" id="brandName" value="Fulton Community School & Farm"></div>
             <div class="row">
-              <div><label>Date</label><input type="date" id="slideDate"></div>
-              <div><label>Date Position</label>
+              <div><label for="slideDate">Date</label><input type="date" id="slideDate"></div>
+              <div><label for="datePosition">Date Position</label>
                 <select id="datePosition">
                   <option value="none">Don't show</option>
                   <option value="header" selected>In header</option>
@@ -198,13 +234,13 @@ content: More content..."></textarea>
               </div>
             </div>
             <div class="row">
-              <div><label>Slide Size</label>
+              <div><label for="slideSize">Slide Size</label>
                 <select id="slideSize">
                   <option value="square">Square 1080×1080</option>
                   <option value="letter">Letter 2550×3300</option>
                 </select>
               </div>
-              <div><label>Text Size</label>
+              <div><label for="textSize">Text Size</label>
                 <select id="textSize">
                   <option value="small">Small</option>
                   <option value="medium" selected>Medium</option>
@@ -212,7 +248,7 @@ content: More content..."></textarea>
                 </select>
               </div>
             </div>
-            <div><label>Text Alignment</label>
+            <div><label for="textAlign">Text Alignment</label>
               <select id="textAlign">
                 <option value="left">Left</option>
                 <option value="center">Center</option>
@@ -224,7 +260,7 @@ content: More content..."></textarea>
               <div class="checkbox-row"><input type="checkbox" id="showSlideNumbers" checked><label for="showSlideNumbers">Slide Numbers</label></div>
             </div>
             <div class="section-divider"><div class="section-title">Photo Placement</div></div>
-            <div><label>Default Position</label>
+            <div><label for="photoPlacement">Default Position</label>
               <select id="photoPlacement">
                 <option value="none">No photos</option>
                 <option value="top">Top</option>
@@ -235,7 +271,7 @@ content: More content..."></textarea>
               </select>
             </div>
             <div id="photoUploadSection" style="display:none">
-              <select id="photoMode">
+              <select id="photoMode" aria-label="Photo mode">
                 <option value="single">Same photo all slides</option>
                 <option value="multiple">Different per slide</option>
                 <option value="assign">Assign to slides</option>
@@ -250,7 +286,7 @@ content: More content..."></textarea>
             </div>
             <div class="section-divider"><div class="section-title">Background</div></div>
             <div>
-              <select id="backgroundStyle">
+              <select id="backgroundStyle" aria-label="Background style">
                 <option value="solid" selected>Solid Color</option>
                 <option value="gradient">Gradient</option>
                 <option value="image">Custom Image</option>
@@ -258,7 +294,7 @@ content: More content..."></textarea>
               </select>
             </div>
             <div id="imageUploadSection" style="display:none">
-              <select id="imageMode">
+              <select id="imageMode" aria-label="Background image mode">
                 <option value="single">Same image all slides</option>
                 <option value="multiple">Different per slide</option>
               </select>
@@ -266,7 +302,7 @@ content: More content..."></textarea>
               <div id="multipleImageUpload" style="display:none;margin-top:.4rem"><input type="file" id="backgroundImagesMultiple" accept="image/*" multiple></div>
               <div class="checkbox-row" style="margin-top:.4rem"><input type="checkbox" id="overlayToggle" checked><label for="overlayToggle">Color overlay</label></div>
               <div class="row" style="align-items:center;margin-top:.3rem">
-                <label style="margin:0;font-size:.75rem">Opacity: <span id="overlayValue">60</span>%</label>
+                <label for="overlayOpacity" style="margin:0;font-size:.75rem">Opacity: <span id="overlayValue">60</span>%</label>
                 <input type="range" id="overlayOpacity" min="0" max="90" value="60" style="flex:2">
               </div>
             </div>
@@ -275,13 +311,13 @@ content: More content..."></textarea>
       </div>
 
       <div class="accordion">
-        <div class="accordion-header" onclick="toggleAccordion(this)">
+        <div class="accordion-header" role="button" tabindex="0" onclick="toggleAccordion(this)">
           <span class="accordion-title">📊 Colors, Fonts & DRDP</span>
           <span class="accordion-arrow">▼</span>
         </div>
         <div class="accordion-body">
           <div class="controls">
-            <div><label>Color Family</label>
+            <div><label for="colorFamily">Color Family</label>
               <select id="colorFamily">
                 <option value="sage-green">Sage & Terracotta</option>
                 <option value="warm-neutral">Warm Neutral</option>
@@ -303,7 +339,7 @@ content: More content..."></textarea>
               </div>
             </div>
             <div class="row">
-              <div><label>Title Font</label>
+              <div><label for="titleFont">Title Font</label>
                 <select id="titleFont">
                   <option value="Georgia">Georgia</option>
                   <option value="Playfair Display">Playfair Display</option>
@@ -311,15 +347,17 @@ content: More content..."></textarea>
                   <option value="Arial">Arial</option>
                   <option value="Helvetica">Helvetica</option>
                   <option value="Trebuchet MS">Trebuchet MS</option>
+                  <option value="Impact">Impact</option>
                 </select>
               </div>
-              <div><label>Body Font</label>
+              <div><label for="bodyFont">Body Font</label>
                 <select id="bodyFont">
                   <option value="Arial">Arial</option>
                   <option value="Helvetica">Helvetica</option>
                   <option value="Verdana">Verdana</option>
                   <option value="Trebuchet MS">Trebuchet MS</option>
                   <option value="Georgia">Georgia</option>
+                  <option value="Times New Roman">Times New Roman</option>
                 </select>
               </div>
             </div>
@@ -327,35 +365,37 @@ content: More content..."></textarea>
             <div class="checkbox-row"><input type="checkbox" id="enableDrdp" checked><label for="enableDrdp">Enable measure analysis</label></div>
             <div id="drdpOptions">
               <div style="margin:.5rem 0">
-                <label style="font-size:.8rem">Analysis Mode</label>
+                <label for="analysisMode" style="font-size:.8rem">Analysis Mode</label>
                 <select id="analysisMode">
-                  <option value="ai">🤖 AI Analysis</option>
+                  <option value="ai">🤖 AI Analysis (photos + text)</option>
                   <option value="keyword">⚡ Keyword Match (no AI)</option>
                 </select>
                 <p class="help-text" id="analysisModeHelp">AI analyzes photos and text for deeper insights.</p>
+                <p class="ai-source" id="aiSource" hidden></p>
               </div>
 
               <div class="row">
                 <div class="checkbox-row"><input type="checkbox" id="showFootnotes"><label for="showFootnotes">Codes on slides</label></div>
                 <div class="checkbox-row"><input type="checkbox" id="addSummaryPage" checked><label for="addSummaryPage">Summary page</label></div>
               </div>
-              <div><label>Age Group</label>
+              <div><label for="ageGroup">Age Group</label>
                 <select id="ageGroup">
                   <option value="ptk">Preschool/TK/K (3-6)</option>
                   <option value="it">Infant/Toddler (0-3)</option>
                 </select>
               </div>
             </div>
-            <div class="section-divider"></div>
-            <button id="generateBtn" class="button button-primary">Generate Slides</button>
-            <button id="downloadAllBtn" class="button button-secondary" style="display:none">Download All (JPG)</button>
-            <button id="downloadPdfBtn" class="button button-pdf" style="display:none">Download PDF</button>
           </div>
         </div>
       </div>
 
     </div>
-    <div id="status" class="status"></div>
+    <div class="actions">
+      <button type="button" id="generateBtn" class="button button-primary">Generate Slides</button>
+      <button type="button" id="downloadAllBtn" class="button button-secondary" hidden>Download All (JPG)</button>
+      <button type="button" id="downloadPdfBtn" class="button button-pdf" hidden>Download PDF</button>
+    </div>
+    <div id="status" class="status" role="status" aria-live="polite"></div>
   </div>
 
   <div id="results" class="results">
@@ -364,75 +404,88 @@ content: More content..."></textarea>
     <div class="drdp-panel" id="drdpPanel" style="display:none">
       <h3>📊 DRDP (2025) Measures Identified</h3>
       <div id="drdpResults"></div>
+      <p class="drdp-disclaimer">Based on DRDP (2025). Analysis is suggestive, not diagnostic.</p>
     </div>
   </div>
 </div>
 
+<div class="save-overlay" id="saveOverlay" role="dialog" aria-modal="true" aria-label="Save slides">
+  <div class="save-overlay-inner">
+    <div class="save-overlay-bar"><span id="saveOverlayText">Press and hold a slide, then choose Save to Photos.</span><button type="button" id="saveOverlayClose">Done</button></div>
+    <div id="saveOverlayImages" style="display:grid;gap:1rem"></div>
+  </div>
+</div>
+
 <script>
-const COLOR_FAMILIES = {
-  'warm-neutral':{bg:'#FFFBF5',accent:'#D4A574',dark:'#2C3E50'},
-  'sage-green':{bg:'#F5F5F0',accent:'#B8A398',dark:'#4A5C4E'},
-  'ocean-blue':{bg:'#F0F7FA',accent:'#7BA7BC',dark:'#2C4251'},
-  'forest':{bg:'#F5F7F2',accent:'#8B9A7E',dark:'#3D4A3A'},
-  'lavender':{bg:'#F8F5FA',accent:'#B8A5C8',dark:'#4A3D56'},
-  'coral':{bg:'#FFF7F5',accent:'#E8A598',dark:'#2C4A51'},
-  'earthy':{bg:'#F7F3EE',accent:'#B89D85',dark:'#3D3026'},
-  'minimal':{bg:'#FFFFFF',accent:'#808080',dark:'#000000'},
-  'sunset':{bg:'#FFF5ED',accent:'#E8937A',dark:'#4A3326'}
-};
+const COLOR_FAMILIES = {"warm-neutral":{"bg":"#FFFBF5","accent":"#D4A574","dark":"#2C3E50"},"sage-green":{"bg":"#F5F5F0","accent":"#B8A398","dark":"#4A5C4E"},"ocean-blue":{"bg":"#F0F7FA","accent":"#7BA7BC","dark":"#2C4251"},"forest":{"bg":"#F5F7F2","accent":"#8B9A7E","dark":"#3D4A3A"},"lavender":{"bg":"#F8F5FA","accent":"#B8A5C8","dark":"#4A3D56"},"coral":{"bg":"#FFF7F5","accent":"#E8A598","dark":"#2C4A51"},"earthy":{"bg":"#F7F3EE","accent":"#B89D85","dark":"#3D3026"},"minimal":{"bg":"#FFFFFF","accent":"#808080","dark":"#000000"},"sunset":{"bg":"#FFF5ED","accent":"#E8937A","dark":"#4A3326"}};
 
 const QUOTES = [
-  // Loris Malaguzzi
   ["The environment is the third teacher.","Loris Malaguzzi"],
   ["Children have a hundred languages, but school steals ninety-nine.","Loris Malaguzzi"],
   ["Stand aside for a while and leave room for learning.","Loris Malaguzzi"],
   ["Creativity emerges from multiple experiences, coupled with a sense of freedom to venture beyond the known.","Loris Malaguzzi"],
   ["Nothing without joy.","Loris Malaguzzi"],
-  ["What children learn does not follow as an automatic result from what is taught.","Loris Malaguzzi"],
+  ["The child has a hundred languages, a hundred hands, a hundred thoughts, a hundred ways of thinking.","Loris Malaguzzi"],
+  ["What children learn does not follow as an automatic result from what is taught. Rather, it is in large part due to the children's own doing.","Loris Malaguzzi"],
   ["Things about children and for children are only learned from children.","Loris Malaguzzi"],
   ["Our task is to help children communicate with the world using all their potential, strengths, and languages.","Loris Malaguzzi"],
-  // Carlina Rinaldi
   ["Listening is not easy. It requires a deep awareness and suspension of our judgments.","Carlina Rinaldi"],
   ["Documentation is visible listening.","Carlina Rinaldi"],
   ["Learning is a process of construction that takes place in relationship with others.","Carlina Rinaldi"],
   ["The child is a rich, capable, competent protagonist of their own growth.","Carlina Rinaldi"],
-  // Lella Gandini
   ["Children's questions are the curriculum.","Lella Gandini"],
   ["The space speaks of the values of the people who live and work there.","Lella Gandini"],
   ["Children need the freedom and time to play. Play is not a luxury; play is a necessity.","Lella Gandini"],
-  // Maria Montessori
   ["The goal of early childhood education should be to activate the child's own natural desire to learn.","Maria Montessori"],
-  ["The greatest sign of success for a teacher is when children work as if the teacher did not exist.","Maria Montessori"],
+  ["The greatest sign of success for a teacher is to be able to say, 'The children are now working as if I did not exist.'","Maria Montessori"],
   ["The child is both a hope and a promise for mankind.","Maria Montessori"],
   ["Free the child's potential, and you will transform him into the world.","Maria Montessori"],
   ["The hand is the instrument of intelligence.","Maria Montessori"],
   ["Never help a child with a task at which he feels he can succeed.","Maria Montessori"],
-  ["The land is where our roots are. Children must be taught to feel and live in harmony with the Earth.","Maria Montessori"],
-  // Fred Rogers
+  ["The land is where our roots are. The children must be taught to feel and live in harmony with the Earth.","Maria Montessori"],
   ["Play gives children a chance to practice what they are learning.","Fred Rogers"],
   ["Play is often talked about as if it were a relief from serious learning. But for children play is serious learning.","Fred Rogers"],
-  // Harvard Center
   ["The first years of life lay the foundation for learning, behavior, and health throughout the lifespan.","Harvard Center on the Developing Child"],
   ["Brains are built over time, from the bottom up.","Harvard Center on the Developing Child"],
   ["Serve and return interactions shape brain architecture.","Harvard Center on the Developing Child"],
-  // Vygotsky
   ["What a child can do today with assistance, she will be able to do by herself tomorrow.","Lev Vygotsky"],
   ["Through others we become ourselves.","Lev Vygotsky"],
-  // Piaget
+  ["Children learn best when they are actively engaged.","Lev Vygotsky"],
   ["The principal goal of education is to create people who are capable of doing new things.","Jean Piaget"],
   ["Play is the work of childhood.","Jean Piaget"],
-  ["Every time we teach a child something, we keep him from inventing it himself.","Jean Piaget"],
   ["Intelligence is what you use when you don't know what to do.","Jean Piaget"],
-  // Others
+  ["Every time we teach a child something, we keep him from inventing it himself.","Jean Piaget"],
+  ["The only limit to the development of the child is the limit we put on our own expectations.","Jerome Bruner"],
+  ["Childhood is a period of extraordinary learning and exploration.","Alison Gopnik"],
+  ["Children are the R&D department of the human species.","Alison Gopnik"],
+  ["Children require long, uninterrupted periods to play and work.","Howard Gardner"],
   ["Education is not preparation for life; education is life itself.","John Dewey"],
   ["We do not learn from experience. We learn from reflecting on experience.","John Dewey"],
-  ["Children are the R&D department of the human species.","Alison Gopnik"],
+  ["Give the pupils something to do, not something to learn.","John Dewey"],
+  ["Young children learn best through active, hands-on experiences.","NAEYC"],
+  ["Relationships are at the heart of all meaningful learning.","NAEYC"],
+  ["Children are competent learners from birth.","NAEYC"],
   ["Becoming is better than being.","Carol Dweck"],
   ["Effort is what ignites ability and turns it into accomplishment.","Carol Dweck"],
   ["Play is the glue that holds the curriculum together.","Vivian Gussin Paley"],
-  ["Do less, observe more, enjoy most.","Magda Gerber"],
+  ["Pretend play is the natural language of young children.","Vivian Gussin Paley"],
   ["Allow the child to be competent.","Magda Gerber"],
-  // Nature
+  ["Do less, observe more, enjoy most.","Magda Gerber"],
+  ["People will forget what you said, but people will never forget how you made them feel.","Maya Angelou"],
+  ["We delight in the beauty of the butterfly, but rarely admit the changes it has gone through.","Maya Angelou"],
+  ["The more that you read, the more things you will know.","Dr. Seuss"],
+  ["A person's a person, no matter how small.","Dr. Seuss"],
+  ["Children are not things to be molded, but are people to be unfolded.","Jess Lair"],
+  ["Every child is an artist. The problem is how to remain an artist once we grow up.","Pablo Picasso"],
+  ["It takes a village to raise a child.","African Proverb"],
+  ["Children learn what they live.","Dorothy Law Nolte"],
+  ["The soul is healed by being with children.","Fyodor Dostoevsky"],
+  ["It is easier to build strong children than to repair broken men.","Frederick Douglass"],
+  ["Children are our most valuable resource and its best hope for the future.","John F. Kennedy"],
+  ["While we try to teach our children all about life, our children teach us what life is all about.","Angela Schwindt"],
+  ["Every child deserves a champion.","Rita Pierson"],
+  ["Children are like wet cement. Whatever falls on them makes an impression.","Haim Ginott"],
+  ["The way we talk to our children becomes their inner voice.","Peggy O'Mara"],
   ["In every walk with nature, one receives far more than he seeks.","John Muir"],
   ["The clearest way into the universe is through a forest wilderness.","John Muir"],
   ["Between every two pines is a doorway to a new world.","John Muir"],
@@ -447,542 +500,1453 @@ const QUOTES = [
   ["Look deep into nature, and then you will understand everything better.","Albert Einstein"],
   ["Adopt the pace of nature: her secret is patience.","Ralph Waldo Emerson"],
   ["In nature, nothing is perfect and everything is perfect.","Alice Walker"],
+  ["The earth has music for those who listen.","William Shakespeare"],
   ["Children are born naturalists. They explore the world with all their senses.","David Sobel"],
   ["If we want children to flourish, we need to give them time to connect with nature.","David Sobel"],
   ["Let nature be your teacher.","William Wordsworth"],
-  ["Nature does not hurry, yet everything is accomplished.","Lao Tzu"],
-  // Farm & Food
+  ["Come forth into the light of things, let nature be your teacher.","William Wordsworth"],
+  ["Nature does not hurry, yet everything is accomplished.","Lao Tzu (interpretation)"],
+  ["Dirt is not dirt, but a world of creatures that give life to the earth.","Claire Walker Leslie"],
+  ["The goal of life is to make your heartbeat match the beat of the universe.","Joseph Campbell"],
   ["To plant a garden is to believe in tomorrow.","Audrey Hepburn"],
   ["The love of gardening is a seed once sown that never dies.","Gertrude Jekyll"],
+  ["A garden requires patient labor and attention. Plants do not grow merely to satisfy ambitions.","Liberty Hyde Bailey"],
   ["We do not inherit the earth from our ancestors; we borrow it from our children.","Native American Proverb"],
   ["The earth is what we all have in common.","Wendell Berry"],
-  ["The care of the Earth is our most ancient and most worthy responsibility.","Wendell Berry"],
+  ["The care of the Earth is our most ancient and most worthy, and after all our most pleasing responsibility.","Wendell Berry"],
   ["Eating is an agricultural act.","Wendell Berry"],
+  ["When we heal the earth, we heal ourselves.","David Orr"],
   ["The garden suggests there might be a place where we can meet nature halfway.","Michael Pollan"],
   ["To forget how to dig the earth and to tend the soil is to forget ourselves.","Mahatma Gandhi"],
+  ["A nation that destroys its soils destroys itself.","Franklin D. Roosevelt"],
+  ["One of the most important resources that a garden makes available is the gardener's own body.","Wendell Berry"],
+  ["Gardening adds years to your life and life to your years.","Proverb"],
   ["To see things in the seed, that is genius.","Lao Tzu"],
   ["From tiny seeds grow mighty trees.","Proverb"],
-  // Community
   ["Alone we can do so little; together we can do so much.","Helen Keller"],
+  ["We rise by lifting others.","Robert Ingersoll"],
   ["What we learn with pleasure we never forget.","Alfred Mercier"],
-  ["Tell me and I forget. Teach me and I may remember. Involve me and I learn.","Xunzi"],
+  ["Learning is a treasure that will follow its owner everywhere.","Chinese Proverb"],
+  ["Tell me and I forget. Teach me and I may remember. Involve me and I learn.","Xunzi (Chinese philosopher)"],
   ["The function of education is to teach one to think intensively and to think critically.","Martin Luther King Jr."],
   ["Education is the most powerful weapon which you can use to change the world.","Nelson Mandela"],
-  // Wonder
+  ["No one is born fully formed: it is through self-experience in the world that we become what we are.","Paulo Freire"],
+  ["Knowledge emerges only through invention and re-invention, through the restless, impatient, continuing, hopeful inquiry.","Paulo Freire"],
   ["The important thing is not to stop questioning. Curiosity has its own reason for existing.","Albert Einstein"],
+  ["I have no special talents. I am only passionately curious.","Albert Einstein"],
   ["Imagination is more important than knowledge.","Albert Einstein"],
   ["The mind is not a vessel to be filled but a fire to be kindled.","Plutarch"],
   ["Curiosity is the wick in the candle of learning.","William Arthur Ward"],
   ["Wonder is the beginning of wisdom.","Socrates"],
   ["The world is full of magical things patiently waiting for our senses to grow sharper.","W.B. Yeats"],
-  // Respect
+  ["Not all who wander are lost.","J.R.R. Tolkien"],
   ["Respect the child. Wait and see what he will become.","Rudolf Steiner"],
   ["Children must be taught how to think, not what to think.","Margaret Mead"],
+  ["If we are to reach real peace in the world, we shall have to begin with the children.","Mahatma Gandhi"],
   ["There can be no keener revelation of a society's soul than the way in which it treats its children.","Nelson Mandela"],
+  ["Each day of our lives we make deposits in the memory banks of our children.","Charles R. Swindoll"],
   ["Children see magic because they look for it.","Christopher Moore"],
   ["The child must know that he is a miracle.","Pablo Casals"],
-  ["It takes a village to raise a child.","African Proverb"],
-  ["Children learn what they live.","Dorothy Law Nolte"],
-  ["The way we talk to our children becomes their inner voice.","Peggy O'Mara"],
-  ["Every child deserves a champion.","Rita Pierson"],
-  ["It is easier to build strong children than to repair broken men.","Frederick Douglass"],
-  ["While we try to teach our children all about life, our children teach us what life is all about.","Angela Schwindt"],
-  // More nature
+  ["What is the good of your stars and trees, your sunrise and the wind, if they do not enter into our daily lives?","E.M. Forster"],
   ["The best classroom and the richest cupboard is roofed only by the sky.","Margaret McMillan"],
   ["Nature holds the key to our aesthetic, intellectual, cognitive, and even spiritual satisfaction.","E.O. Wilson"],
   ["We need the tonic of wildness.","Henry David Thoreau"],
   ["I go to nature to be soothed and healed, and to have my senses put in order.","John Burroughs"],
-  // Reggio extras
-  ["The atelier is a place where children's different languages can be explored and developed.","Vea Vecchi"],
+  ["Keep close to Nature's heart and break clear away, once in a while, and climb a mountain or spend a week in the woods.","John Muir"],
+  ["The child is made of one hundred. The child has a hundred languages, a hundred hands, a hundred thoughts.","Loris Malaguzzi"],
+  ["Knowledge is not something that is delivered; it is something that is constructed.","Constructivist Philosophy"],
   ["Children have their own ways of seeing, thinking, and knowing.","Reggio Emilia Philosophy"],
-  // Misc
-  ["What we learn to do, we learn by doing.","Aristotle"],
-  ["Every moment is a teachable moment.","Childhood Education Wisdom"],
-  ["Connection is why we are here; it is what gives purpose and meaning to our lives.","Brene Brown"],
+  ["The atelier is a place where children's different languages can be explored and developed.","Vea Vecchi"],
   ["If you have a garden and a library, you have everything you need.","Cicero"],
-  ["Every child is an artist. The problem is how to remain an artist once we grow up.","Pablo Picasso"],
-  ["The soul is healed by being with children.","Fyodor Dostoevsky"],
-  ["People will forget what you said, but people will never forget how you made them feel.","Maya Angelou"]
+  ["The greatest fine art of the future will be the making of a comfortable living from a small piece of land.","Abraham Lincoln"],
+  ["Children who play in nature become adults who protect it.","Children & Nature Network"],
+  ["A garden is a friend you can visit any time.","Proverb"],
+  ["What we learn to do, we learn by doing.","Aristotle"],
+  ["Children learn as they play. Most importantly, in play children learn how to learn.","O. Fred Donaldson"],
+  ["Every moment is a teachable moment.","Childhood Education Wisdom"],
+  ["Connection is why we're here; it is what gives purpose and meaning to our lives.","Brené Brown"]
 ];
 
+const DRDP = {
+  ptk: {
+    ATL: { name: "Approaches to Learning", measures: {
+      "ATL 1": { name: "Engagement, Attention, and Persistence", kw: ["attention","focus","persist","engaged","concentrate","sustained","extended","return","continue","complete","finish","work on","stay with","paying attention","focused"] },
+      "ATL 2": { name: "Curiosity, Interest, and Initiative", kw: ["curious","interest","explore","investigate","wonder","question","ask","discover","try","initiate","seek","examine","wondering","exploring"] },
+      "ATL 3": { name: "Problem-Solving", kw: ["problem","solve","figure out","try different","strategy","solution","work through","overcome","challenge","figured out"] },
+      "ATL 4": { name: "Planning", kw: ["plan","organize","prepare","step","sequence","order","goal","ahead","next","planning"] }
+    } },
+    SED: { name: "Social and Emotional Development", measures: {
+      "SED 1": { name: "Self-Awareness", kw: ["self","identity","preference","like","don't like","favorite","who I am","my","mine","myself"] },
+      "SED 2": { name: "Social Awareness", kw: ["others","friend","peer","feeling","emotion","understand","perspective","empathy","notice","aware","noticed"] },
+      "SED 3": { name: "Relationships and Reciprocal Interactions with Familiar Adults", kw: ["adult","teacher","parent","caregiver","trust","comfort","seek","relationship","bond","connection"] },
+      "SED 4": { name: "Relationships and Interactions with Peers", kw: ["peer","friend","play together","share","turn","cooperate","collaborate","together","social","playing with"] },
+      "SED 5": { name: "Emotional Knowledge and Regulation", kw: ["emotion","feeling","calm","regulate","control","manage","express","happy","sad","angry","frustrated","cope","self-regulation"] }
+    } },
+    FLD: { name: "Foundational Language Development", measures: {
+      "FLD 1": { name: "Understanding Language (Receptive)", kw: ["understand","listen","follow direction","comprehend","respond to","recognize word","listening"] },
+      "FLD 2": { name: "Using Language (Expressive)", kw: ["speak","talk","communicate","express","tell","describe","explain","word","sentence","language","said","asked","told","describing"] },
+      "FLD 3": { name: "Shared Communication and Conversation", kw: ["conversation","back and forth","dialogue","discuss","respond","reply","exchange","talking with"] },
+      "FLD 4": { name: "Foundational Literacy Skills", kw: ["rhyme","sound","syllable","phoneme","letter sound","phonological"] },
+      "FLD 5": { name: "Alphabetics and Print Knowledge", kw: ["letter","alphabet","print","book","read","word","text","writing","reading"] },
+      "FLD 6": { name: "Writing", kw: ["write","draw","mark","scribble","letter","name","pencil","crayon","drawing","writing"] }
+    } },
+    ELD: { name: "English Language Development", measures: {
+      "ELD 1": { name: "Comprehension of English (Receptive English)", kw: ["home language","dual language","bilingual","learning english","understands english","english learner","in spanish"] },
+      "ELD 2": { name: "Self-Expression in English (Expressive English)", kw: ["speaks english","english words","says in english","in english","learning english","bilingual"] },
+      "ELD 3": { name: "Understanding and Responding to English Literacy Activities", kw: ["english book","story in english","song in english","english song","learning english"] }
+    } },
+    MATH: { name: "Math", measures: {
+      "MATH 1": { name: "Spatial Thinking", kw: ["spatial","shape","position","location","direction","above","below","beside","in front","behind","build","construct","building"] },
+      "MATH 2": { name: "Classification", kw: ["sort","group","classify","category","same","different","match","compare","attribute","sorting"] },
+      "MATH 3": { name: "Number and Counting", kw: ["count","number","how many","quantity","more","less","few","one","two","three","counting"] },
+      "MATH 4": { name: "Number Operations", kw: ["add","subtract","combine","take away","plus","minus","total","altogether"] },
+      "MATH 5": { name: "Measurement", kw: ["measure","size","big","small","long","short","tall","heavy","light","compare size"] }
+    } },
+    SCI: { name: "Science", measures: {
+      "SCI 1": { name: "Cause and Effect", kw: ["cause","effect","because","if then","what happens","result","make happen","when I"] },
+      "SCI 2": { name: "Inquiry Through Observation and Investigation", kw: ["observe","notice","investigate","experiment","test","try","explore","discover","find out","watching","looking closely","observed"] },
+      "SCI 3": { name: "Documentation and Communication of Inquiry", kw: ["document","record","share","explain finding","describe observation","tell about","draw what"] }
+    } },
+    PD: { name: "Physical Development", measures: {
+      "PD 1": { name: "Perceptual-Motor Skills and Movement Concepts", kw: ["body","movement","balance","coordinate","space","body awareness","control body"] },
+      "PD 2": { name: "Gross Locomotor Movement Skills", kw: ["walk","run","jump","hop","skip","climb","crawl","move","running","jumping","climbing"] },
+      "PD 3": { name: "Gross Motor Manipulative Skills", kw: ["throw","catch","kick","ball","strike","bounce","roll","throwing","catching"] },
+      "PD 4": { name: "Fine Motor Manipulative Skills", kw: ["fine motor","pinch","grasp","hold","manipulate","finger","hand","scissors","pencil grip","button","zip","cutting","holding"] }
+    } },
+    HLTH: { name: "Health", measures: {
+      "HLTH 1": { name: "Safety", kw: ["safe","safety","careful","danger","rule","protect"] },
+      "HLTH 2": { name: "Understanding of Health and Wellness", kw: ["health","healthy","body","nutrition","exercise","rest","sleep","food","eating"] },
+      "HLTH 3": { name: "Personal Care Routines: Hygiene", kw: ["wash hands","washing hands","washed","handwashing","soap","toilet","potty","brush teeth","toothbrush","tissue","hygiene"] },
+      "HLTH 4": { name: "Personal Care Routines: Feeding", kw: ["feed","feeding","spoon","fork","drink","snack","lunch","meal","eats","eating","chew"] },
+      "HLTH 5": { name: "Personal Care Routines: Self-Dressing", kw: ["dress","jacket","coat","shoes","boots","socks","zipper","sleeve","put on","take off"] }
+    } },
+  },
+  it: {
+    ATL: { name: "Approaches to Learning", measures: {
+      "ATL 1": { name: "Engagement, Attention, and Persistence", kw: ["attention","focus","engaged","looking at","watching","interested in"] },
+      "ATL 2": { name: "Curiosity, Interest, and Initiative", kw: ["curious","interest","explore","reaching","touching","examining"] },
+      "ATL 3": { name: "Problem-Solving", kw: ["problem","solve","try","figure out"] }
+    } },
+    SED: { name: "Social and Emotional Development", measures: {
+      "SED 1": { name: "Self-Awareness", kw: ["self","own","my","me"] },
+      "SED 2": { name: "Social Awareness", kw: ["others","peer","looking at others"] },
+      "SED 3": { name: "Relationships and Reciprocal Interactions with Familiar Adults", kw: ["adult","caregiver","comfort","trust","attachment"] },
+      "SED 4": { name: "Relationships and Interactions with Peers", kw: ["peer","other children","together"] },
+      "SED 5": { name: "Emotional Knowledge and Regulation", kw: ["emotion","calm","soothe","cry","comfort"] }
+    } },
+    FLD: { name: "Foundational Language Development", measures: {
+      "FLD 1": { name: "Understanding Language (Receptive)", kw: ["understand","respond","look when","turn toward"] },
+      "FLD 2": { name: "Using Language (Expressive)", kw: ["babble","coo","vocalize","gesture","point","word"] },
+      "FLD 3": { name: "Shared Communication and Conversation", kw: ["back and forth","respond","vocalize together"] }
+    } },
+    COG: { name: "Cognition", measures: {
+      "COG 1": { name: "Imitation", kw: ["imitate","copy","repeat","do what"] },
+      "MATH 1": { name: "Spatial Thinking", kw: ["spatial","where","in","out","under"] },
+      "MATH 2": { name: "Classification", kw: ["same","different","match","group"] },
+      "MATH 3": { name: "Number and Counting", kw: ["one","two","more","count"] },
+      "SCI 1": { name: "Cause and Effect", kw: ["cause","effect","when I","makes it"] },
+      "SCI 2": { name: "Inquiry Through Observation and Investigation", kw: ["observe","watch","look","explore"] }
+    } },
+    PD: { name: "Physical Development", measures: {
+      "PD 1": { name: "Perceptual-Motor Skills and Movement Concepts", kw: ["body","reach","grasp","movement"] },
+      "PD 2": { name: "Gross Locomotor Movement Skills", kw: ["crawl","walk","move","sit","stand"] },
+      "PD 3": { name: "Gross Motor Manipulative Skills", kw: ["throw","roll","push","pull"] },
+      "PD 4": { name: "Fine Motor Manipulative Skills", kw: ["grasp","pinch","hold","finger"] }
+    } },
+    HLTH: { name: "Health", measures: {
+      "HLTH 1": { name: "Safety", kw: ["safe","safety","careful","danger","rule","protect"] },
+      "HLTH 3": { name: "Personal Care Routines: Hygiene", kw: ["wash hands","washing hands","washed","handwashing","soap","toilet","potty","brush teeth","toothbrush","tissue","hygiene"] },
+      "HLTH 4": { name: "Personal Care Routines: Feeding", kw: ["feed","feeding","spoon","fork","drink","snack","lunch","meal","eats","eating","chew"] },
+      "HLTH 5": { name: "Personal Care Routines: Self-Dressing", kw: ["dress","jacket","coat","shoes","boots","socks","zipper","sleeve","put on","take off"] }
+    } },
+  },
+};
+
+// ============================================================
+// Fulton Documentation Generator
+// One file that runs in three places.
+//   1. Inside Claude as an artifact. AI analysis runs through Claude itself.
+//   2. On its own web address. AI analysis runs through the Fulton proxy.
+//   3. Anywhere else. Keyword matching still works.
+// ============================================================
+
+const PROXY_URL = 'https://fulton-proxy.onrender.com';
+const MAX_AI_PHOTOS = 3;
+const SIZES = { square: { w: 1080, h: 1080, s: 1 }, letter: { w: 2550, h: 3300, s: 2.36 } };
+const API_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+let generatedSlides = [];          // [{ canvas, name, label }]
+let uploadedBgImg = null, uploadedBgImgs = [];
+let uploadedSlidePhoto = null, uploadedSlidePhotos = [];
+let uploadedSlidePhotoB64 = null, uploadedSlidePhotosB64 = [];
+let assignedPhotos = {}, assignedPhotoList = [];
+let currentMode = 'text';
 let usedQ = [];
+let pendingLoads = [];
+
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const withTimeout = (p, ms, msg) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(msg || 'timeout')), ms))]);
+
+// ---------- Small helpers ----------
+if (window.CanvasRenderingContext2D && !CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+    r = Math.max(0, Math.min(typeof r === 'number' ? r : 0, Math.abs(w) / 2, Math.abs(h) / 2));
+    this.moveTo(x + r, y);
+    this.arcTo(x + w, y, x + w, y + h, r);
+    this.arcTo(x + w, y + h, x, y + h, r);
+    this.arcTo(x, y + h, x, y, r);
+    this.arcTo(x, y, x + w, y, r);
+    this.closePath();
+    return this;
+  };
+}
+
+function hexToRgb(h) {
+  const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h || '');
+  return r ? { r: parseInt(r[1], 16), g: parseInt(r[2], 16), b: parseInt(r[3], 16) } : { r: 0, g: 0, b: 0 };
+}
+
+function wrapText(ctx, text, maxW) {
+  const lines = [];
+  let cur = '';
+  for (let word of String(text || '').split(' ')) {
+    // A single word wider than the line is split so it never runs off the slide.
+    while (ctx.measureText(word).width > maxW && word.length > 1) {
+      let n = word.length - 1;
+      while (n > 1 && ctx.measureText(word.slice(0, n)).width > maxW) n--;
+      if (cur) { lines.push(cur); cur = ''; }
+      lines.push(word.slice(0, n));
+      word = word.slice(n);
+    }
+    const t = cur + (cur ? ' ' : '') + word;
+    if (ctx.measureText(t).width > maxW && cur) { lines.push(cur); cur = word; } else cur = t;
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function showStatus(msg, type) {
+  const s = $('status');
+  s.textContent = msg;
+  s.className = 'status show ' + type;
+}
+
+function localDateString(d) {
+  d = d || new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function fontStack(name, generic) { return '"' + name + '", ' + generic; }
+
+function canvasToBlob(canvas, type, q) {
+  return new Promise((res, rej) => {
+    try { canvas.toBlob(b => b ? res(b) : rej(new Error('Could not create the image.')), type || 'image/jpeg', q == null ? 0.95 : q); }
+    catch (e) { rej(e); }
+  });
+}
+
+// ---------- Slide text ----------
+function parseSlideText(text) {
+  const slides = [];
+  let cur = null;
+  for (let line of String(text || '').split('\n')) {
+    line = line.trim();
+    const m = line.match(/^Slide\s+(\d+)\s*:/i);
+    if (m) { if (cur) slides.push(cur); cur = { number: parseInt(m[1], 10), title: '', subtitle: '', content: [] }; continue; }
+    if (!cur) continue;
+    const low = line.toLowerCase();
+    if (low.startsWith('title:')) cur.title = line.slice(6).trim();
+    else if (low.startsWith('subtitle:')) cur.subtitle = line.slice(9).trim();
+    else if (low.startsWith('content:')) cur.content.push(line.slice(8).trim());
+    else if (line) cur.content.push(line);   // a plain line still counts as content
+  }
+  if (cur) slides.push(cur);
+  return slides;
+}
+
+function parseContentLine(line) {
+  if (!line) return { type: 'space' };
+  if (line.endsWith(':')) return { type: 'header', text: line };
+  if (line.startsWith('•')) return { type: 'bullet-dark', text: line.slice(1).trim() };
+  if (line.startsWith('✓')) return { type: 'bullet-accent', text: line.slice(1).trim() };
+  return { type: 'text', text: line };
+}
+
+// ---------- Text and Fields modes ----------
+function toggleAccordion(header) {
+  if (window.innerWidth >= 900) return;
+  header.closest('.accordion').classList.toggle('open');
+}
+
+function slideFieldsHtml(n, sl) {
+  sl = sl || { title: '', subtitle: '', content: [] };
+  return '<div class="slide-field-header"><span>Slide ' + n + '</span><button type="button" class="remove-slide-btn" onclick="removeSlideField(this)" title="Remove slide" aria-label="Remove slide">×</button></div>' +
+    '<div class="field-group"><label>Title</label><input type="text" class="slide-title-field" placeholder="Main heading" value="' + escHtml(sl.title || '') + '"></div>' +
+    '<div class="field-group"><label>Subtitle <span class="optional">(optional)</span></label><input type="text" class="slide-subtitle-field" placeholder="Secondary heading" value="' + escHtml(sl.subtitle || '') + '"></div>' +
+    '<div class="field-group"><label>Content</label><textarea class="slide-content-field" placeholder="One line per item&#10;• for bullets, ✓ for accent bullets&#10;End a line with : for a header&#10;Leave a blank line for spacing">' + escHtml((sl.content || []).join('\n')) + '</textarea></div>';
+}
+
+function setInputMode(mode) {
+  if (mode === currentMode) return;
+  if (mode === 'fields') syncTextToFields(); else syncFieldsToText();
+  currentMode = mode;
+  $('textModeBtn').classList.toggle('active', mode === 'text');
+  $('fieldModeBtn').classList.toggle('active', mode === 'fields');
+  $('textModeInput').style.display = mode === 'text' ? 'block' : 'none';
+  $('fieldModeInput').style.display = mode === 'fields' ? 'block' : 'none';
+}
+
+function addSlideField() {
+  const c = $('slidesFieldContainer');
+  const n = c.querySelectorAll('.slide-fields').length + 1;
+  const d = document.createElement('div');
+  d.className = 'slide-fields';
+  d.dataset.slide = n;
+  d.innerHTML = slideFieldsHtml(n);
+  c.appendChild(d);
+  d.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if ($('photoMode').value === 'assign') updatePhotoAssignUI();
+}
+
+function removeSlideField(btn) {
+  const c = $('slidesFieldContainer');
+  if (c.children.length > 1) { btn.closest('.slide-fields').remove(); renumberSlides(); }
+  else c.querySelectorAll('input,textarea').forEach(el => { el.value = ''; });
+  if ($('photoMode').value === 'assign') updatePhotoAssignUI();
+}
+
+function renumberSlides() {
+  $('slidesFieldContainer').querySelectorAll('.slide-fields').forEach((s, i) => {
+    s.dataset.slide = i + 1;
+    s.querySelector('.slide-field-header span').textContent = 'Slide ' + (i + 1);
+  });
+}
+
+function syncTextToFields() {
+  const slides = parseSlideText($('slideText').value);
+  if (!slides.length) return;
+  const c = $('slidesFieldContainer');
+  c.innerHTML = '';
+  slides.forEach((sl, i) => {
+    const d = document.createElement('div');
+    d.className = 'slide-fields';
+    d.dataset.slide = i + 1;
+    d.innerHTML = slideFieldsHtml(i + 1, sl);
+    c.appendChild(d);
+  });
+}
+
+function syncFieldsToText() {
+  let txt = '';
+  let n = 0;
+  $('slidesFieldContainer').querySelectorAll('.slide-fields').forEach(d => {
+    const t = d.querySelector('.slide-title-field').value.trim();
+    const sub = d.querySelector('.slide-subtitle-field').value.trim();
+    const lines = d.querySelector('.slide-content-field').value.split('\n').map(l => l.trim());
+    while (lines.length && !lines[lines.length - 1]) lines.pop();   // blank lines inside are kept as spacing
+    while (lines.length && !lines[0]) lines.shift();
+    if (!t && !sub && !lines.length) return;
+    n++;
+    txt += 'Slide ' + n + ':\n';
+    if (t) txt += 'title: ' + t + '\n';
+    if (sub) txt += 'subtitle: ' + sub + '\n';
+    lines.forEach(l => { txt += l ? 'content: ' + l + '\n' : 'content:\n'; });
+    txt += '\n';
+  });
+  $('slideText').value = txt.trim();
+}
+
+function getSlideText() {
+  if (currentMode === 'fields') syncFieldsToText();
+  return $('slideText').value;
+}
+
+// ---------- Photos ----------
+function loadImg(file, cb) {
+  const p = new Promise(resolve => {
+    const fail = () => { showStatus('Could not read ' + (file.name || 'that photo') + '. Use a JPG or PNG photo.', 'error'); resolve(false); };
+    const r = new FileReader();
+    r.onerror = fail;
+    r.onload = e => {
+      const img = new Image();
+      img.onload = () => { try { cb(img, e.target.result); } finally { resolve(true); } };
+      img.onerror = fail;
+      img.src = e.target.result;
+    };
+    r.readAsDataURL(file);
+  });
+  pendingLoads.push(p);
+  return p;
+}
+
+function updatePhotoAssignUI() {
+  const c = $('photoAssignmentContainer');
+  if (!c) return;
+  if (!assignedPhotoList.length) { c.innerHTML = '<p class="help-text">No photos uploaded yet</p>'; return; }
+  const slides = parseSlideText(getSlideText());
+  const sc = slides.length || 5;
+  const bonus = $('includeBonusSlide').checked;
+  let html = '<div class="photo-assignment-grid">';
+  assignedPhotoList.forEach((p, i) => {
+    let opts = '<option value="">No slide</option>';
+    for (let j = 1; j <= sc; j++) opts += '<option value="' + j + '"' + (assignedPhotos[j] && assignedPhotos[j].idx === i ? ' selected' : '') + '>Slide ' + j + '</option>';
+    if (bonus) opts += '<option value="bonus"' + (assignedPhotos.bonus && assignedPhotos.bonus.idx === i ? ' selected' : '') + '>Bonus</option>';
+    html += '<div class="photo-assignment-row"><img src="' + p.b64 + '" alt=""><span class="photo-name">' + escHtml(p.name) + '</span><select aria-label="Slide for ' + escHtml(p.name) + '" onchange="assignPhoto(' + i + ',this.value)">' + opts + '</select></div>';
+  });
+  c.innerHTML = html + '</div>';
+}
+
+function assignPhoto(idx, slide) {
+  for (const k in assignedPhotos) if (assignedPhotos[k] && assignedPhotos[k].idx === idx) delete assignedPhotos[k];
+  if (slide) { const p = assignedPhotoList[idx]; assignedPhotos[slide] = { image: p.img, b64: p.b64, idx }; }
+  updatePhotoAssignUI();
+}
+
+// ---------- Quotes ----------
 function generateBonusQuote() {
   if (usedQ.length > QUOTES.length / 2) usedQ = [];
-  const avail = QUOTES.map((_,i) => i).filter(i => !usedQ.includes(i));
+  const avail = QUOTES.map((_, i) => i).filter(i => !usedQ.includes(i));
   const idx = avail[Math.floor(Math.random() * avail.length)];
   usedQ.push(idx);
   return { quote: QUOTES[idx][0], author: QUOTES[idx][1] };
 }
 
-const DRDP = {
-  ptk: {
-    ATL:{name:"Approaches to Learning",measures:{
-      "ATL 1":{name:"Engagement, Attention, Persistence",kw:["attention","focus","persist","engaged","concentrate","sustained","extended","return","continue","complete","finish","work on","stay with","paying attention","focused"]},
-      "ATL 2":{name:"Curiosity, Interest, Initiative",kw:["curious","interest","explore","investigate","wonder","question","ask","discover","try","initiate","seek","examine","wondering","exploring"]},
-      "ATL 3":{name:"Problem-Solving",kw:["problem","solve","figure out","try different","strategy","solution","work through","overcome","challenge","figured out"]},
-      "ATL 4":{name:"Planning",kw:["plan","organize","prepare","step","sequence","order","goal","ahead","next","planning"]}
-    }},
-    SED:{name:"Social Emotional Development",measures:{
-      "SED 1":{name:"Self-Awareness",kw:["self","identity","preference","like","don't like","favorite","who I am","my","mine","myself"]},
-      "SED 2":{name:"Social Awareness",kw:["others","friend","peer","feeling","emotion","understand","perspective","empathy","notice","aware","noticed"]},
-      "SED 3":{name:"Relationships with Adults",kw:["adult","teacher","parent","caregiver","trust","comfort","seek","relationship","bond","connection"]},
-      "SED 4":{name:"Relationships with Peers",kw:["peer","friend","play together","share","turn","cooperate","collaborate","together","social","playing with"]},
-      "SED 5":{name:"Emotional Regulation",kw:["emotion","feeling","calm","regulate","control","manage","express","happy","sad","angry","frustrated","cope","self-regulation"]}
-    }},
-    FLD:{name:"Foundational Language Development",measures:{
-      "FLD 1":{name:"Understanding Language",kw:["understand","listen","follow direction","comprehend","respond to","recognize word","listening"]},
-      "FLD 2":{name:"Using Language",kw:["speak","talk","communicate","express","tell","describe","explain","word","sentence","language","said","asked","told","describing"]},
-      "FLD 3":{name:"Shared Communication",kw:["conversation","back and forth","dialogue","discuss","respond","reply","exchange","talking with"]},
-      "FLD 4":{name:"Foundational Literacy",kw:["rhyme","sound","syllable","phoneme","letter sound","phonological"]},
-      "FLD 5":{name:"Alphabetics and Print",kw:["letter","alphabet","print","book","read","word","text","writing","reading"]},
-      "FLD 6":{name:"Writing",kw:["write","draw","mark","scribble","letter","name","pencil","crayon","drawing","writing"]}
-    }},
-    MATH:{name:"Math",measures:{
-      "MATH 1":{name:"Spatial Thinking",kw:["spatial","shape","position","location","direction","above","below","beside","in front","behind","build","construct","building"]},
-      "MATH 2":{name:"Classification",kw:["sort","group","classify","category","same","different","match","compare","attribute","sorting"]},
-      "MATH 3":{name:"Number and Counting",kw:["count","number","how many","quantity","more","less","few","one","two","three","counting"]},
-      "MATH 4":{name:"Number Operations",kw:["add","subtract","combine","take away","plus","minus","total","altogether"]},
-      "MATH 5":{name:"Measurement",kw:["measure","size","big","small","long","short","tall","heavy","light","compare size"]}
-    }},
-    SCI:{name:"Science",measures:{
-      "SCI 1":{name:"Cause and Effect",kw:["cause","effect","because","if then","what happens","result","make happen","when I"]},
-      "SCI 2":{name:"Inquiry Through Observation",kw:["observe","notice","investigate","experiment","test","try","explore","discover","find out","watching","looking closely","observed"]},
-      "SCI 3":{name:"Documentation of Inquiry",kw:["document","record","share","explain finding","describe observation","tell about","draw what"]}
-    }},
-    PD:{name:"Physical Development",measures:{
-      "PD 1":{name:"Perceptual-Motor Skills",kw:["body","movement","balance","coordinate","space","body awareness","control body"]},
-      "PD 2":{name:"Gross Locomotor Skills",kw:["walk","run","jump","hop","skip","climb","crawl","move","running","jumping","climbing"]},
-      "PD 3":{name:"Gross Motor Manipulative",kw:["throw","catch","kick","ball","strike","bounce","roll","throwing","catching"]},
-      "PD 4":{name:"Fine Motor Skills",kw:["fine motor","pinch","grasp","hold","manipulate","finger","hand","scissors","pencil grip","button","zip","cutting","holding"]}
-    }}
-  },
-  it: {
-    ATL:{name:"Approaches to Learning",measures:{
-      "ATL 1":{name:"Engagement and Attention",kw:["attention","engaged","looking at","watching","interested in"]},
-      "ATL 2":{name:"Curiosity and Initiative",kw:["curious","explore","reaching","touching","examining"]},
-      "ATL 3":{name:"Problem-Solving",kw:["problem","solve","try","figure out"]}
-    }},
-    SED:{name:"Social Emotional Development",measures:{
-      "SED 1":{name:"Self-Awareness",kw:["self","own","my","me"]},
-      "SED 3":{name:"Relationships with Adults",kw:["adult","caregiver","comfort","trust","attachment"]},
-      "SED 4":{name:"Relationships with Peers",kw:["peer","other children","together"]},
-      "SED 5":{name:"Emotional Regulation",kw:["emotion","calm","soothe","cry","comfort"]}
-    }},
-    FLD:{name:"Foundational Language Development",measures:{
-      "FLD 1":{name:"Understanding Language",kw:["understand","respond","look when","turn toward"]},
-      "FLD 2":{name:"Using Language",kw:["babble","coo","vocalize","gesture","point","word"]},
-      "FLD 3":{name:"Shared Communication",kw:["back and forth","respond","vocalize"]}
-    }},
-    PD:{name:"Physical Development",measures:{
-      "PD 1":{name:"Perceptual-Motor Skills",kw:["body","reach","grasp","movement"]},
-      "PD 2":{name:"Gross Locomotor Skills",kw:["crawl","walk","move","sit","stand"]},
-      "PD 4":{name:"Fine Motor Skills",kw:["grasp","pinch","hold","finger"]}
-    }}
+// ---------- DRDP keyword matching ----------
+const kwRegexCache = {};
+function kwMatches(txt, kw) {
+  let re = kwRegexCache[kw];
+  if (!re) re = kwRegexCache[kw] = new RegExp('(^|[^a-z])' + kw.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  return re.test(txt);
+}
+
+function kwAnalysis(slides) {
+  const db = DRDP[$('ageGroup').value];
+  const map = new Map();
+  slides.forEach((sl, i) => {
+    const txt = [sl.title, sl.subtitle].concat(sl.content).join(' ').toLowerCase();
+    for (const [dc, dom] of Object.entries(db)) {
+      for (const [mc, m] of Object.entries(dom.measures)) {
+        const score = m.kw.filter(k => kwMatches(txt, k)).length;
+        if (score < 1) continue;
+        if (!map.has(mc)) map.set(mc, { code: mc, name: m.name, domain: dom.name, domainCode: dc, estimatedLevel: '', evidence: 'Keyword matches found in text', slideNumbers: [i + 1], score });
+        else { map.get(mc).slideNumbers.push(i + 1); map.get(mc).score += score; }
+      }
+    }
+  });
+  return { measures: Array.from(map.values()).sort((a, b) => b.score - a.score).slice(0, 6), photoAnalysis: '', narrativeSummary: 'Analysis based on keyword matching. Developmental levels are not estimated in this mode.', source: 'keyword' };
+}
+
+// ---------- AI analysis ----------
+const inClaude = !!(window.claude && typeof window.claude.use === 'function');
+const capCache = {};
+function getCap(name) {
+  if (!inClaude) return Promise.resolve(null);
+  if (!capCache[name]) capCache[name] = Promise.resolve().then(() => window.claude.use(name)).catch(() => null);
+  return capCache[name];
+}
+
+// DRDP (2025) developmental levels, in order. The Infant/Toddler view ends at Building Earlier.
+// The Preschool/TK/K view ends at Integrating Later. Personal care measures end at Integrating Earlier.
+const LEVELS = ['Responding Earlier', 'Responding Later', 'Exploring Earlier', 'Exploring Middle', 'Exploring Later', 'Building Earlier', 'Building Middle', 'Building Later', 'Integrating Earlier', 'Integrating Middle', 'Integrating Later'];
+const ELD_LEVELS = ['Discovering Language', 'Discovering English', 'Exploring English', 'Developing English', 'Building English', 'Integrating English'];
+function levelsFor(ag, code) {
+  if (/^ELD /.test(code)) return ELD_LEVELS;
+  if (ag === 'it') return LEVELS.slice(0, 6);
+  if (/^HLTH [345]$/.test(code)) return LEVELS.slice(0, 9);
+  return LEVELS;
+}
+// Returns the official level name, or an empty string when the text is not a level this measure uses.
+function officialLevel(text, ag, code) {
+  const t = String(text || '').toLowerCase().replace(/[^a-z]+/g, ' ').trim();
+  if (!t) return '';
+  const list = levelsFor(ag, code);
+  for (const name of list) { const parts = name.toLowerCase().split(' '); if (t.indexOf(parts[0]) >= 0 && t.indexOf(parts[1]) >= 0) return name; }
+  return '';
+}
+
+function findMeasure(db, code) {
+  for (const [dc, dom] of Object.entries(db)) if (dom.measures[code]) return { name: dom.measures[code].name, domain: dom.name, domainCode: dc };
+  return null;
+}
+
+function buildPrompt(slides, photos, ag) {
+  const db = DRDP[ag];
+  let ref = '';
+  for (const [dc, dom] of Object.entries(db)) ref += dc + ' (' + dom.name + '): ' + Object.entries(dom.measures).map(([c, m]) => c + '-' + m.name).join(', ') + '\n';
+  let content = '';
+  slides.forEach((sl, i) => { content += '\nSlide ' + (i + 1) + ': ' + [sl.title, sl.subtitle].concat(sl.content.filter(c => c)).filter(Boolean).join(' '); });
+  let photoLine = 'No photos.';
+  if (photos.length) {
+    photoLine = 'Photos attached - describe what you observe: actions, materials, interactions, expressions, environment.\n' +
+      photos.map((p, i) => 'Photo ' + (i + 1) + ' is on slide ' + p.slides.join(', ') + '.').join('\n');
   }
+  return 'Analyze this early childhood documentation for DRDP (2025) measures.\n' +
+    'Age Group: ' + (ag === 'ptk' ? 'Preschool/TK/K (3-6)' : 'Infant/Toddler (0-3)') + '\n' +
+    'DRDP Measures:\n' + ref + '\n' +
+    'Documentation:' + content + '\n\n' + photoLine + '\n\n' +
+    'Use only measure codes from the list above. slideNumbers lists the slides that show evidence for the measure.\n' +
+    (ag === 'ptk' ? 'ELD measures apply only when the documentation shows the child speaks a home language other than English and is learning English. Otherwise leave ELD out.\n' : '') +
+    'estimatedLevel must be exactly one of these DRDP (2025) levels, from earliest to latest: ' + levelsFor(ag, 'ATL 1').join(', ') + '.' +
+    (ag === 'ptk' ? ' For ELD measures use one of: ' + ELD_LEVELS.join(', ') + '. HLTH 3, HLTH 4 and HLTH 5 end at Integrating Earlier.' : '') +
+    ' Choose the level the evidence best supports. If the evidence is too thin to estimate a level, use an empty string.\n' +
+    'Return ONLY a JSON object. Use straight double quotes only. No apostrophes in values - rephrase instead. No newlines in string values. No trailing commas.\n' +
+    '{"measures":[{"code":"ATL 1","name":"measure name","domain":"domain name","domainCode":"ATL","estimatedLevel":"Building Middle","evidence":"specific evidence","slideNumbers":[1]}],"photoAnalysis":"what the photos show","narrativeSummary":"two sentence summary"}';
+}
+
+// Distinct photos with the slides they sit on, in slide order.
+function collectAIPhotos(photoB64s) {
+  const list = [];
+  photoB64s.forEach((b64, i) => {
+    if (!b64) return;
+    const found = list.find(p => p.b64 === b64);
+    if (found) found.slides.push(i + 1); else list.push({ b64, slides: [i + 1] });
+  });
+  return list;
+}
+
+function dataUrlType(b64url) { const m = /^data:([^;,]+)/.exec(b64url); return m ? m[1].toLowerCase() : ''; }
+
+function reencodeJpeg(b64url, maxBytes) {
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const c = document.createElement('canvas');
+        let ratio = 1;
+        if (maxBytes) { const raw = (b64url.split(',')[1] || '').length * 0.75; if (raw > maxBytes) ratio = Math.sqrt(maxBytes / raw) * 0.9; }
+        c.width = Math.max(1, Math.round(img.width * ratio));
+        c.height = Math.max(1, Math.round(img.height * ratio));
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        let q = 0.92, result = c.toDataURL('image/jpeg', q);
+        while (maxBytes && (result.split(',')[1].length * 0.75) > maxBytes && q > 0.5) { q -= 0.05; result = c.toDataURL('image/jpeg', q); }
+        res(result);
+      } catch (e) { res(null); }
+    };
+    img.onerror = () => res(null);
+    img.src = b64url;
+  });
+}
+
+// Photos go to the AI at full quality. A photo is only resized when it is over the size the AI accepts.
+async function prepareForAPI(b64url) {
+  const MAX = 3.5 * 1024 * 1024;
+  const raw = (b64url.split(',')[1] || '').length * 0.75;
+  let out = b64url;
+  if (raw > MAX || API_IMAGE_TYPES.indexOf(dataUrlType(b64url)) < 0) out = await reencodeJpeg(b64url, MAX);
+  if (!out) return null;
+  return { mediaType: dataUrlType(out), data: out.split(',')[1] };
+}
+
+function dataUrlToBlob(b64url) {
+  const type = dataUrlType(b64url) || 'image/jpeg';
+  const bin = atob(b64url.split(',')[1] || '');
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type });
+}
+
+// Reads the AI answer even when the JSON is slightly broken.
+function parseAIText(raw) {
+  let txt = String(raw || '').replace(/```json\s*/gi, '').replace(/```/g, '').trim();
+  const a = txt.indexOf('{'), b = txt.lastIndexOf('}');
+  if (a < 0 || b <= a) throw new Error('The AI answer had no data in it.');
+  let js = txt.slice(a, b + 1).replace(/[“”]/g, '"').replace(/[‘’]/g, "'").replace(/,\s*([}\]])/g, '$1');
+  try { return JSON.parse(js); } catch (e1) { /* fall through */ }
+  const flat = js.replace(/[\r\n\t]+/g, ' ');
+  try { return JSON.parse(flat); } catch (e2) { /* fall through */ }
+  const measures = [];
+  const objs = flat.match(/\{[^{}]*"code"\s*:\s*"[^"]*"[^{}]*\}/g) || [];
+  objs.forEach(chunk => {
+    try { measures.push(JSON.parse(chunk)); return; } catch (e3) { /* field by field */ }
+    const get = k => { const m = chunk.match(new RegExp('"' + k + '"\\s*:\\s*"([^"]*)"')); return m ? m[1] : ''; };
+    const nm = chunk.match(/"slideNumbers"\s*:\s*\[([^\]]*)\]/);
+    const nums = ((nm ? nm[1] : '').match(/\d+/g) || []).map(Number);
+    measures.push({ code: get('code'), name: get('name'), domain: get('domain'), domainCode: get('domainCode'), estimatedLevel: get('estimatedLevel'), evidence: get('evidence'), slideNumbers: nums });
+  });
+  if (!measures.length) throw new Error('The AI answer could not be read.');
+  const pick = k => { const m = flat.match(new RegExp('"' + k + '"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"')); return m ? m[1].replace(/\\"/g, '"') : ''; };
+  return { measures, photoAnalysis: pick('photoAnalysis'), narrativeSummary: pick('narrativeSummary') };
+}
+
+function normalizeAnalysis(obj, slideCount, db, ag) {
+  ag = ag || (db === DRDP.it ? 'it' : 'ptk');
+  const out = { measures: [], photoAnalysis: '', narrativeSummary: '', source: 'ai' };
+  const str = v => (typeof v === 'string' ? v.trim() : v == null ? '' : String(v).trim());
+  const placeholder = ['what the photos show', 'what photos showed', 'brief description', 'brief photo description', 'no photos.', 'no photos', 'no photos analyzed', 'no photos provided.', 'n/a', 'none'];
+  const list = obj && Array.isArray(obj.measures) ? obj.measures : [];
+  const seen = {};
+  list.forEach(m => {
+    if (!m || typeof m !== 'object') return;
+    const code = str(m.code).replace(/\s+/g, ' ').toUpperCase();
+    if (!code || seen[code]) return;
+    seen[code] = true;
+    const known = findMeasure(db, code);
+    if (!known) return;                      // not a measure of this DRDP (2025) view
+    let nums = Array.isArray(m.slideNumbers) ? m.slideNumbers : (m.slideNumbers != null ? [m.slideNumbers] : []);
+    nums = nums.map(n => parseInt(n, 10)).filter(n => n >= 1 && n <= slideCount);
+    nums = nums.filter((n, i) => nums.indexOf(n) === i).sort((x, y) => x - y);
+    out.measures.push({
+      code,
+      name: known.name,
+      domain: known.domain,
+      domainCode: known.domainCode,
+      estimatedLevel: officialLevel(m.estimatedLevel, ag, code),
+      evidence: str(m.evidence),
+      slideNumbers: nums
+    });
+  });
+  const pa = str(obj && obj.photoAnalysis);
+  out.photoAnalysis = placeholder.indexOf(pa.toLowerCase()) >= 0 ? '' : pa;
+  const ns = str(obj && obj.narrativeSummary);
+  out.narrativeSummary = ['two sentence summary', '2 sentence summary', 'brief summary'].indexOf(ns.toLowerCase()) >= 0 ? '' : ns;
+  return out;
+}
+
+// --- Standalone path. The proxy holds the API key.
+async function proxyAwake(onWait) {
+  const start = Date.now();
+  let told = false;
+  for (;;) {
+    try { const r = await withTimeout(fetch(PROXY_URL + '/health', { cache: 'no-store' }), 12000); if (r.status > 0) return true; } catch (e) { /* asleep or unreachable */ }
+    if (Date.now() - start > 90000) return false;
+    if (!told && onWait) { onWait(); told = true; }
+    await sleep(4000);
+  }
+}
+
+async function postToProxy(content) {
+  let r;
+  try {
+    r = await withTimeout(fetch(PROXY_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content }) }), 150000, 'The AI server took too long to answer.');
+  } catch (e) {
+    const err = new Error(e && e.message === 'The AI server took too long to answer.' ? e.message : 'Could not reach the AI server.');
+    err.network = true;
+    throw err;
+  }
+  const text = await r.text();
+  let data = null;
+  try { data = JSON.parse(text); } catch (e) { /* not JSON */ }
+  if (!r.ok) {
+    const detail = data && data.error && (data.error.message || data.error) ? String(data.error.message || data.error) : text.slice(0, 200);
+    let msg = 'The AI server answered with error ' + r.status + '. ' + detail;
+    if (r.status === 401) msg = 'Anthropic rejected the API key saved on the AI server. Open ' + PROXY_URL.replace('https://', '') + ' in a browser to see what to fix.';
+    else if (r.status === 429) msg = 'The AI service limit was reached. Try again in a minute. ' + detail;
+    else if (r.status === 529 || r.status === 503) msg = 'The AI service is busy. Try again in a minute.';
+    else if (r.status === 403 || r.status === 500 || r.status === 502) msg = detail || msg;
+    const err = new Error(msg);
+    err.status = r.status;
+    err.detail = detail;
+    throw err;
+  }
+  const block = data && Array.isArray(data.content) ? data.content.find(c => c && c.type === 'text' && c.text) : null;
+  if (!block) throw new Error('The AI answer was empty.');
+  return block.text;
+}
+
+async function analyzeViaProxy(promptWith, promptWithout, photos) {
+  if (location.protocol === 'file:') throw new Error('This saved copy cannot reach the AI server. Open the generator at its web address.');
+  showStatus('Connecting to the AI server...', 'info');
+  const awake = await proxyAwake(() => showStatus('The AI server is waking up. This takes about a minute the first time.', 'info'));
+  if (!awake) throw new Error('The AI server did not respond.');
+  const content = [];
+  for (const p of photos) {
+    const img = await prepareForAPI(p.b64);
+    if (img) content.push({ type: 'image', source: { type: 'base64', media_type: img.mediaType, data: img.data } });
+  }
+  const sent = content.length;
+  content.push({ type: 'text', text: sent ? promptWith : promptWithout });
+  showStatus(sent ? 'AI is studying ' + sent + (sent === 1 ? ' photo' : ' photos') + ' and your notes...' : 'AI is studying your notes...', 'info');
+  try {
+    return { text: await postToProxy(content), photosUsed: sent };
+  } catch (e) {
+    if (e.network) {                       // one more try after a short pause
+      await sleep(3000);
+      return { text: await postToProxy(content), photosUsed: sent };
+    }
+    const photoProblem = sent > 0 && (e.status === 400 || e.status === 413) ;
+    if (!photoProblem) throw e;
+    showStatus('The AI could not use the photos. Analyzing your notes only...', 'info');
+    return { text: await postToProxy([{ type: 'text', text: promptWithout }]), photosUsed: 0, photoNote: 'The photos could not be analyzed. ' + (e.detail || '') };
+  }
+}
+
+// --- Inside Claude. The analysis runs on the viewer's own Claude account.
+const SAMPLE_MESSAGES = {
+  not_granted: 'Claude was not given permission to run the analysis. Reload the page to be asked again.',
+  sampling_disabled: 'Claude is not available for this account.',
+  not_declared: 'This page is not set up to ask Claude.',
+  capability_disabled: 'Claude is not available in this view.',
+  capability_removed: 'Claude is not available in this view.',
+  rate_limited: 'Claude is busy or your usage limit was reached. Try again later.',
+  session_expired: 'Your Claude session expired. Sign in again.',
+  refused: 'Claude declined to analyze this content.',
+  empty_completion: 'Claude returned an empty answer.',
+  prompt_too_large: 'There is too much text for one analysis. Use fewer slides.',
+  upstream_error: 'Claude had a connection problem. Try again.',
+  cancelled: 'The analysis was stopped.'
 };
 
-const SIZES = {square:{w:1080,h:1080,s:1},letter:{w:2550,h:3300,s:2.36}};
-let usedQuotes=[],generatedSlides=[],uploadedBgImg=null,uploadedBgImgs=[],uploadedSlidePhoto=null,uploadedSlidePhotos=[],uploadedSlidePhotoB64=null,uploadedSlidePhotosB64=[],assignedPhotos={},assignedPhotoList=[];
-let currentMode='text';
-
-function hexToRgb(h){const r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h);return r?{r:parseInt(r[1],16),g:parseInt(r[2],16),b:parseInt(r[3],16)}:null}
-function wrapText(ctx,text,maxW){const words=text.split(' ');const lines=[];let cur='';for(const w of words){const t=cur+(cur?' ':'')+w;if(ctx.measureText(t).width>maxW&&cur){lines.push(cur);cur=w;}else cur=t;}if(cur)lines.push(cur);return lines;}
-function parseSlideText(text){const slides=[];let cur=null;for(let line of text.split('\n')){line=line.trim();const m=line.match(/^Slide\s+(\d+):/i);if(m){if(cur)slides.push(cur);cur={number:parseInt(m[1]),title:'',subtitle:'',content:[]};continue;}if(!cur)continue;if(line.toLowerCase().startsWith('title:'))cur.title=line.slice(6).trim();else if(line.toLowerCase().startsWith('subtitle:'))cur.subtitle=line.slice(9).trim();else if(line.toLowerCase().startsWith('content:'))cur.content.push(line.slice(8).trim());}if(cur)slides.push(cur);return slides;}
-function parseContentLine(line){if(!line)return{type:'space'};if(line.endsWith(':'))return{type:'header',text:line};if(line.startsWith('•'))return{type:'bullet-dark',text:line.slice(1).trim()};if(line.startsWith('✓'))return{type:'bullet-accent',text:line.slice(1).trim()};return{type:'text',text:line};}
-function showStatus(msg,type){const s=document.getElementById('status');s.textContent=msg;s.className='status show '+type;}
-function downloadSlide(canvas,name){canvas.toBlob(b=>{if(!b)return;const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(u),100);},'image/jpeg',.95);}
-function escHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML.replace(/"/g,'&quot;');}
-function toggleAccordion(header){if(window.innerWidth>=900)return;header.closest('.accordion').classList.toggle('open');}
-function setInputMode(mode){currentMode=mode;document.getElementById('textModeBtn').classList.toggle('active',mode==='text');document.getElementById('fieldModeBtn').classList.toggle('active',mode==='fields');document.getElementById('textModeInput').style.display=mode==='text'?'block':'none';document.getElementById('fieldModeInput').style.display=mode==='fields'?'block':'none';if(mode==='fields')syncTextToFields();else syncFieldsToText();}
-function addSlideField(){const c=document.getElementById('slidesFieldContainer');const n=c.querySelectorAll('.slide-fields').length+1;const d=document.createElement('div');d.className='slide-fields';d.dataset.slide=n;d.innerHTML=`<div class="slide-field-header"><span>Slide ${n}</span><button type="button" class="remove-slide-btn" onclick="removeSlideField(this)">×</button></div><div class="field-group"><label>Title</label><input type="text" class="slide-title-field" placeholder="Main heading"></div><div class="field-group"><label>Subtitle <span class="optional">(optional)</span></label><input type="text" class="slide-subtitle-field" placeholder="Secondary heading"></div><div class="field-group"><label>Content</label><textarea class="slide-content-field" placeholder="One line per item"></textarea></div>`;c.appendChild(d);d.scrollIntoView({behavior:'smooth',block:'nearest'});}
-function removeSlideField(btn){const c=document.getElementById('slidesFieldContainer');if(c.children.length>1){btn.closest('.slide-fields').remove();renumberSlides();}}
-function renumberSlides(){const c=document.getElementById('slidesFieldContainer');c.querySelectorAll('.slide-fields').forEach((s,i)=>{s.dataset.slide=i+1;s.querySelector('.slide-field-header span').textContent=`Slide ${i+1}`;});}
-function syncTextToFields(){const slides=parseSlideText(document.getElementById('slideText').value);if(!slides.length)return;const c=document.getElementById('slidesFieldContainer');c.innerHTML='';slides.forEach((sl,i)=>{const d=document.createElement('div');d.className='slide-fields';d.dataset.slide=i+1;d.innerHTML=`<div class="slide-field-header"><span>Slide ${i+1}</span><button type="button" class="remove-slide-btn" onclick="removeSlideField(this)">×</button></div><div class="field-group"><label>Title</label><input type="text" class="slide-title-field" value="${escHtml(sl.title||'')}"></div><div class="field-group"><label>Subtitle</label><input type="text" class="slide-subtitle-field" value="${escHtml(sl.subtitle||'')}"></div><div class="field-group"><label>Content</label><textarea class="slide-content-field">${escHtml(sl.content.join('\n'))}</textarea></div>`;c.appendChild(d);});}
-function syncFieldsToText(){let txt='';document.getElementById('slidesFieldContainer').querySelectorAll('.slide-fields').forEach((d,i)=>{const t=d.querySelector('.slide-title-field').value;const sub=d.querySelector('.slide-subtitle-field').value;const con=d.querySelector('.slide-content-field').value;if(t||sub||con){txt+=`Slide ${i+1}:\n`;if(t)txt+=`title: ${t}\n`;if(sub)txt+=`subtitle: ${sub}\n`;con.split('\n').forEach(l=>{if(l.trim())txt+=`content: ${l}\n`;});txt+='\n';}});document.getElementById('slideText').value=txt.trim();}
-function getSlideText(){if(currentMode==='fields')syncFieldsToText();return document.getElementById('slideText').value;}
-function updatePhotoAssignUI(){const c=document.getElementById('photoAssignmentContainer');if(!c)return;if(!assignedPhotoList.length){c.innerHTML='<p class="help-text">No photos uploaded yet</p>';return;}const slides=parseSlideText(getSlideText());const sc=slides.length||5;const bonus=document.getElementById('includeBonusSlide')?.checked;let html='<div class="photo-assignment-grid">';assignedPhotoList.forEach((p,i)=>{let opts=`<option value="">No slide</option>`;for(let j=1;j<=sc;j++){const sel=assignedPhotos[j]?.idx===i?'selected':'';opts+=`<option value="${j}" ${sel}>Slide ${j}</option>`;}if(bonus){const sel=assignedPhotos['bonus']?.idx===i?'selected':'';opts+=`<option value="bonus" ${sel}>Bonus</option>`;}html+=`<div class="photo-assignment-row"><img src="${p.b64}"><span class="photo-name">${p.name}</span><select onchange="assignPhoto(${i},this.value)">${opts}</select></div>`;});html+='</div>';c.innerHTML=html;}
-function assignPhoto(idx,slide){for(const k in assignedPhotos)if(assignedPhotos[k]?.idx===idx)delete assignedPhotos[k];if(slide){const p=assignedPhotoList[idx];assignedPhotos[slide]={image:p.img,b64:p.b64,idx};}updatePhotoAssignUI();}
-function loadImg(file,cb){const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>cb(img,e.target.result);img.src=e.target.result;};r.readAsDataURL(file);}
-
-// Event listeners
-document.getElementById('photoPlacement').addEventListener('change',e=>{document.getElementById('photoUploadSection').style.display=e.target.value!=='none'?'block':'none';});
-document.getElementById('photoMode').addEventListener('change',e=>{['single','multiple','assign'].forEach(m=>document.getElementById(m+'PhotoUpload').style.display=e.target.value===m?'block':'none');if(e.target.value==='assign')updatePhotoAssignUI();});
-document.getElementById('backgroundStyle').addEventListener('change',e=>{document.getElementById('imageUploadSection').style.display=e.target.value==='image'?'block':'none';});
-document.getElementById('imageMode').addEventListener('change',e=>{document.getElementById('singleImageUpload').style.display=e.target.value==='single'?'block':'none';document.getElementById('multipleImageUpload').style.display=e.target.value==='multiple'?'block':'none';});
-document.getElementById('colorFamily').addEventListener('change',e=>{document.getElementById('customColors').style.display=e.target.value==='custom'?'block':'none';});
-document.getElementById('overlayOpacity').addEventListener('input',e=>{document.getElementById('overlayValue').textContent=e.target.value;});
-document.getElementById('enableDrdp')?.addEventListener('change',e=>{document.getElementById('drdpOptions').style.display=e.target.checked?'block':'none';});
-
-document.getElementById('analysisMode')?.addEventListener('change',e=>{document.getElementById('analysisModeHelp').textContent=e.target.value==='ai'?'AI analyzes photos and text for deeper insights.':'Fast keyword matching. No photo analysis.';});
-document.getElementById('includeBonusSlide')?.addEventListener('change',()=>{if(document.getElementById('photoMode')?.value==='assign')updatePhotoAssignUI();});
-document.getElementById('slidePhoto').addEventListener('change',e=>{if(e.target.files[0])loadImg(e.target.files[0],(img,b64)=>{uploadedSlidePhoto=img;uploadedSlidePhotoB64=b64;});});
-document.getElementById('slidePhotosMultiple').addEventListener('change',e=>{uploadedSlidePhotos=[];uploadedSlidePhotosB64=[];[...e.target.files].forEach((f,i)=>loadImg(f,(img,b64)=>{uploadedSlidePhotos[i]=img;uploadedSlidePhotosB64[i]=b64;}));});
-document.getElementById('slidePhotosAssign').addEventListener('change',async e=>{assignedPhotoList=[];assignedPhotos={};for(const f of e.target.files){await new Promise(res=>{loadImg(f,(img,b64)=>{assignedPhotoList.push({img,b64,name:f.name});res();});});}updatePhotoAssignUI();});
-document.getElementById('backgroundImage').addEventListener('change',e=>{if(e.target.files[0])loadImg(e.target.files[0],(img)=>uploadedBgImg=img);});
-document.getElementById('backgroundImagesMultiple').addEventListener('change',e=>{uploadedBgImgs=[];[...e.target.files].forEach((f,i)=>loadImg(f,(img)=>uploadedBgImgs[i]=img));});
-
-// DRDP
-function kwAnalysis(slides){
-  const db=DRDP[document.getElementById('ageGroup').value];
-  const map=new Map();
-  slides.forEach((sl,i)=>{
-    const txt=[sl.title,sl.subtitle,...sl.content].join(' ').toLowerCase();
-    for(const[dc,dom] of Object.entries(db)){
-      for(const[mc,m] of Object.entries(dom.measures)){
-        const score=m.kw.filter(k=>txt.includes(k)).length;
-        if(score<1)continue;
-        const lvl=txt.includes('independently')||txt.includes('on own')?'Integrating':txt.includes('with support')?'Building':'Building Middle';
-        if(!map.has(mc))map.set(mc,{code:mc,name:m.name,domain:dom.name,domainCode:dc,estimatedLevel:lvl,evidence:'Keyword match in text',slideNumbers:[i+1],score});
-        else{map.get(mc).slideNumbers.push(i+1);map.get(mc).score+=score;}
+async function analyzeViaClaude(sample, promptWith, promptWithout, photos) {
+  let blobs = [];
+  if (photos.length) {
+    let limits = null;
+    try { limits = await sample.limits(); } catch (e) { limits = null; }
+    if (limits && limits.images) {
+      const max = Math.min(limits.images.maxCount || MAX_AI_PHOTOS, MAX_AI_PHOTOS);
+      const okTypes = limits.images.mediaTypes && limits.images.mediaTypes.length ? limits.images.mediaTypes : API_IMAGE_TYPES;
+      for (const p of photos.slice(0, max)) {
+        let url = p.b64;
+        const raw = (url.split(',')[1] || '').length * 0.75;
+        if (okTypes.indexOf(dataUrlType(url)) < 0 || (limits.images.maxInputBytes && raw > limits.images.maxInputBytes)) url = await reencodeJpeg(url, limits.images.maxInputBytes || 0);
+        if (url) blobs.push(dataUrlToBlob(url));
       }
     }
-  });
-  return{measures:[...map.values()].sort((a,b)=>b.score-a.score).slice(0,6),photoAnalysis:'',narrativeSummary:'Analysis based on keyword matching.'};
+  }
+  showStatus(blobs.length ? 'Claude is studying ' + blobs.length + (blobs.length === 1 ? ' photo' : ' photos') + ' and your notes. This can take a minute...' : 'Claude is studying your notes. This can take a minute...', 'info');
+  const ask = async (text, images) => {
+    try {
+      const r = await sample(text, images && images.length ? { images } : {});
+      return r && r.text;
+    } catch (e) {
+      const code = e && e.code;
+      const err = new Error(SAMPLE_MESSAGES[code] || 'Claude could not run the analysis.');
+      err.code = code;
+      throw err;
+    }
+  };
+  let photoNote = photos.length && !blobs.length ? 'Photos could not be sent to Claude in this view. The analysis used your notes only.' : '';
+  try {
+    return { text: await ask(blobs.length ? promptWith : promptWithout, blobs), photosUsed: blobs.length, photoNote };
+  } catch (e) {
+    if (!blobs.length || (e.code !== 'image_rejected' && e.code !== 'images_unavailable')) throw e;
+    showStatus('Claude could not use the photos. Analyzing your notes only...', 'info');
+    return { text: await ask(promptWithout, []), photosUsed: 0, photoNote: 'The photos could not be analyzed. The analysis used your notes only.' };
+  }
 }
 
-async function compressForAPI(b64url){
-  const MAX=3.5*1024*1024;
-  const data=b64url.split(',')[1]||b64url;
-  const raw=data.length/1.37;
-  if(raw<=MAX)return b64url;
-  return new Promise(res=>{
-    const img=new Image();
-    img.onload=()=>{
-      const c=document.createElement('canvas');
-      const ratio=Math.sqrt(MAX/raw)*0.9;
-      c.width=Math.round(img.width*ratio);c.height=Math.round(img.height*ratio);
-      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
-      let result=c.toDataURL('image/jpeg',.92),q=.92;
-      while((result.split(',')[1].length/1.37)>MAX&&q>.5){q-=.05;result=c.toDataURL('image/jpeg',q);}
-      res(result);
+async function aiAnalysis(slides, photoB64s) {
+  const ag = $('ageGroup').value;
+  const allPhotos = collectAIPhotos(photoB64s);
+  const photos = allPhotos.slice(0, MAX_AI_PHOTOS);
+  const promptWith = buildPrompt(slides, photos, ag);
+  const promptWithout = buildPrompt(slides, [], ag);
+  let answer;
+  if (inClaude) {
+    const sample = await getCap('sample');
+    if (!sample) throw new Error('AI analysis is not available in this view. Open the generator inside Claude or at its web address.');
+    answer = await analyzeViaClaude(sample, promptWith, promptWithout, photos);
+  } else {
+    answer = await analyzeViaProxy(promptWith, promptWithout, photos);
+  }
+  const result = normalizeAnalysis(parseAIText(answer.text), slides.length, DRDP[ag], ag);
+  if (!result.measures.length) throw new Error('The AI did not identify any measures.');
+  const notes = [];
+  if (answer.photoNote) notes.push(answer.photoNote.trim());
+  if (answer.photosUsed && allPhotos.length > answer.photosUsed) notes.push('The AI looked at the first ' + answer.photosUsed + ' of ' + allPhotos.length + ' photos.');
+  result.notes = notes;
+  return result;
+}
+
+// ---------- Fonts ----------
+async function ensureFonts(fonts) {
+  if (!document.fonts || !document.fonts.load) return;
+  const wanted = [];
+  ['Playfair Display', 'Merriweather'].forEach(f => {
+    if (fonts.title === f || fonts.body === f) { wanted.push('700 40px "' + f + '"'); wanted.push('400 40px "' + f + '"'); wanted.push('italic 400 40px "' + f + '"'); wanted.push('600 40px "' + f + '"'); }
+  });
+  if (!wanted.length) return;
+  try { await withTimeout(Promise.all(wanted.map(w => document.fonts.load(w))), 5000); } catch (e) { /* the slide falls back to a system font */ }
+}
+
+// ---------- Slide rendering ----------
+function drawPhoto(ctx, img, x, y, w, h, accent, s) {
+  const r = Math.round(12 * s);
+  ctx.save(); ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.clip(); ctx.drawImage(img, x, y, w, h); ctx.restore();
+  ctx.strokeStyle = accent; ctx.lineWidth = Math.max(4, Math.round(4 * s)); ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.stroke();
+}
+
+function renderSlide(canvas, slide, idx, total, opts) {
+  const ctx = canvas.getContext('2d');
+  const { w, h, s } = SIZES[opts.size];
+  const tm = { small: 0.75, medium: 1, large: 1.25 }[opts.textSize] || 1;
+  canvas.width = w; canvas.height = h;
+  const mg = Math.round(80 * s);
+  const R = n => Math.round(n * s);
+  const titleFont = fontStack(opts.fonts.title, 'sans-serif');
+  const bodyFont = fontStack(opts.fonts.body, 'sans-serif');
+  const bgRgb = hexToRgb(opts.palette.bg), acRgb = hexToRgb(opts.palette.accent), dkRgb = hexToRgb(opts.palette.dark);
+  const backing = (x, y, bw, bh, r) => { ctx.fillStyle = 'rgba(' + bgRgb.r + ',' + bgRgb.g + ',' + bgRgb.b + ',.65)'; ctx.beginPath(); ctx.roundRect(x, y, bw, bh, R(r)); ctx.fill(); };
+  let cut = false;
+
+  // Background
+  if (opts.bgStyle === 'image' && opts.bgImg) {
+    ctx.drawImage(opts.bgImg, 0, 0, w, h);
+    if (opts.overlayOn) { ctx.fillStyle = 'rgba(' + bgRgb.r + ',' + bgRgb.g + ',' + bgRgb.b + ',' + (opts.overlayOp / 100) + ')'; ctx.fillRect(0, 0, w, h); }
+  } else if (opts.bgStyle === 'gradient') {
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, opts.palette.bg); g.addColorStop(1, 'rgba(' + acRgb.r + ',' + acRgb.g + ',' + acRgb.b + ',.3)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  } else if (opts.bgStyle === 'none') {
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+  } else {
+    ctx.fillStyle = opts.bgStyle === 'image' ? '#fff' : opts.palette.bg; ctx.fillRect(0, 0, w, h);
+  }
+
+  // Decorative circle
+  if (opts.bgStyle !== 'image' && opts.bgStyle !== 'none' && opts.photoPos === 'none') {
+    ctx.fillStyle = 'rgba(' + acRgb.r + ',' + acRgb.g + ',' + acRgb.b + ',.25)';
+    ctx.beginPath(); ctx.arc(w - R(100), R(100), R(150), 0, Math.PI * 2); ctx.fill();
+  }
+
+  let y = mg + R(60), textEndY = h - R(100), tLeft = mg, tRight = w - mg;
+  const ph = opts.photoPos !== 'none' ? opts.slidePhoto : null;
+  let sideBottom = 0;
+  let pX = 0, pY = 0, pW = 0, pH = 0;
+
+  if (ph) {
+    const pa = ph.width / ph.height;
+    if (opts.photoPos === 'top') {
+      pH = Math.round(h * 0.6); pW = pH * pa;
+      if (pW > w - mg * 2) { pW = w - mg * 2; pH = pW / pa; }
+      pX = (w - pW) / 2; pY = mg;
+      y = pY + pH + R(60);
+    } else if (opts.photoPos === 'bottom') {
+      pH = Math.round(h * 0.6); pW = pH * pa;
+      if (pW > w - mg * 2) { pW = w - mg * 2; pH = pW / pa; }
+      pX = (w - pW) / 2; pY = h - pH - mg; textEndY = pY - R(20); y = mg;
+    } else if (opts.photoPos === 'left' || opts.photoPos === 'right') {
+      if (pa < 1) { pH = Math.round(h * 0.6); pW = pH * pa; } else { pW = Math.round(w * 0.4); pH = pW / pa; }
+      pX = opts.photoPos === 'left' ? mg : w - pW - mg;
+    } else if (opts.photoPos === 'center') {
+      const mx = Math.round(Math.min(w, h) * 0.65);
+      if (pa < 1) { pH = mx; pW = mx * pa; } else { pW = mx; pH = mx / pa; }
+      pX = (w - pW) / 2; pY = (h - pH) / 2;
+    }
+    if (opts.photoPos !== 'left' && opts.photoPos !== 'right' && !slide.isBonus) drawPhoto(ctx, ph, pX, pY, pW, pH, opts.palette.accent, s);
+  }
+
+  let tW = tRight - tLeft;
+  const align = opts.textAlign;
+  const tX = () => (align === 'center' ? tLeft + tW / 2 : align === 'right' ? tRight : tLeft);
+  ctx.textBaseline = 'top';
+
+  if (!slide.isBonus) {
+    // Title
+    ctx.font = 'bold ' + Math.round(64 * s * tm) + 'px ' + titleFont;
+    ctx.textAlign = align;
+    const tLines = wrapText(ctx, slide.title || '', tW);
+    const tLH = Math.round(76 * s * tm);
+    if (ph && opts.photoPos === 'center' && tLines.length) backing(tLeft - R(15), y - R(10), tW + R(30), tLines.length * tLH + R(15), 8);
+    ctx.fillStyle = opts.palette.dark;
+    for (const l of tLines) { ctx.fillText(l, tX(), y); y += tLH; }
+    y += R(40);
+
+    // Subtitle
+    if (slide.subtitle) {
+      ctx.font = '600 ' + Math.round(36 * s * tm) + 'px ' + bodyFont;
+      ctx.textAlign = align;
+      const sLines = wrapText(ctx, slide.subtitle, tW);
+      const sLH = Math.round(44 * s * tm);
+      if (ph && opts.photoPos === 'center') backing(tLeft - R(15), y - R(10), tW + R(30), sLines.length * sLH + R(15), 8);
+      ctx.fillStyle = opts.palette.accent;
+      for (const l of sLines) { ctx.fillText(l, tX(), y); y += sLH; }
+      y += R(15);
+    }
+
+    // Side photo sits under the title. Text runs beside it.
+    if (ph && (opts.photoPos === 'left' || opts.photoPos === 'right')) {
+      pY = y + R(60);
+      const room = h - R(110) - pY;
+      if (pH > room && room > 0) { const k = room / pH; pH = room; pW = pW * k; if (opts.photoPos === 'right') pX = w - pW - mg; }
+      drawPhoto(ctx, ph, pX, pY, pW, pH, opts.palette.accent, s);
+      if (opts.photoPos === 'left') tLeft = pX + pW + R(60); else tRight = pX - R(60);
+      tW = tRight - tLeft; y = pY; sideBottom = pY + pH;
+    }
+    y += R(40);
+
+    // Content
+    ctx.textAlign = align;
+    for (let n = 0; n < slide.content.length; n++) {
+      const p = parseContentLine(slide.content[n]);
+      if (p.type === 'space') { y += R(30); continue; }
+      // Below a side photo the text goes back to the full width of the slide.
+      if (sideBottom && y >= sideBottom + R(10)) { y = Math.max(y, sideBottom + R(30)); tLeft = mg; tRight = w - mg; tW = tRight - tLeft; sideBottom = 0; }
+      if (y > textEndY - R(50)) { cut = true; break; }
+      const cX = tX();
+      if (p.type === 'header') {
+        ctx.font = '600 ' + Math.round(38 * s * tm) + 'px ' + bodyFont;
+        const lh = Math.round(48 * s * tm);
+        let lines = wrapText(ctx, p.text, tW);
+        const keep = lines.filter((_, i) => y + (i + 1) * lh <= textEndY + R(12));
+        if (keep.length < lines.length) cut = true;
+        lines = keep.length ? keep : lines.slice(0, 1);
+        if (ph && opts.photoPos === 'center') backing(tLeft - R(15), y - R(10), tW + R(30), lines.length * lh + R(20), 8);
+        ctx.fillStyle = opts.palette.dark;
+        for (const l of lines) { ctx.fillText(l, cX, y); y += lh; }
+        y += R(20);
+      } else if (p.type === 'bullet-dark' || p.type === 'bullet-accent') {
+        ctx.font = '400 ' + Math.round(32 * s * tm) + 'px ' + bodyFont;
+        const lh = Math.round(42 * s * tm);
+        let lines = wrapText(ctx, p.text, tW - R(40));
+        const keep = lines.filter((_, i) => y + (i + 1) * lh <= textEndY + R(12));
+        if (keep.length < lines.length) cut = true;
+        lines = keep.length ? keep : lines.slice(0, 1);
+        if (ph && opts.photoPos === 'center') backing(tLeft - R(15), y - R(8), tW + R(30), lines.length * lh + R(18), 8);
+        ctx.fillStyle = p.type === 'bullet-accent' ? opts.palette.accent : opts.palette.dark;
+        ctx.textAlign = 'left';
+        ctx.fillText(p.type === 'bullet-accent' ? '✓' : '•', tLeft, y);
+        ctx.fillStyle = opts.palette.dark;
+        for (let i = 0; i < lines.length; i++) { ctx.fillText(lines[i], tLeft + R(40), y); if (i < lines.length - 1) y += lh; }
+        ctx.textAlign = align;
+        y += Math.round(60 * s * tm);
+      } else {
+        ctx.font = '400 ' + Math.round(32 * s * tm) + 'px ' + bodyFont;
+        const lh = Math.round(42 * s * tm);
+        let lines = wrapText(ctx, p.text, tW);
+        const keep = lines.filter((_, i) => y + (i + 1) * lh <= textEndY + R(12));
+        if (keep.length < lines.length) cut = true;
+        lines = keep.length ? keep : lines.slice(0, 1);
+        if (ph && opts.photoPos === 'center') backing(tLeft - R(15), y - R(8), tW + R(30), lines.length * lh + R(30), 8);
+        ctx.fillStyle = opts.palette.dark;
+        for (const l of lines) { ctx.fillText(l, cX, y); y += lh; }
+        y += R(30);
+      }
+      if (cut) break;
+    }
+  } else {
+    // Bonus quote slide. The photo is always centered.
+    if (ph) {
+      const pa = ph.width / ph.height;
+      const mx = Math.round(Math.min(w, h) * 0.85);
+      const bW = pa < 1 ? mx * pa : mx, bH = pa < 1 ? mx : mx / pa;
+      drawPhoto(ctx, ph, (w - bW) / 2, (h - bH) / 2, bW, bH, opts.palette.accent, s);
+    }
+    ctx.font = 'italic ' + Math.round(42 * s * tm) + 'px ' + bodyFont;
+    ctx.textAlign = 'center';
+    const qLines = wrapText(ctx, '"' + slide.quote + '"', w - mg * 3);
+    const qLH = Math.round(56 * s * tm);
+    let qy = h / 2 - R(100);
+    if (ph) backing(mg + R(40), qy - R(30), w - mg * 2 - R(80), qLines.length * qLH + R(150), 12);
+    ctx.fillStyle = opts.palette.dark;
+    for (const l of qLines) { ctx.fillText(l, w / 2, qy); qy += qLH; }
+    qy += R(40);
+    ctx.font = '600 ' + Math.round(32 * s * tm) + 'px ' + bodyFont;
+    ctx.fillStyle = opts.palette.accent;
+    ctx.fillText('— ' + slide.author, w / 2, qy);
+  }
+
+  // DRDP codes on the slide
+  if (opts.showFootnote && slide.drdpMeasures && slide.drdpMeasures.length) {
+    ctx.fillStyle = opts.palette.accent; ctx.font = '500 ' + R(20) + 'px ' + bodyFont; ctx.textAlign = 'left';
+    ctx.fillText('DRDP: ' + slide.drdpMeasures.slice(0, 2).join(', '), mg, h - R(80));
+  }
+
+  // Footer
+  const fy = h - R(50);
+  ctx.font = '400 ' + Math.round(24 * s * tm) + 'px ' + bodyFont;
+  ctx.fillStyle = 'rgba(' + dkRgb.r + ',' + dkRgb.g + ',' + dkRgb.b + ',.6)';
+  if (!slide.isBonus && opts.showNums) { ctx.textAlign = 'left'; ctx.fillText((idx + 1) + '/' + total, mg, fy); }
+  let dateStr = '';
+  if (opts.date && opts.datePos !== 'none') {
+    const d = new Date(opts.date + 'T00:00:00');
+    if (!isNaN(d)) dateStr = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  }
+  ctx.textAlign = 'right';
+  ctx.fillText(opts.datePos === 'footer' && dateStr ? opts.brand + '  •  ' + dateStr : opts.brand, w - mg, fy);
+  if (opts.datePos === 'header' && dateStr) {
+    ctx.font = '400 ' + Math.round(22 * s * tm) + 'px ' + bodyFont;
+    ctx.fillStyle = 'rgba(' + dkRgb.r + ',' + dkRgb.g + ',' + dkRgb.b + ',.5)';
+    ctx.textAlign = 'right';
+    const topEdge = ph && !slide.isBonus && (opts.photoPos === 'top' || opts.photoPos === 'bottom');
+    ctx.fillText(dateStr, w - mg, topEdge ? mg - R(38) : mg);
+  }
+  return { cut };
+}
+
+// DRDP summary. Every measure and every line of evidence is printed. Extra pages are added when needed.
+function renderSummarySlides(analysis, opts) {
+  const { w, h, s } = SIZES[opts.size];
+  const R = n => Math.round(n * s);
+  const mg = R(80), textW = w - mg * 2, bottom = h - R(95);
+  const titleFont = fontStack(opts.fonts.title, 'serif');
+  const bodyFam = fontStack(opts.fonts.body, 'sans-serif');
+  const bodyF = '400 ' + R(22) + 'px ' + bodyFam, labelF = '600 ' + R(22) + 'px ' + bodyFam, lineH = R(32);
+  const pages = [];
+  let ctx = null, y = 0;
+
+  const newPage = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#FAFAFA'; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = opts.palette.accent; ctx.fillRect(0, 0, w, R(110));
+    ctx.fillStyle = 'white'; ctx.font = '600 ' + R(38) + 'px ' + titleFont; ctx.textAlign = 'center';
+    ctx.fillText('DRDP (2025) Measures Identified', w / 2, R(72));
+    pages.push(canvas);
+    y = R(150);
+  };
+  const need = hh => { if (y + hh > bottom) newPage(); };
+  const block = (text, font, color, x, width, lh) => {
+    ctx.font = font;
+    const lines = wrapText(ctx, text, width);
+    for (const l of lines) { need(lh); ctx.font = font; ctx.fillStyle = color; ctx.textAlign = 'left'; ctx.fillText(l, x, y); y += lh; }
+  };
+  const heading = text => { need(R(34) + lineH * 2); ctx.fillStyle = opts.palette.accent; ctx.font = labelF; ctx.textAlign = 'left'; ctx.fillText(text, mg, y); y += R(34); };
+
+  newPage();
+  if (analysis.photoAnalysis) { heading('📷 Photo Analysis'); block(analysis.photoAnalysis, bodyF, '#444', mg, textW, lineH); y += R(18); }
+  if (analysis.narrativeSummary) { heading('📝 Summary'); block(analysis.narrativeSummary, 'italic ' + bodyF, '#444', mg, textW, lineH); y += R(18); }
+
+  need(R(35) + R(35) + R(120));
+  ctx.strokeStyle = opts.palette.accent; ctx.lineWidth = Math.max(2, R(2)); ctx.beginPath(); ctx.moveTo(mg, y); ctx.lineTo(w - mg, y); ctx.stroke(); y += R(35);
+  ctx.fillStyle = opts.palette.accent; ctx.font = labelF; ctx.textAlign = 'left'; ctx.fillText('📊 Measures Observed', mg, y); y += R(35);
+
+  for (const m of analysis.measures) {
+    const nameF = '600 ' + R(24) + 'px ' + bodyFam, badgeF = '600 ' + R(16) + 'px ' + bodyFam, levelF = '500 ' + R(20) + 'px ' + bodyFam, evF = '400 ' + R(18) + 'px ' + bodyFam;
+    ctx.font = badgeF;
+    const bw = ctx.measureText(m.domainCode).width + R(16);
+    const nameX = mg + bw + R(12);
+    ctx.font = nameF;
+    const nameLines = wrapText(ctx, m.code + (m.name ? ': ' + m.name : ''), w - mg - nameX);
+    ctx.font = evF;
+    const evLines = m.evidence ? wrapText(ctx, m.evidence, textW - R(10)) : [];
+    need(nameLines.length * R(30) + R(28) + Math.min(evLines.length, 2) * R(28));   // keep a measure's heading with its first lines
+
+    ctx.fillStyle = opts.palette.accent; ctx.beginPath(); ctx.roundRect(mg, y - R(18), bw, R(24), R(4)); ctx.fill();
+    ctx.fillStyle = 'white'; ctx.font = badgeF; ctx.textAlign = 'left'; ctx.fillText(m.domainCode, mg + R(8), y);
+    ctx.fillStyle = opts.palette.dark; ctx.font = nameF;
+    nameLines.forEach((l, i) => { ctx.fillText(l, nameX, y + i * R(30)); });
+    const lastW = ctx.measureText(nameLines[nameLines.length - 1] || '').width;
+    y += (nameLines.length - 1) * R(30);
+    if (m.estimatedLevel) {
+      ctx.font = levelF;
+      const lvl = '• ' + m.estimatedLevel;
+      if (nameX + lastW + R(12) + ctx.measureText(lvl).width <= w - mg) { ctx.fillStyle = opts.palette.accent; ctx.fillText(lvl, nameX + lastW + R(12), y); }
+      else { y += R(28); ctx.fillStyle = opts.palette.accent; ctx.fillText(lvl, nameX, y); }
+    }
+    y += R(28);
+    for (const l of evLines) { need(R(28)); ctx.font = evF; ctx.fillStyle = '#666'; ctx.textAlign = 'left'; ctx.fillText(l, mg + R(10), y); y += R(28); }
+    y += R(35);
+  }
+
+  const dk = hexToRgb(opts.palette.dark);
+  pages.forEach((canvas, i) => {
+    const c = canvas.getContext('2d');
+    c.fillStyle = 'rgba(' + dk.r + ',' + dk.g + ',' + dk.b + ',.6)'; c.font = '400 ' + R(24) + 'px ' + bodyFam;
+    c.textAlign = 'right'; c.fillText(opts.brand, w - mg, h - R(50));
+    if (pages.length > 1) { c.textAlign = 'left'; c.fillText('Page ' + (i + 1) + ' of ' + pages.length, mg, h - R(50)); }
+  });
+  return pages;
+}
+
+// ---------- DRDP panel ----------
+function displayDRDP(r, notice) {
+  const panel = $('drdpPanel'), div = $('drdpResults');
+  if (!r || !r.measures || !r.measures.length) { panel.style.display = 'none'; return; }
+  let html = '';
+  if (notice) html += '<div class="drdp-notice">' + escHtml(notice) + '</div>';
+  if (r.photoAnalysis) html += '<div class="drdp-photo-analysis"><strong>📷 Photo Analysis:</strong><p>' + escHtml(r.photoAnalysis) + '</p></div>';
+  if (r.narrativeSummary) html += '<div class="drdp-narrative"><strong>📝 Summary:</strong><p>' + escHtml(r.narrativeSummary) + '</p></div>';
+  html += '<div class="drdp-measures-list">';
+  for (const m of r.measures) {
+    html += '<div class="drdp-result"><span class="drdp-domain">' + escHtml(m.domainCode) + '</span> <strong>' + escHtml(m.code) + ':</strong> ' + escHtml(m.name) +
+      (m.estimatedLevel ? '<div class="drdp-level">' + escHtml(m.estimatedLevel) + '</div>' : '') +
+      (m.evidence ? '<div class="drdp-evidence">' + escHtml(m.evidence) + '</div>' : '') +
+      (m.slideNumbers && m.slideNumbers.length ? '<div class="drdp-slides">Slides: ' + m.slideNumbers.join(', ') + '</div>' : '') + '</div>';
+  }
+  div.innerHTML = html + '</div>';
+  panel.style.display = 'block';
+}
+
+// ---------- Generate ----------
+function addSlideCard(canvas, label, name, badge, bonus) {
+  const card = document.createElement('div');
+  card.className = 'slide-card' + (bonus ? ' bonus' : '');
+  card.innerHTML = '<button type="button" class="download-btn" aria-label="Download ' + escHtml(label) + '" title="Download this slide">↓</button><div class="slide-info"><span class="slide-number">' + escHtml(label) + '</span>' + (badge ? '<span class="drdp-badge">' + escHtml(badge) + '</span>' : '') + '</div>';
+  card.insertBefore(canvas, card.firstChild);
+  card.querySelector('.download-btn').addEventListener('click', e => { e.stopPropagation(); downloadOne(canvas, name); });
+  $('slidesGrid').appendChild(card);
+  generatedSlides.push({ canvas, name, label });
+}
+
+async function generate() {
+  const btn = $('generateBtn');
+  if (btn.disabled) return;
+  btn.disabled = true; btn.classList.add('loading'); btn.textContent = 'Generating...';
+  try {
+    await Promise.all(pendingLoads); pendingLoads = [];
+    const slides = parseSlideText(getSlideText());
+    if (!slides.length) { showStatus('No slides found. Start each slide with a line like "Slide 1:" then add a title and content.', 'error'); return; }
+    const cf = $('colorFamily').value;
+    const palette = cf === 'custom' ? { bg: $('bgColor').value, accent: $('accentColor').value, dark: $('darkColor').value } : COLOR_FAMILIES[cf];
+    const photoMode = $('photoMode').value, imgMode = $('imageMode').value, photoPos = $('photoPlacement').value, bgStyle = $('backgroundStyle').value;
+    const lastOf = arr => { for (let i = arr.length - 1; i >= 0; i--) if (arr[i]) return arr[i]; return null; };
+    const getSlidePhoto = i => {
+      if (photoPos === 'none') return null;
+      if (photoMode === 'single') return uploadedSlidePhoto;
+      if (photoMode === 'multiple') return uploadedSlidePhotos[i] || lastOf(uploadedSlidePhotos);
+      if (photoMode === 'assign') return assignedPhotos[i + 1] ? assignedPhotos[i + 1].image : null;
+      return null;
     };
-    img.onerror=()=>res(null);img.src=b64url;
+    const getBgImg = i => {
+      if (bgStyle !== 'image') return null;
+      if (imgMode === 'single') return uploadedBgImg;
+      return uploadedBgImgs[i] || lastOf(uploadedBgImgs);
+    };
+    const opts = {
+      brand: $('brandName').value, date: $('slideDate').value, datePos: $('datePosition').value, size: $('slideSize').value,
+      textSize: $('textSize').value, textAlign: $('textAlign').value, showNums: $('showSlideNumbers').checked, photoPos, bgStyle,
+      overlayOn: $('overlayToggle').checked, overlayOp: parseInt($('overlayOpacity').value, 10) || 0, palette,
+      fonts: { title: $('titleFont').value, body: $('bodyFont').value }, showFootnote: $('showFootnotes').checked
+    };
+    const enableDrdp = $('enableDrdp').checked;
+    const mode = $('analysisMode').value || 'ai';
+    const photoB64s = slides.map((_, i) => {
+      if (photoPos === 'none') return null;
+      if (photoMode === 'single') return uploadedSlidePhotoB64;
+      if (photoMode === 'multiple') return uploadedSlidePhotosB64[i] || lastOf(uploadedSlidePhotosB64);
+      if (photoMode === 'assign') return assignedPhotos[i + 1] ? assignedPhotos[i + 1].b64 : null;
+      return null;
+    });
+
+    let drdpResult = null, aiProblem = '';
+    const notes = [];
+    if (enableDrdp) {
+      if (mode === 'ai') {
+        btn.textContent = 'Analyzing with AI...';
+        showStatus('Analyzing for DRDP measures...', 'info');
+        try {
+          drdpResult = await aiAnalysis(slides, photoB64s);
+          (drdpResult.notes || []).forEach(n => notes.push(n));
+        } catch (e) {
+          console.error('AI analysis failed', e);
+          aiProblem = (e && e.message) || 'Unknown problem.';
+          drdpResult = kwAnalysis(slides);
+        }
+      } else {
+        btn.textContent = 'Matching keywords...';
+        showStatus('Matching DRDP keywords...', 'info');
+        drdpResult = kwAnalysis(slides);
+      }
+      slides.forEach((sl, i) => { sl.drdpMeasures = drdpResult.measures.filter(m => m.slideNumbers && m.slideNumbers.indexOf(i + 1) >= 0).map(m => m.code); });
+    }
+
+    btn.textContent = 'Rendering slides...';
+    await ensureFonts(opts.fonts);
+    generatedSlides = [];
+    prepared = { all: null, pdf: null };
+    $('slidesGrid').innerHTML = '';
+    const total = slides.length;
+    const cutSlides = [];
+    for (let i = 0; i < slides.length; i++) {
+      const canvas = document.createElement('canvas');
+      const info = renderSlide(canvas, slides[i], i, total, Object.assign({}, opts, { slidePhoto: getSlidePhoto(i), bgImg: getBgImg(i) }));
+      if (info.cut) cutSlides.push(i + 1);
+      addSlideCard(canvas, 'Slide ' + (i + 1), 'slide-' + String(i + 1).padStart(2, '0') + '.jpg', slides[i].drdpMeasures && slides[i].drdpMeasures[0], false);
+    }
+    if ($('includeBonusSlide').checked) {
+      const q = generateBonusQuote();
+      const bCanvas = document.createElement('canvas');
+      let bonusPhoto = null;
+      if (photoPos !== 'none') bonusPhoto = photoMode === 'assign' ? (assignedPhotos.bonus ? assignedPhotos.bonus.image : null) : photoMode === 'single' ? uploadedSlidePhoto : (lastOf(uploadedSlidePhotos) || uploadedSlidePhoto);
+      renderSlide(bCanvas, { isBonus: true, title: '', subtitle: '', content: [], quote: q.quote, author: q.author }, slides.length, total, Object.assign({}, opts, { slidePhoto: bonusPhoto, bgImg: getBgImg(slides.length) }));
+      addSlideCard(bCanvas, 'Bonus Quote', 'slide-bonus-quote.jpg', null, true);
+    }
+    if (enableDrdp && $('addSummaryPage').checked && drdpResult && drdpResult.measures.length) {
+      const pages = renderSummarySlides(drdpResult, opts);
+      pages.forEach((c, i) => addSlideCard(c, pages.length > 1 ? 'DRDP Summary ' + (i + 1) + ' of ' + pages.length : 'DRDP Summary', 'slide-drdp-summary' + (pages.length > 1 ? '-' + (i + 1) : '') + '.jpg', null, false));
+    }
+    const notice = aiProblem ? 'AI analysis did not run. ' + aiProblem + ' These measures come from keyword matching instead.' : (notes.length ? notes.join(' ') : '');
+    if (enableDrdp && drdpResult) displayDRDP(drdpResult, notice); else $('drdpPanel').style.display = 'none';
+    $('results').classList.add('show');
+    $('slideCount').textContent = generatedSlides.length;
+    $('downloadAllBtn').hidden = false; $('downloadPdfBtn').hidden = false;
+
+    const lines = [];
+    if (aiProblem) lines.push('AI analysis did not run. ' + aiProblem, 'Your ' + generatedSlides.length + ' slides were made with keyword matching instead.');
+    else lines.push('✓ Generated ' + generatedSlides.length + ' slides!' + (enableDrdp && mode === 'ai' ? ' AI analysis complete.' : ''));
+    notes.forEach(n => lines.push(n));
+    if (enableDrdp && drdpResult && !drdpResult.measures.length) lines.push('No DRDP measures matched this text.');
+    if (cutSlides.length) lines.push((cutSlides.length === 1 ? 'Slide ' + cutSlides[0] + ' has' : 'Slides ' + cutSlides.join(', ') + ' have') + ' more text than fits. Use a smaller text size or split the content across slides.');
+    showStatus(lines.join('\n'), aiProblem ? 'error' : (notes.length || cutSlides.length ? 'warn' : 'success'));
+    if (window.innerWidth < 900) $('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (e) {
+    console.error(e);
+    showStatus('Something went wrong while making the slides. ' + ((e && e.message) || ''), 'error');
+  } finally {
+    btn.disabled = false; btn.classList.remove('loading'); btn.textContent = 'Generate Slides';
+  }
+}
+
+// ---------- Saving files ----------
+const CRC_TABLE = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u8) { let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = CRC_TABLE[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+
+function buildZip(files) {   // files: [{ name, data: Uint8Array }]
+  const enc = new TextEncoder();
+  const now = new Date();
+  const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+  const dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+  const parts = [], central = [];
+  let offset = 0;
+  files.forEach(f => {
+    const name = enc.encode(f.name), crc = crc32(f.data), size = f.data.length;
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true);
+    lh.setUint16(10, dosTime, true); lh.setUint16(12, dosDate, true); lh.setUint32(14, crc, true); lh.setUint32(18, size, true); lh.setUint32(22, size, true);
+    lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
+    parts.push(new Uint8Array(lh.buffer), name, f.data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true);
+    ch.setUint16(12, dosTime, true); ch.setUint16(14, dosDate, true); ch.setUint32(16, crc, true); ch.setUint32(20, size, true); ch.setUint32(24, size, true);
+    ch.setUint16(28, name.length, true); ch.setUint32(42, offset, true);
+    central.push(new Uint8Array(ch.buffer), name);
+    offset += 30 + name.length + size;
   });
+  const cdSize = central.reduce((a, p) => a + p.length, 0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true); end.setUint32(12, cdSize, true); end.setUint32(16, offset, true);
+  return new Blob(parts.concat(central, [new Uint8Array(end.buffer)]), { type: 'application/zip' });
 }
 
-async function aiAnalysis(slides,photoB64s){
-  const ag=document.getElementById('ageGroup').value;
-  const db=DRDP[ag];
-  let ref='';
-  for(const[dc,dom] of Object.entries(db))ref+=`${dc}: `+Object.entries(dom.measures).map(([c,m])=>`${c}-${m.name}`).join(', ')+'\n';
-  let content='';
-  slides.forEach((sl,i)=>{content+=`\nSlide ${i+1}: ${sl.title} ${sl.subtitle} ${sl.content.filter(c=>c).join(' ')}`;});
-  const hasPhotos=photoB64s.some(p=>p);
-  const prompt=`Analyze this early childhood documentation for DRDP (2025) measures.
-Age Group: ${ag==='ptk'?'Preschool/TK/K (3-6)':'Infant/Toddler (0-3)'}
-DRDP Measures:\n${ref}
-Documentation:${content}
-${hasPhotos?'Photos attached - describe what you observe.':'No photos.'}
-
-Return ONLY a JSON object. Use straight double quotes only. No apostrophes in values - rephrase instead. No newlines in string values. No trailing commas.
-{"measures":[{"code":"ATL 1","name":"measure name","domain":"domain name","domainCode":"ATL","estimatedLevel":"Building Middle","evidence":"brief evidence","slideNumbers":[1]}],"photoAnalysis":"brief description","narrativeSummary":"brief summary"}`;
-
-  const msgContent=[];
-  let photoCount=0;
-  for(const b64 of photoB64s){
-    if(!b64||photoCount>=3)continue;
-    try{const c=await compressForAPI(b64);if(!c)continue;msgContent.push({type:'image',source:{type:'base64',media_type:'image/jpeg',data:c.split(',')[1]}});photoCount++;}catch(e){console.warn('photo error',e);}
+async function buildPDF(canvases) {
+  const enc = new TextEncoder();
+  const chunks = [];
+  let offset = 0;
+  const offsets = [];
+  const push = data => { const u8 = typeof data === 'string' ? enc.encode(data) : data; chunks.push(u8); offset += u8.length; };
+  const obj = (num, body) => { offsets[num] = offset; push(num + ' 0 obj\n'); body(); push('\nendobj\n'); };
+  push('%PDF-1.4\n'); push(new Uint8Array([0x25, 0xE2, 0xE3, 0xCF, 0xD3, 0x0A]));
+  const n = canvases.length;
+  const pageNum = i => 3 + i * 3 + 2;
+  obj(1, () => push('<< /Type /Catalog /Pages 2 0 R >>'));
+  obj(2, () => push('<< /Type /Pages /Kids [' + canvases.map((_, i) => pageNum(i) + ' 0 R').join(' ') + '] /Count ' + n + ' >>'));
+  for (let i = 0; i < n; i++) {
+    const c = canvases[i];
+    const jpeg = new Uint8Array(await (await canvasToBlob(c, 'image/jpeg', 0.92)).arrayBuffer());
+    // Letter slides become true 8.5 by 11 inch pages. Square slides keep one point per pixel.
+    const isLetter = c.width === SIZES.letter.w && c.height === SIZES.letter.h;
+    const pw = isLetter ? 612 : c.width, ph = isLetter ? 792 : c.height;
+    const imgNum = 3 + i * 3, contNum = imgNum + 1;
+    obj(imgNum, () => { push('<< /Type /XObject /Subtype /Image /Width ' + c.width + ' /Height ' + c.height + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + jpeg.length + ' >>\nstream\n'); push(jpeg); push('\nendstream'); });
+    const cs = 'q\n' + pw + ' 0 0 ' + ph + ' 0 0 cm\n/Img' + i + ' Do\nQ\n';
+    obj(contNum, () => push('<< /Length ' + cs.length + ' >>\nstream\n' + cs + 'endstream'));
+    obj(pageNum(i), () => push('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + pw + ' ' + ph + '] /Contents ' + contNum + ' 0 R /Resources << /XObject << /Img' + i + ' ' + imgNum + ' 0 R >> >> >>'));
   }
-  msgContent.push({type:'text',text:prompt});
-
-  const API_ENDPOINT='https://fulton-proxy.onrender.com';
-  const isClaudeArtifact=window.location.hostname.includes('claude.ai')||window.location.hostname.includes('claudeusercontent')||window.location.hostname.includes('anthropic')||document.referrer.includes('claude.ai');
-  async function callAPI(c,attempt=0){
-    const useBackend=API_ENDPOINT&&API_ENDPOINT.length>0;
-    const endpoint=useBackend?API_ENDPOINT:'https://api.anthropic.com/v1/messages';
-    const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),90000));
-    let fetchPromise;
-    if(useBackend){
-      if(attempt===0)showStatus('Connecting to AI (may take up to 60s on first use)...','info');
-      else showStatus('AI server is waking up, retrying...','info');
-      fetchPromise=fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:c})});
-    }else{
-      fetchPromise=fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-opus-4-5',max_tokens:1500,messages:[{role:'user',content:c}]})});
-    }
-    let r;
-    try{
-      r=await Promise.race([fetchPromise,timeout]);
-    }catch(e){
-      if(attempt<2){
-        showStatus('Connection failed, retrying in 5s... (attempt '+(attempt+2)+'/3)','info');
-        await new Promise(res=>setTimeout(res,5000));
-        return callAPI(c,attempt+1);
-      }
-      throw new Error('Failed to reach AI server after 3 attempts. The server may be starting up. Wait 60 seconds and try again.');
-    }
-    if(!r.ok){const t=await r.text();console.error('API error:',r.status,t);throw new Error(`API ${r.status}: ${t}`);}
-    return r.json();
-  }
-
-  try{
-    let data;
-    try{data=await callAPI(msgContent);}
-    catch(e){
-      const isPhotoError=photoCount>0&&(e.message.includes('400')||e.message.includes('image')||e.message.includes('media'));
-      if(isPhotoError){showStatus('Retrying without photos...','info');data=await callAPI([{type:'text',text:prompt.replace('Photos attached - describe what you observe.','No photos.')}]);}
-      else throw e;
-    }
-    let txt=data.content[0].text.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
-    const m=txt.match(/\{[\s\S]*\}/);if(!m)throw new Error('No JSON');
-    let js=m[0].replace(/[\u201C\u201D]/g,'"').replace(/[\u2018\u2019]/g,"'").replace(/,\s*([}\]])/g,'$1');
-    js=js.replace(/([^"\\])\n/g,'$1 ').replace(/([^"\\])\t/g,'$1 ');
-    try{return JSON.parse(js);}
-    catch(pe){
-      console.warn('JSON parse failed, extracting fields:',pe.message);
-      const measures=[];
-      js.split(/(?<=\}),\s*(?=\{)/).forEach(chunk=>{
-        if(!/"code"/.test(chunk))return;
-        const get=k=>chunk.match(new RegExp(`"${k}"\\s*:\\s*"([^"]*)"`)) ?.[1]||'';
-        const nums=[...(chunk.match(/"slideNumbers"\s*:\s*\[([^\]]*)\]/)?.[1]||'').matchAll(/\d+/g)].map(m=>+m[0]);
-        measures.push({code:get('code'),name:get('name'),domain:get('domain'),domainCode:get('domainCode'),estimatedLevel:get('estimatedLevel'),evidence:get('evidence'),slideNumbers:nums});
-      });
-      if(!measures.length)throw new Error('No measures: '+pe.message);
-      return{measures,photoAnalysis:js.match(/"photoAnalysis"\s*:\s*"([^"]*)"/)?.[1]||'',narrativeSummary:js.match(/"narrativeSummary"\s*:\s*"([^"]*)"/)?.[1]||''};
-    }
-  }catch(e){console.error('AI failed:',e);throw new Error('AI failed: '+e.message);}
+  const count = 2 + n * 3;
+  const xrefAt = offset;
+  let xref = 'xref\n0 ' + (count + 1) + '\n0000000000 65535 f \n';
+  for (let k = 1; k <= count; k++) xref += String(offsets[k]).padStart(10, '0') + ' 00000 n \n';
+  push(xref);
+  push('trailer\n<< /Size ' + (count + 1) + ' /Root 1 0 R >>\nstartxref\n' + xrefAt + '\n%%EOF\n');
+  return new Blob(chunks, { type: 'application/pdf' });
 }
 
-function renderSlide(canvas,slide,idx,total,opts){
-  const ctx=canvas.getContext('2d');
-  const{w,h,s}=SIZES[opts.size];
-  const tm={small:.75,medium:1,large:1.25}[opts.textSize];
-  canvas.width=w;canvas.height=h;
-  const mg=Math.round(80*s);
-
-  if(opts.bgStyle==='none'){ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);}
-  else if(opts.bgStyle==='image'&&opts.bgImg){ctx.drawImage(opts.bgImg,0,0,w,h);if(opts.overlayOn){const rgb=hexToRgb(opts.palette.bg);ctx.fillStyle=`rgba(${rgb.r},${rgb.g},${rgb.b},${opts.overlayOp/100})`;ctx.fillRect(0,0,w,h);}}
-  else if(opts.bgStyle==='gradient'){const g=ctx.createLinearGradient(0,0,0,h);const rgb=hexToRgb(opts.palette.accent);g.addColorStop(0,opts.palette.bg);g.addColorStop(1,`rgba(${rgb.r},${rgb.g},${rgb.b},.3)`);ctx.fillStyle=g;ctx.fillRect(0,0,w,h);}
-  else{ctx.fillStyle=opts.palette.bg;ctx.fillRect(0,0,w,h);}
-
-  if(opts.bgStyle!=='image'&&opts.bgStyle!=='none'&&opts.photoPos==='none'){const rgb=hexToRgb(opts.palette.accent);ctx.fillStyle=`rgba(${rgb.r},${rgb.g},${rgb.b},.25)`;ctx.beginPath();ctx.arc(w-Math.round(100*s),Math.round(100*s),Math.round(150*s),0,Math.PI*2);ctx.fill();}
-
-  let y=mg+Math.round(60*s),textEndY=h-Math.round(100*s),tLeft=mg,tRight=w-mg;
-  const ph=opts.slidePhoto;
-  let pX,pY,pW,pH2;
-
-  if(ph&&opts.photoPos!=='none'){
-    const pa=ph.width/ph.height;
-    if(opts.photoPos==='top'){pH2=Math.round(h*.6);pW=pH2*pa;pX=(w-pW)/2;pY=mg;y=pY+pH2+Math.round(60*s);}
-    else if(opts.photoPos==='bottom'){pH2=Math.round(h*.6);pW=pH2*pa;if(pW>w-mg*2){pW=w-mg*2;pH2=pW/pa;}pX=(w-pW)/2;pY=h-pH2-mg;textEndY=pY-Math.round(20*s);y=mg;}
-    else if(opts.photoPos==='left'||opts.photoPos==='right'){pW=Math.round(w*.4);pH2=pW/pa;pX=opts.photoPos==='left'?mg:w-pW-mg;}
-    else if(opts.photoPos==='center'){const mx=Math.round(Math.min(w,h)*.65);pW=pa<1?mx*pa:mx;pH2=pa<1?mx:mx/pa;pX=(w-pW)/2;pY=(h-pH2)/2;}
-    if(opts.photoPos!=='left'&&opts.photoPos!=='right'&&!slide.isBonus){ctx.save();ctx.beginPath();ctx.roundRect(pX,pY,pW,pH2,12);ctx.clip();ctx.drawImage(ph,pX,pY,pW,pH2);ctx.restore();ctx.strokeStyle=opts.palette.accent;ctx.lineWidth=4;ctx.beginPath();ctx.roundRect(pX,pY,pW,pH2,12);ctx.stroke();}
-  }
-
-  let tW=tRight-tLeft;
-  const align=opts.textAlign;
-  const tX=()=>align==='center'?tLeft+tW/2:align==='right'?tRight:tLeft;
-
-  ctx.font=`bold ${Math.round(64*s*tm)}px ${opts.fonts.title},sans-serif`;
-  ctx.fillStyle=opts.palette.dark;ctx.textAlign=align;ctx.textBaseline='top';
-  const tLines=wrapText(ctx,slide.title||'',tW);
-  const tH=tLines.length*Math.round(76*s*tm);
-  if(ph&&opts.photoPos==='center'){const rgb=hexToRgb(opts.palette.bg);ctx.fillStyle=`rgba(${rgb.r},${rgb.g},${rgb.b},.65)`;ctx.beginPath();ctx.roundRect(tLeft-Math.round(15*s),y-Math.round(10*s),tW+Math.round(30*s),tH+Math.round(15*s),8);ctx.fill();}
-  ctx.fillStyle=opts.palette.dark;
-  for(const l of tLines){ctx.fillText(l,tX(),y);y+=Math.round(76*s*tm);}
-  y+=Math.round(40*s);
-
-  if(slide.subtitle){
-    ctx.font=`600 ${Math.round(36*s*tm)}px ${opts.fonts.body},sans-serif`;
-    ctx.fillStyle=opts.palette.accent;ctx.textAlign=align;
-    const sLines=wrapText(ctx,slide.subtitle,tW);
-    const sH=sLines.length*Math.round(44*s*tm);
-    if(ph&&opts.photoPos==='center'){const rgb=hexToRgb(opts.palette.bg);ctx.fillStyle=`rgba(${rgb.r},${rgb.g},${rgb.b},.65)`;ctx.beginPath();ctx.roundRect(tLeft-Math.round(15*s),y-Math.round(10*s),tW+Math.round(30*s),sH+Math.round(15*s),8);ctx.fill();ctx.fillStyle=opts.palette.accent;}
-    for(const l of sLines){ctx.fillText(l,tX(),y);y+=Math.round(44*s*tm);}
-    y+=Math.round(15*s);
-  }
-
-  if(ph&&(opts.photoPos==='left'||opts.photoPos==='right')&&!slide.isBonus){
-    pY=y+Math.round(60*s);
-    ctx.save();ctx.beginPath();ctx.roundRect(pX,pY,pW,pH2,12);ctx.clip();ctx.drawImage(ph,pX,pY,pW,pH2);ctx.restore();
-    ctx.strokeStyle=opts.palette.accent;ctx.lineWidth=4;ctx.beginPath();ctx.roundRect(pX,pY,pW,pH2,12);ctx.stroke();
-    if(opts.photoPos==='left')tLeft=pX+pW+Math.round(60*s);else tRight=pX-Math.round(60*s);
-    tW=tRight-tLeft;y=pY;textEndY=pY+pH2;
-  }
-  y+=Math.round(40*s);
-
-  if(slide.isBonus){
-    if(ph&&opts.photoPos!=='none'&&opts.photoPos!=='center'){
-      const pa=ph.width/ph.height;const mx=Math.round(Math.min(w,h)*.85);
-      const bW=pa<1?mx*pa:mx;const bH=pa<1?mx:mx/pa;
-      const bX=(w-bW)/2;const bY=(h-bH)/2;
-      ctx.save();ctx.beginPath();ctx.roundRect(bX,bY,bW,bH,12);ctx.clip();ctx.drawImage(ph,bX,bY,bW,bH);ctx.restore();
-      ctx.strokeStyle=opts.palette.accent;ctx.lineWidth=4;ctx.beginPath();ctx.roundRect(bX,bY,bW,bH,12);ctx.stroke();
-    }
-    const qY=h/2-Math.round(100*s);
-    ctx.font=`italic ${Math.round(42*s*tm)}px ${opts.fonts.body},sans-serif`;ctx.fillStyle=opts.palette.dark;ctx.textAlign='center';
-    const qLines=wrapText(ctx,`"${slide.quote}"`,w-mg*3);let qy=qY;
-    if(ph&&opts.photoPos!=='none'){const rgb=hexToRgb(opts.palette.bg);ctx.fillStyle=`rgba(${rgb.r},${rgb.g},${rgb.b},.65)`;ctx.beginPath();ctx.roundRect(mg+Math.round(40*s),qy-Math.round(30*s),w-mg*2-Math.round(80*s),qLines.length*Math.round(56*s*tm)+Math.round(150*s),12);ctx.fill();ctx.fillStyle=opts.palette.dark;}
-    for(const l of qLines){ctx.fillText(l,w/2,qy);qy+=Math.round(56*s*tm);}
-    qy+=Math.round(40*s);ctx.font=`600 ${Math.round(32*s*tm)}px ${opts.fonts.body},sans-serif`;ctx.fillStyle=opts.palette.accent;ctx.fillText(`— ${slide.author}`,w/2,qy);
-  }else{
-    ctx.textAlign=align;
-    for(const item of slide.content){
-      if(y>textEndY-Math.round(50*s))break;
-      const p=parseContentLine(item);
-      if(p.type==='space'){y+=Math.round(30*s);continue;}
-      const cX=tX();
-      if(p.type==='header'){
-        ctx.font=`600 ${Math.round(38*s*tm)}px ${opts.fonts.body},sans-serif`;
-        const lines=wrapText(ctx,p.text,tW);
-        if(ph&&opts.photoPos==='center'){const rgb=hexToRgb(opts.palette.bg);ctx.fillStyle=`rgba(${rgb.r},${rgb.g},${rgb.b},.65)`;ctx.beginPath();ctx.roundRect(tLeft-Math.round(15*s),y-Math.round(10*s),tW+Math.round(30*s),lines.length*Math.round(48*s*tm)+Math.round(20*s),8);ctx.fill();}
-        ctx.fillStyle=opts.palette.dark;for(const l of lines){ctx.fillText(l,cX,y);y+=Math.round(48*s*tm);}y+=Math.round(20*s);
-      }else if(p.type==='bullet-dark'||p.type==='bullet-accent'){
-        ctx.font=`400 ${Math.round(32*s*tm)}px ${opts.fonts.body},sans-serif`;
-        const lines=wrapText(ctx,p.text,tW-Math.round(40*s));
-        if(ph&&opts.photoPos==='center'){const rgb=hexToRgb(opts.palette.bg);ctx.fillStyle=`rgba(${rgb.r},${rgb.g},${rgb.b},.65)`;ctx.beginPath();ctx.roundRect(tLeft-Math.round(15*s),y-Math.round(8*s),tW+Math.round(30*s),lines.length*Math.round(42*s*tm)+Math.round(18*s),8);ctx.fill();}
-        ctx.fillStyle=p.type==='bullet-accent'?opts.palette.accent:opts.palette.dark;ctx.textAlign='left';ctx.fillText(p.type==='bullet-accent'?'✓':'•',tLeft,y);
-        ctx.fillStyle=opts.palette.dark;for(let i=0;i<lines.length;i++){ctx.fillText(lines[i],tLeft+Math.round(40*s),y);if(i<lines.length-1)y+=Math.round(42*s*tm);}ctx.textAlign=align;y+=Math.round(60*s*tm);
-      }else{
-        ctx.font=`400 ${Math.round(32*s*tm)}px ${opts.fonts.body},sans-serif`;
-        const lines=wrapText(ctx,p.text,tW);
-        if(ph&&opts.photoPos==='center'){const rgb=hexToRgb(opts.palette.bg);ctx.fillStyle=`rgba(${rgb.r},${rgb.g},${rgb.b},.65)`;ctx.beginPath();ctx.roundRect(tLeft-Math.round(15*s),y-Math.round(8*s),tW+Math.round(30*s),lines.length*Math.round(42*s*tm)+Math.round(30*s),8);ctx.fill();}
-        ctx.fillStyle=opts.palette.dark;for(const l of lines){ctx.fillText(l,cX,y);y+=Math.round(42*s*tm);}y+=Math.round(30*s);
-      }
-    }
-  }
-
-  if(opts.showFootnote&&slide.drdpMeasures?.length){ctx.fillStyle=opts.palette.accent;ctx.font=`500 ${Math.round(20*s)}px ${opts.fonts.body},sans-serif`;ctx.textAlign='left';ctx.fillText('DRDP: '+slide.drdpMeasures.slice(0,2).join(', '),mg,h-Math.round(80*s));}
-
-  const fy=h-Math.round(50*s);
-  ctx.font=`400 ${Math.round(24*s*tm)}px ${opts.fonts.body},sans-serif`;
-  const drk=hexToRgb(opts.palette.dark);ctx.fillStyle=`rgba(${drk.r},${drk.g},${drk.b},.6)`;
-  if(!slide.isBonus&&opts.showNums){ctx.textAlign='left';ctx.fillText(`${idx+1}/${total}`,mg,fy);}
-  let dateStr='';
-  if(opts.date&&opts.datePos!=='none'){const d=new Date(opts.date+'T00:00:00');dateStr=d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});}
-  ctx.textAlign='right';ctx.fillText(opts.datePos==='footer'&&dateStr?`${opts.brand}  •  ${dateStr}`:opts.brand,w-mg,fy);
-  if(opts.datePos==='header'&&dateStr){ctx.font=`400 ${Math.round(22*s*tm)}px ${opts.fonts.body},sans-serif`;ctx.fillStyle=`rgba(${drk.r},${drk.g},${drk.b},.5)`;ctx.textAlign='right';ctx.fillText(dateStr,w-mg,mg);}
+function anchorDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.style.display = 'none';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
-function renderSummarySlide(canvas,analysis,opts){
-  const ctx=canvas.getContext('2d');const{w,h,s}=SIZES[opts.size];
-  canvas.width=w;canvas.height=h;const mg=Math.round(80*s);
-  ctx.fillStyle='#FAFAFA';ctx.fillRect(0,0,w,h);
-  ctx.fillStyle=opts.palette.accent;ctx.fillRect(0,0,w,Math.round(110*s));
-  ctx.fillStyle='white';ctx.font=`600 ${Math.round(38*s)}px ${opts.fonts.title},serif`;ctx.textAlign='center';ctx.fillText('DRDP (2025) Measures Identified',w/2,Math.round(72*s));
-  let y=Math.round(150*s);const textW=w-mg*2;
-  const bodyF=`400 ${Math.round(22*s)}px ${opts.fonts.body},sans-serif`;
-  const labelF=`600 ${Math.round(22*s)}px ${opts.fonts.body},sans-serif`;
-  const lineH=Math.round(32*s);
-  const drawBlock=(text,font,color)=>{ctx.font=font;ctx.fillStyle=color;ctx.textAlign='left';for(const l of wrapText(ctx,text,textW)){ctx.fillText(l,mg,y);y+=lineH;}};
-  const photo=analysis.photoAnalysis;
-  if(photo&&photo!=='No photos.'&&photo!=='No photos analyzed (fallback mode)'&&photo!==''){ctx.fillStyle=opts.palette.accent;ctx.font=labelF;ctx.textAlign='left';ctx.fillText('📷 Photo Analysis',mg,y);y+=Math.round(34*s);drawBlock(photo,bodyF,'#444');y+=Math.round(18*s);}
-  const summ=analysis.narrativeSummary;
-  if(summ&&summ!=='2 sentence summary'&&summ!==''){ctx.fillStyle=opts.palette.accent;ctx.font=labelF;ctx.textAlign='left';ctx.fillText('📝 Summary',mg,y);y+=Math.round(34*s);drawBlock(summ,`italic ${bodyF}`,'#444');y+=Math.round(18*s);}
-  ctx.strokeStyle=opts.palette.accent;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(mg,y);ctx.lineTo(w-mg,y);ctx.stroke();y+=Math.round(35*s);
-  ctx.fillStyle=opts.palette.accent;ctx.font=labelF;ctx.textAlign='left';ctx.fillText('📊 Measures Observed',mg,y);y+=Math.round(35*s);
-  for(const m of analysis.measures){
-    if(y>h-Math.round(100*s))break;
-    ctx.fillStyle=opts.palette.accent;ctx.font=`600 ${Math.round(16*s)}px ${opts.fonts.body},sans-serif`;
-    const bw=ctx.measureText(m.domainCode).width+Math.round(16*s);
-    ctx.beginPath();ctx.roundRect(mg,y-Math.round(18*s),bw,Math.round(24*s),4);ctx.fill();
-    ctx.fillStyle='white';ctx.fillText(m.domainCode,mg+Math.round(8*s),y);
-    ctx.fillStyle=opts.palette.dark;ctx.font=`600 ${Math.round(24*s)}px ${opts.fonts.body},sans-serif`;ctx.fillText(`${m.code}: ${m.name}`,mg+bw+Math.round(12*s),y);
-    y+=Math.round(28*s);ctx.font=`400 ${Math.round(18*s)}px ${opts.fonts.body},sans-serif`;ctx.fillStyle='#666';
-    ctx.font=`400 ${Math.round(18*s)}px ${opts.fonts.body},sans-serif`;ctx.fillStyle=opts.palette.text;ctx.textAlign="left";for(const evLine of wrapText(ctx,(m.evidence||""),textW-Math.round(10*s))){ctx.fillText(evLine,mg+Math.round(10*s),y);y+=Math.round(28*s);}
-    y+=Math.round(35*s);
+const isTouch = () => !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+
+// Returns 'saved', 'shared', 'declined', 'tap-again' or 'unavailable'.
+async function saveFiles(files) {   // files: [{ blob, name }]
+  if (inClaude) {
+    const dl = await getCap('downloads');
+    if (!dl) return 'unavailable';
+    try {
+      for (const f of files) await dl.save({ filename: f.name, data: f.blob });
+      return 'saved';
+    } catch (e) {
+      if (e && e.code === 'declined') return 'declined';
+      console.error('Save failed', e);
+      return 'unavailable';
+    }
   }
-  const drk=hexToRgb(opts.palette.dark);ctx.fillStyle=`rgba(${drk.r},${drk.g},${drk.b},.6)`;ctx.font=`400 ${Math.round(24*s)}px ${opts.fonts.body},sans-serif`;ctx.textAlign='right';ctx.fillText(opts.brand,w-mg,h-Math.round(50*s));
+  if (isTouch() && navigator.share && navigator.canShare) {
+    try {
+      const shareFiles = files.map(f => new File([f.blob], f.name, { type: f.blob.type }));
+      if (navigator.canShare({ files: shareFiles })) { await navigator.share({ files: shareFiles }); return 'shared'; }
+    } catch (e) {
+      if (e && e.name === 'AbortError') return 'declined';
+      if (e && e.name === 'NotAllowedError') return 'tap-again';
+      // anything else falls through to a normal download
+    }
+  }
+  files.forEach((f, i) => setTimeout(() => anchorDownload(f.blob, f.name), i * 350));
+  return 'saved';
 }
 
-document.getElementById('generateBtn').addEventListener('click',async()=>{
-  const btn=document.getElementById('generateBtn');
-  btn.disabled=true;btn.classList.add('loading');btn.textContent='Generating...';
-  try{
-    const text=getSlideText();const slides=parseSlideText(text);
-    if(!slides.length){showStatus('No slides found. Add slide content first.','error');return;}
-    const cf=document.getElementById('colorFamily').value;
-    const palette=cf==='custom'?{bg:document.getElementById('bgColor').value,accent:document.getElementById('accentColor').value,dark:document.getElementById('darkColor').value}:COLOR_FAMILIES[cf];
-    const photoMode=document.getElementById('photoMode').value;const imgMode=document.getElementById('imageMode').value;const photoPos=document.getElementById('photoPlacement').value;
-    const getSlidePhoto=(i)=>{if(photoPos==='none')return null;if(photoMode==='single')return uploadedSlidePhoto;if(photoMode==='multiple')return uploadedSlidePhotos[i]||uploadedSlidePhotos[uploadedSlidePhotos.length-1]||null;if(photoMode==='assign')return assignedPhotos[i+1]?.image||null;return null;};
-    const getBgImg=(i)=>{if(document.getElementById('backgroundStyle').value!=='image')return null;if(imgMode==='single')return uploadedBgImg;return uploadedBgImgs[i]||uploadedBgImgs[uploadedBgImgs.length-1]||null;};
-    const opts={brand:document.getElementById('brandName').value,date:document.getElementById('slideDate').value,datePos:document.getElementById('datePosition').value,size:document.getElementById('slideSize').value,textSize:document.getElementById('textSize').value,textAlign:document.getElementById('textAlign').value,showNums:document.getElementById('showSlideNumbers').checked,photoPos,bgStyle:document.getElementById('backgroundStyle').value,overlayOn:document.getElementById('overlayToggle').checked,overlayOp:parseInt(document.getElementById('overlayOpacity').value),palette,fonts:{title:document.getElementById('titleFont').value,body:document.getElementById('bodyFont').value},showFootnote:document.getElementById('showFootnotes').checked};
-    const enableDrdp=document.getElementById('enableDrdp').checked;const mode=document.getElementById('analysisMode')?.value||'ai';let drdpResult=null;
-    const photoB64s=slides.map((_,i)=>{if(photoPos==='none')return null;if(photoMode==='single')return uploadedSlidePhotoB64;if(photoMode==='multiple')return uploadedSlidePhotosB64[i]||uploadedSlidePhotosB64[uploadedSlidePhotosB64.length-1]||null;if(photoMode==='assign')return assignedPhotos[i+1]?.b64||null;return null;});
-    if(enableDrdp){btn.textContent=mode==='ai'?'Analyzing with AI...':'Matching keywords...';showStatus(mode==='ai'?'Analyzing for DRDP measures...':'Matching DRDP keywords...','info');drdpResult=mode==='ai'?await aiAnalysis(slides,photoB64s):kwAnalysis(slides);if(drdpResult?.measures)slides.forEach((sl,i)=>{sl.drdpMeasures=drdpResult.measures.filter(m=>m.slideNumbers?.includes(i+1)).map(m=>m.code);});}
-    btn.textContent='Rendering slides...';generatedSlides=[];const grid=document.getElementById('slidesGrid');grid.innerHTML='';const total=slides.length;
-    for(let i=0;i<slides.length;i++){
-      const canvas=document.createElement('canvas');renderSlide(canvas,slides[i],i,total,{...opts,slidePhoto:getSlidePhoto(i),bgImg:getBgImg(i)});
-      const card=document.createElement('div');card.className='slide-card';const top=slides[i].drdpMeasures?.[0]||null;
-      card.innerHTML=`<div class="download-btn">↓</div><div class="slide-info"><span class="slide-number">Slide ${slides[i].number}</span>${top?`<span class="drdp-badge">${top}</span>`:''}</div>`;
-      card.insertBefore(canvas,card.firstChild);card.querySelector('.download-btn').addEventListener('click',e=>{e.stopPropagation();downloadSlide(canvas,`slide-${String(slides[i].number).padStart(2,'0')}.jpg`);});
-      grid.appendChild(card);generatedSlides.push(canvas);
-    }
-    if(document.getElementById('includeBonusSlide').checked){
-      const q=generateBonusQuote();const bCanvas=document.createElement('canvas');
-      const bonusPhoto=photoMode==='assign'?assignedPhotos['bonus']?.image||null:photoMode==='single'?uploadedSlidePhoto:uploadedSlidePhotos[uploadedSlidePhotos.length-1]||uploadedSlidePhoto;
-      renderSlide(bCanvas,{isBonus:true,title:'',subtitle:'',content:[],quote:q.quote,author:q.author},slides.length,total,{...opts,slidePhoto:bonusPhoto,bgImg:getBgImg(slides.length)});
-      const bCard=document.createElement('div');bCard.className='slide-card bonus';bCard.innerHTML=`<div class="download-btn">↓</div><div class="slide-info"><span class="slide-number">Bonus Quote</span></div>`;
-      bCard.insertBefore(bCanvas,bCard.firstChild);bCard.querySelector('.download-btn').addEventListener('click',e=>{e.stopPropagation();downloadSlide(bCanvas,'slide-bonus-quote.jpg');});
-      grid.appendChild(bCard);generatedSlides.push(bCanvas);
-    }
-    if(enableDrdp&&document.getElementById('addSummaryPage').checked&&drdpResult?.measures?.length){
-      const sCanvas=document.createElement('canvas');renderSummarySlide(sCanvas,drdpResult,opts);
-      const sCard=document.createElement('div');sCard.className='slide-card';sCard.innerHTML=`<div class="download-btn">↓</div><div class="slide-info"><span class="slide-number">DRDP Summary</span></div>`;
-      sCard.insertBefore(sCanvas,sCard.firstChild);sCard.querySelector('.download-btn').addEventListener('click',e=>{e.stopPropagation();downloadSlide(sCanvas,'slide-drdp-summary.jpg');});
-      grid.appendChild(sCard);generatedSlides.push(sCanvas);
-    }
-    if(enableDrdp&&drdpResult)displayDRDP(drdpResult);else document.getElementById('drdpPanel').style.display='none';
-    document.getElementById('results').classList.add('show');document.getElementById('slideCount').textContent=generatedSlides.length;
-    document.getElementById('downloadAllBtn').style.display='inline-block';document.getElementById('downloadPdfBtn').style.display='inline-block';
-    showStatus(`✓ Generated ${generatedSlides.length} slides!`,'success');
-  }catch(e){console.error(e);showStatus('Error: '+e.message,'error');}
-  finally{btn.disabled=false;btn.classList.remove('loading');btn.textContent='Generate Slides';}
-});
-
-function displayDRDP(r){
-  const panel=document.getElementById('drdpPanel');const div=document.getElementById('drdpResults');
-  if(!r?.measures?.length){panel.style.display='none';return;}
-  let html='';
-  if(r.photoAnalysis&&r.photoAnalysis!=='No photos.'&&r.photoAnalysis!=='')html+=`<div class="drdp-photo-analysis"><strong>📷 Photo Analysis:</strong><p>${r.photoAnalysis}</p></div>`;
-  if(r.narrativeSummary&&r.narrativeSummary!=='')html+=`<div class="drdp-narrative"><strong>📝 Summary:</strong><p>${r.narrativeSummary}</p></div>`;
-  html+='<div class="drdp-measures-list">';
-  for(const m of r.measures)html+=`<div class="drdp-result"><span class="drdp-domain">${m.domainCode}</span> <strong>${m.code}:</strong> ${m.name}<div class="drdp-level">${m.estimatedLevel}</div><div class="drdp-evidence">${m.evidence||''}</div>${m.slideNumbers?`<div class="drdp-slides">Slides: ${m.slideNumbers.join(', ')}</div>`:''}</div>`;
-  html+='</div>';div.innerHTML=html;panel.style.display='block';
+function openSaveOverlay(items, text) {
+  const box = $('saveOverlayImages');
+  box.innerHTML = '';
+  items.forEach(it => { const img = document.createElement('img'); img.alt = it.label; img.src = it.canvas.toDataURL('image/jpeg', 0.92); box.appendChild(img); });
+  $('saveOverlayText').textContent = text;
+  $('saveOverlay').classList.add('show');
 }
 
-document.getElementById('downloadAllBtn').addEventListener('click',()=>{generatedSlides.forEach((c,i)=>setTimeout(()=>downloadSlide(c,`slide-${String(i+1).padStart(2,'0')}.jpg`),i*300));});
-
-document.getElementById('downloadPdfBtn').addEventListener('click',async()=>{
-  const btn=document.getElementById('downloadPdfBtn');btn.disabled=true;btn.textContent='Creating PDF...';
-  try{
-    showStatus('Generating PDF...','info');const pdf=await buildPDF(generatedSlides);
-    const blob=new Blob([pdf],{type:'application/pdf'});const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');a.href=url;a.download=`slides-${new Date().toISOString().slice(0,10)}.pdf`;
-    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showStatus('✓ PDF downloaded!','success');
-  }catch(e){showStatus('PDF error: '+e.message,'error');}
-  finally{btn.disabled=false;btn.textContent='Download PDF';}
-});
-
-async function buildPDF(canvases){
-  const enc=new TextEncoder();const parts=[];let offset=0;const offsets=[];const objects=[];let oNum=1;
-  const addObj=content=>{objects.push({num:oNum++,content});return oNum-1;};
-  addObj('<<\n/Type /Catalog\n/Pages 2 0 R\n>>');addObj('');
-  const pageRefs=[];const imgData=[];
-  for(let i=0;i<canvases.length;i++){
-    const c=canvases[i];const b64=c.toDataURL('image/jpeg',.92).split(',')[1];const bin=atob(b64);
-    const iNum=addObj(`<<\n/Type /XObject\n/Subtype /Image\n/Width ${c.width}\n/Height ${c.height}\n/ColorSpace /DeviceRGB\n/BitsPerComponent 8\n/Filter /DCTDecode\n/Length ${bin.length}\n>>\nstream\n`);
-    imgData.push({num:iNum,bin});
-    const cs=`q\n${c.width} 0 0 ${c.height} 0 0 cm\n/Img${i} Do\nQ\n`;
-    const cNum=addObj(`<<\n/Length ${cs.length}\n>>\nstream\n${cs}\nendstream`);
-    const pNum=addObj(`<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [0 0 ${c.width} ${c.height}]\n/Contents ${cNum} 0 R\n/Resources <<\n/XObject << /Img${i} ${iNum} 0 R >>\n>>\n>>`);
-    pageRefs.push(`${pNum} 0 R`);
-  }
-  objects[1].content=`<<\n/Type /Pages\n/Kids [${pageRefs.join(' ')}]\n/Count ${canvases.length}\n>>`;
-  const header='%PDF-1.4\n%\xFF\xFF\xFF\xFF\n';parts.push(enc.encode(header));offset+=header.length;
-  for(const obj of objects){
-    offsets.push(offset);const img=imgData.find(d=>d.num===obj.num);
-    if(img){const pre=`${obj.num} 0 obj\n${obj.content}`;parts.push(enc.encode(pre));offset+=pre.length;const ba=new Uint8Array(img.bin.length);for(let i=0;i<img.bin.length;i++)ba[i]=img.bin.charCodeAt(i);parts.push(ba);offset+=ba.length;const post='\nendstream\nendobj\n';parts.push(enc.encode(post));offset+=post.length;}
-    else{const s=`${obj.num} 0 obj\n${obj.content}\nendobj\n`;parts.push(enc.encode(s));offset+=s.length;}
-  }
-  const xrefOff=offset;let xref=`xref\n0 ${objects.length+1}\n0000000000 65535 f \n`;
-  for(const o of offsets)xref+=`${String(o).padStart(10,'0')} 00000 n \n`;parts.push(enc.encode(xref));
-  const trailer=`trailer\n<<\n/Size ${objects.length+1}\n/Root 1 0 R\n>>\nstartxref\n${xrefOff}\n%%EOF`;parts.push(enc.encode(trailer));
-  const total=parts.reduce((s,p)=>s+p.length,0);const result=new Uint8Array(total);let off=0;
-  for(const p of parts){result.set(p,off);off+=p.length;}return result;
+async function downloadOne(canvas, name) {
+  try {
+    const blob = await canvasToBlob(canvas, 'image/jpeg', 0.95);
+    const res = await saveFiles([{ blob, name }]);
+    if (res === 'unavailable') openSaveOverlay([{ canvas, label: name }], 'Press and hold the slide, then choose Save to Photos or Save Image.');
+    else if (res === 'tap-again') showStatus('The slide is ready. Tap the arrow once more to save it.', 'info');
+    else if (res !== 'declined') showStatus('✓ ' + name + (res === 'shared' ? ' is ready to save or share.' : ' saved.'), 'success');
+  } catch (e) { showStatus('Could not save the slide. ' + ((e && e.message) || ''), 'error'); }
 }
 
-document.getElementById('slideDate').value=new Date().toISOString().split('T')[0];
+let prepared = { all: null, pdf: null };
+
+async function downloadAll() {
+  const btn = $('downloadAllBtn');
+  if (!generatedSlides.length || btn.disabled) return;
+  btn.disabled = true; btn.textContent = 'Preparing slides...';
+  try {
+    let files = prepared.all;
+    if (!files) {
+      files = [];
+      for (const sl of generatedSlides) files.push({ blob: await canvasToBlob(sl.canvas, 'image/jpeg', 0.95), name: sl.name });
+      prepared.all = files;
+    }
+    let res;
+    if (inClaude) {
+      // One zip file means one save prompt instead of one per slide.
+      const zipFiles = [];
+      for (const f of files) zipFiles.push({ name: f.name, data: new Uint8Array(await f.blob.arrayBuffer()) });
+      res = await saveFiles([{ blob: buildZip(zipFiles), name: 'slides-' + localDateString() + '.zip' }]);
+      if (res === 'saved') showStatus('✓ Saved one zip file with ' + files.length + ' JPG slides.', 'success');
+    } else {
+      res = await saveFiles(files);
+      if (res === 'saved') showStatus('✓ Downloading ' + files.length + ' JPG slides. If only one arrives, allow multiple downloads in your browser.', 'success');
+      else if (res === 'shared') showStatus('✓ ' + files.length + ' slides are ready to save or share.', 'success');
+      else if (res === 'tap-again') showStatus('The slides are ready. Tap Download All once more to save them.', 'info');
+    }
+    if (res === 'unavailable') openSaveOverlay(generatedSlides, 'Press and hold each slide, then choose Save to Photos or Save Image.');
+  } catch (e) { showStatus('Could not save the slides. ' + ((e && e.message) || ''), 'error'); }
+  finally { btn.disabled = false; btn.textContent = 'Download All (JPG)'; }
+}
+
+async function downloadPdf() {
+  const btn = $('downloadPdfBtn');
+  if (!generatedSlides.length || btn.disabled) return;
+  btn.disabled = true; btn.textContent = 'Creating PDF...';
+  try {
+    showStatus('Generating PDF...', 'info');
+    const name = 'slides-' + localDateString() + '.pdf';
+    if (!prepared.pdf) prepared.pdf = await buildPDF(generatedSlides.map(sl => sl.canvas));
+    const res = await saveFiles([{ blob: prepared.pdf, name }]);
+    if (res === 'saved') showStatus('✓ PDF saved as ' + name + '.', 'success');
+    else if (res === 'shared') showStatus('✓ PDF is ready to save or share.', 'success');
+    else if (res === 'declined') showStatus('PDF was not saved.', 'info');
+    else if (res === 'tap-again') showStatus('The PDF is ready. Tap Download PDF once more to save it.', 'info');
+    else { showStatus('This view cannot save a PDF. Save the slides as images instead.', 'warn'); openSaveOverlay(generatedSlides, 'Press and hold each slide, then choose Save to Photos or Save Image.'); }
+  } catch (e) { showStatus('Could not create the PDF. ' + ((e && e.message) || ''), 'error'); }
+  finally { btn.disabled = false; btn.textContent = 'Download PDF'; }
+}
+
+// ---------- Home screen banner and icon ----------
+function hideInstallBanner() {
+  $('installBanner').classList.remove('show');
+  try { localStorage.setItem('installBannerDismissed', 'true'); } catch (e) { /* storage may be off */ }
+}
+
+function checkInstallBanner() {
+  if (inClaude || window.top !== window.self) return;          // inside Claude there is nothing to install
+  if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return;
+  if (navigator.standalone === true) return;
+  try { if (localStorage.getItem('installBannerDismissed')) return; } catch (e) { /* storage may be off */ }
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
+  if (isIOS && isSafari) $('installBanner').classList.add('show');
+}
+
+function generateAppIcon() {
+  try {
+    const c = document.createElement('canvas'); c.width = 180; c.height = 180;
+    const x = c.getContext('2d');
+    x.fillStyle = '#5A6B50'; x.fillRect(0, 0, 180, 180);
+    x.fillStyle = 'rgba(255,255,255,0.2)'; x.fillRect(35, 30, 100, 75); x.fillRect(40, 35, 100, 75);
+    x.fillStyle = 'white'; x.fillRect(45, 40, 100, 75);
+    x.fillStyle = '#5A6B50'; x.fillRect(55, 55, 60, 6);
+    x.fillStyle = '#7A8B6F'; x.fillRect(55, 68, 80, 4); x.fillRect(55, 78, 70, 4); x.fillRect(55, 88, 75, 4);
+    x.fillStyle = 'white'; x.fillRect(50, 125, 15, 30); x.fillRect(70, 115, 15, 40); x.fillRect(90, 105, 15, 50); x.fillRect(110, 120, 15, 35);
+    const url = c.toDataURL('image/png');
+    ['apple-touch-icon', 'icon'].forEach(rel => {
+      let link = document.querySelector('link[rel="' + rel + '"]');
+      if (!link) { link = document.createElement('link'); link.rel = rel; document.head.appendChild(link); }
+      link.href = url;
+    });
+  } catch (e) { /* the icon is optional */ }
+}
+
+// ---------- Where the AI comes from ----------
+async function describeAISource() {
+  const el = $('aiSource');
+  if (!el) return;
+  const set = (text, off) => { el.textContent = text; el.classList.toggle('off', !!off); el.hidden = false; };
+  if (inClaude) {
+    const sample = await getCap('sample');
+    if (sample) set('AI analysis runs through your Claude account. Claude asks for permission the first time.');
+    else set('AI analysis is not available in this view. Keyword matching will be used.', true);
+    return;
+  }
+  if (location.protocol === 'file:') { set('This saved copy cannot reach the AI server. Keyword matching will be used.', true); return; }
+  set('Checking the AI server...');
+  const awake = await proxyAwake(() => set('The AI server is waking up. This takes about a minute.'));
+  if (awake) set('The AI server is ready.'); else set('The AI server is not responding. Keyword matching will be used until it is back.', true);
+}
+
+// ---------- Wiring ----------
+function init() {
+  $('photoPlacement').addEventListener('change', e => { $('photoUploadSection').style.display = e.target.value !== 'none' ? 'block' : 'none'; });
+  $('photoMode').addEventListener('change', e => { ['single', 'multiple', 'assign'].forEach(m => { $(m + 'PhotoUpload').style.display = e.target.value === m ? 'block' : 'none'; }); if (e.target.value === 'assign') updatePhotoAssignUI(); });
+  $('backgroundStyle').addEventListener('change', e => { $('imageUploadSection').style.display = e.target.value === 'image' ? 'block' : 'none'; });
+  $('imageMode').addEventListener('change', e => { $('singleImageUpload').style.display = e.target.value === 'single' ? 'block' : 'none'; $('multipleImageUpload').style.display = e.target.value === 'multiple' ? 'block' : 'none'; });
+  $('colorFamily').addEventListener('change', e => { $('customColors').style.display = e.target.value === 'custom' ? 'block' : 'none'; });
+  $('overlayOpacity').addEventListener('input', e => { $('overlayValue').textContent = e.target.value; });
+  $('enableDrdp').addEventListener('change', e => { $('drdpOptions').style.display = e.target.checked ? 'block' : 'none'; });
+  $('analysisMode').addEventListener('change', e => {
+    const ai = e.target.value === 'ai';
+    $('analysisModeHelp').textContent = ai ? 'AI analyzes photos and text for deeper insights.' : 'Fast keyword matching. No photo analysis.';
+    $('aiSource').style.display = ai ? '' : 'none';
+  });
+  $('includeBonusSlide').addEventListener('change', () => { if ($('photoMode').value === 'assign') updatePhotoAssignUI(); });
+  $('slideText').addEventListener('change', () => { if ($('photoMode').value === 'assign') updatePhotoAssignUI(); });
+
+  $('slidePhoto').addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; loadImg(f, (img, b64) => { uploadedSlidePhoto = img; uploadedSlidePhotoB64 = b64; }); });
+  $('slidePhotosMultiple').addEventListener('change', e => { uploadedSlidePhotos = []; uploadedSlidePhotosB64 = []; Array.from(e.target.files).forEach((f, i) => loadImg(f, (img, b64) => { uploadedSlidePhotos[i] = img; uploadedSlidePhotosB64[i] = b64; })); });
+  $('slidePhotosAssign').addEventListener('change', async e => {
+    assignedPhotoList = []; assignedPhotos = {};
+    for (const f of Array.from(e.target.files)) await loadImg(f, (img, b64) => { assignedPhotoList.push({ img, b64, name: f.name }); });
+    updatePhotoAssignUI();
+  });
+  $('backgroundImage').addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; loadImg(f, img => { uploadedBgImg = img; }); });
+  $('backgroundImagesMultiple').addEventListener('change', e => { uploadedBgImgs = []; Array.from(e.target.files).forEach((f, i) => loadImg(f, img => { uploadedBgImgs[i] = img; })); });
+
+  $('generateBtn').addEventListener('click', generate);
+  $('downloadAllBtn').addEventListener('click', downloadAll);
+  $('downloadPdfBtn').addEventListener('click', downloadPdf);
+  $('installBannerOk').addEventListener('click', hideInstallBanner);
+  $('installBannerClose').addEventListener('click', hideInstallBanner);
+  $('saveOverlayClose').addEventListener('click', () => { $('saveOverlay').classList.remove('show'); $('saveOverlayImages').innerHTML = ''; });
+  document.querySelectorAll('.accordion-header').forEach(h => h.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleAccordion(h); } }));
+
+  $('slideDate').value = localDateString();
+  generateAppIcon();
+  setTimeout(checkInstallBanner, 2000);
+  describeAISource();
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+
 </script>
 </body>
 </html>
