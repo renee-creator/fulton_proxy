@@ -144,7 +144,10 @@ input[type=file]{width:100%;padding:.5rem;border:2px dashed #7A8B6F;border-radiu
 .save-overlay img{width:100%;height:auto;display:block;border-radius:8px;background:white;-webkit-touch-callout:default;user-select:auto;-webkit-user-select:auto}
 button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,.accordion-header:focus-visible{outline:2px solid #5A6B50;outline-offset:2px}
 
-.build-tag{font-size:.68rem;color:#9aa39a;margin-left:.4rem;white-space:nowrap}
+.build-tag{font-size:.68rem;color:#9aa39a;white-space:nowrap}
+.build-line{text-align:center;margin-top:.75rem}
+h1.brand{font-size:1.5rem;letter-spacing:.08em;line-height:1.2}
+.tagline{color:#5A6B50;font-size:.85rem;font-weight:600;margin-top:.15rem}
 .update-banner{display:none;background:#2C3E50;color:white;padding:.75rem 1rem;border-radius:12px;margin-bottom:1rem;align-items:center;justify-content:space-between;gap:1rem}
 .update-banner.show{display:flex}
 .update-banner p{margin:0;font-size:.9rem;line-height:1.35}
@@ -170,8 +173,9 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
     <button type="button" id="updateNow">Update</button>
   </div>
   <div class="header">
-    <h1>Fulton Documentation Generator <span class="badge">DRDP 2025</span></h1>
-    <p class="subtitle">Create documentation slides with DRDP 2025 analysis <span class="build-tag" id="buildTag"></span></p>
+    <h1 class="brand">TREE</h1>
+    <p class="tagline">Traces • Reflection • Evidence • Experience</p>
+    <p class="subtitle">Pedagogical Documentation Studio</p>
   </div>
 
   <div class="main-content">
@@ -396,7 +400,7 @@ content: More content..."></textarea>
               </div>
 
               <div class="row">
-                <div class="checkbox-row"><input type="checkbox" id="showFootnotes"><label for="showFootnotes">Codes on slides</label></div>
+                <div class="checkbox-row"><input type="checkbox" id="showFootnotes" checked><label for="showFootnotes">Measures on slides</label></div>
                 <div class="checkbox-row"><input type="checkbox" id="addSummaryPage" checked><label for="addSummaryPage">Summary page</label></div>
               </div>
               <div><label for="ageGroup">Age Group</label>
@@ -428,6 +432,7 @@ content: More content..."></textarea>
       <p class="drdp-disclaimer">Based on DRDP (2025). Analysis is suggestive, not diagnostic.</p>
     </div>
   </div>
+  <p class="build-line"><span class="build-tag" id="buildTag"></span></p>
 </div>
 
 <div class="save-overlay" id="saveOverlay" role="dialog" aria-modal="true" aria-label="Save slides">
@@ -693,7 +698,7 @@ const DRDP = {
 
 const PROXY_URL = 'https://fulton-proxy.onrender.com';
 const MAX_AI_PHOTOS = 3;
-const BUILD = '2026.10.06.4';
+const BUILD = '2026.10.06.6';
 const SIZES = { square: { w: 1080, h: 1080, s: 1 }, squareprint: { w: 2550, h: 2550, s: 2.36 }, letter: { w: 2550, h: 3300, s: 2.36 } };
 const API_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const CLAUDE_PHOTO_MAX_BYTES = 20 * 1024 * 1024;   // largest photo file Claude accepts from a page
@@ -1437,6 +1442,81 @@ function drawRows(ctx, rows, x, y, tW, align, palette) {
   }
 }
 
+// ---------- Measures strip ----------
+// A small strip above the footer names the DRDP measures seen on this slide.
+// It lists each measure by code and name. Levels and evidence stay on the summary page.
+const BAND_MAX_LINES = 3;
+function layoutBand(ctx, slide, opts, g) {
+  if (!opts.showFootnote || slide.isBonus) return null;
+  const R = n => Math.round(n * g.s);
+  const items = slide.drdpItems || [];
+  const codeFont = '700 ' + R(14) + 'px ' + g.bodyFont, nameFont = '400 ' + R(16) + 'px ' + g.bodyFont;
+  const padX = R(8), gapIn = R(8), gapOut = R(26);
+  let lines = [], more = 0;
+  if (items.length) {
+    let cur = [], x = 0;
+    for (const it of items) {
+      ctx.font = codeFont;
+      const chipW = Math.ceil(ctx.measureText(it.code).width) + padX * 2;
+      ctx.font = nameFont;
+      let name = String(it.name || ''), nameW = name ? ctx.measureText(name).width : 0;
+      while (name.length > 6 && chipW + gapIn + nameW > g.Wc) { name = name.slice(0, -2).trim(); nameW = ctx.measureText(name + '…').width; if (chipW + gapIn + nameW <= g.Wc) name += '…'; }
+      const wItem = chipW + (name ? gapIn + nameW : 0);
+      if (cur.length && x + wItem > g.Wc) { lines.push(cur); cur = []; x = 0; }
+      cur.push({ code: it.code, name, x, chipW, w: wItem });
+      x += wItem + gapOut;
+    }
+    if (cur.length) lines.push(cur);
+    if (lines.length > BAND_MAX_LINES) {
+      lines.slice(BAND_MAX_LINES).forEach(l => { more += l.length; });
+      lines = lines.slice(0, BAND_MAX_LINES);
+      const last = lines[lines.length - 1];
+      ctx.font = nameFont;
+      const note = () => '+' + more + ' more';
+      while (last.length > 1 && last[last.length - 1].x + last[last.length - 1].w + gapOut + ctx.measureText(note()).width > g.Wc) { last.pop(); more++; }
+    }
+  }
+  const n = lines.length || (opts.reserveBandLines || 0);
+  if (!n) return null;
+  const height = R(40) + n * R(32);
+  return { top: g.h - R(72) - height, height, lines, more, codeFont, nameFont, padX, gapIn, gapOut, x: g.X0, w: g.Wc, s: g.s };
+}
+
+function drawBand(ctx, band, palette, bodyFont) {
+  if (!band || !band.lines.length) return;
+  const R = n => Math.round(n * band.s);
+  const ac = hexToRgb(palette.accent), dk = hexToRgb(palette.dark);
+  ctx.save();
+  ctx.strokeStyle = 'rgba(' + ac.r + ',' + ac.g + ',' + ac.b + ',.55)';
+  ctx.lineWidth = Math.max(1, R(1.5));
+  ctx.beginPath(); ctx.moveTo(band.x, band.top); ctx.lineTo(band.x + band.w, band.top); ctx.stroke();
+  ctx.textBaseline = 'top';
+  ctx.font = '600 ' + R(13) + 'px ' + bodyFont;
+  if ('letterSpacing' in ctx) ctx.letterSpacing = R(1.6) + 'px';
+  ctx.textAlign = 'left'; ctx.fillStyle = palette.accent;
+  ctx.fillText('LEARNING MADE VISIBLE', band.x, band.top + R(13));
+  if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+  ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(' + dk.r + ',' + dk.g + ',' + dk.b + ',.5)';
+  ctx.fillText('DRDP (2025)', band.x + band.w, band.top + R(13));
+  ctx.textBaseline = 'middle';
+  band.lines.forEach((line, i) => {
+    const y = band.top + R(40) + i * R(32), ch = R(24);
+    line.forEach(it => {
+      const x = band.x + it.x;
+      ctx.fillStyle = palette.dark; ctx.beginPath(); ctx.roundRect(x, y, it.chipW, ch, R(5)); ctx.fill();
+      ctx.font = band.codeFont; ctx.textAlign = 'center'; ctx.fillStyle = '#fff';
+      ctx.fillText(it.code, x + it.chipW / 2, y + ch / 2 + R(1));
+      if (it.name) { ctx.font = band.nameFont; ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(' + dk.r + ',' + dk.g + ',' + dk.b + ',.88)'; ctx.fillText(it.name, x + it.chipW + band.gapIn, y + ch / 2 + R(1)); }
+    });
+    if (band.more && i === band.lines.length - 1) {
+      const lastIt = line[line.length - 1];
+      ctx.font = band.nameFont; ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(' + dk.r + ',' + dk.g + ',' + dk.b + ',.6)';
+      ctx.fillText('+' + band.more + ' more', band.x + lastIt.x + lastIt.w + band.gapOut, y + ch / 2 + R(1));
+    }
+  });
+  ctx.restore();
+}
+
 // Decides where the photo and the text go on one slide.
 // The date band at the top and the footer band at the bottom are never used for photos or slide text.
 // The photo is made as large as the text allows. If the text is long the photo gives way first,
@@ -1447,14 +1527,16 @@ function planSlide(ctx, slide, opts) {
   const R = n => Math.round(n * s);
   const env = { s, tm, titleFont: fontStack(opts.fonts.title, 'sans-serif'), bodyFont: fontStack(opts.fonts.body, 'sans-serif') };
   const mg = R(80), X0 = mg, Wc = w - mg * 2;
-  const TB = h - R(88);     // slide text ends here. The footer sits below.
-  const PB = h - R(110);    // photos end here.
+  // The measures strip, when shown, takes its room first. Words and photo then end above it.
+  const band = layoutBand(ctx, slide, opts, { w, h, s, X0, Wc, bodyFont: env.bodyFont });
+  const TB = band ? band.top - R(22) : h - R(88);     // slide text ends here. The footer sits below.
+  const PB = band ? band.top - R(26) : h - R(110);    // photos end here.
   const parts = slideParts(slide);
   const all = parts.head.concat(parts.body);
   const hasBody = parts.body.some(it => it.text);
   const hasText = hasBody || parts.head.length > 0;
   const ph = opts.photoPos !== 'none' ? opts.slidePhoto : null;
-  const base = { pos: 'none', f: 1, cut: false, hidden: 0, photo: null, panel: null, texts: [], chars: parts.chars, share: 0, w, h };
+  const base = { pos: 'none', f: 1, cut: false, hidden: 0, photo: null, panel: null, texts: [], chars: parts.chars, share: 0, w, h, band };
   const finish = p => { if (p.photo) p.share = (p.photo.w * p.photo.h) / (w * h); return p; };
   const score = p => (p.cut ? 0 : 1e9) + p.f * 1e6 + (p.photo ? (p.photo.w * p.photo.h) / (w * h) * 1e5 : 0);
 
@@ -1605,6 +1687,7 @@ function renderSlide(canvas, slide, idx, total, opts) {
     if (plan.photo) drawPhoto(ctx, ph, plan.photo.x, plan.photo.y, plan.photo.w, plan.photo.h, opts.palette.accent, s);
     if (plan.panel) backing(plan.panel.x, plan.panel.y, plan.panel.w, plan.panel.h, plan.panel.r, 0.84);
     plan.texts.forEach(t => drawRows(ctx, t.rows, t.x, t.y, t.w, opts.textAlign, opts.palette));
+    drawBand(ctx, plan.band, opts.palette, bodyFont);
     info.cut = plan.cut; info.f = plan.f; info.hidden = plan.hidden; info.share = plan.share; info.pos = plan.pos; info.chars = plan.chars;
   } else {
     // Bonus quote slide. The photo is centered between the date line and the footer.
@@ -1626,12 +1709,6 @@ function renderSlide(canvas, slide, idx, total, opts) {
     ctx.font = '600 ' + Math.round(32 * s * tm) + 'px ' + bodyFont;
     ctx.fillStyle = opts.palette.accent;
     ctx.fillText('— ' + slide.author, w / 2, qy);
-  }
-
-  // DRDP codes on the slide
-  if (opts.showFootnote && slide.drdpMeasures && slide.drdpMeasures.length) {
-    ctx.fillStyle = opts.palette.accent; ctx.font = '500 ' + R(20) + 'px ' + bodyFont; ctx.textAlign = 'left';
-    ctx.fillText('DRDP: ' + slide.drdpMeasures.slice(0, 2).join(', '), mg, h - R(80));
   }
 
   // Footer
@@ -1697,7 +1774,7 @@ function readOptions() {
     brand: $('brandName').value, date: $('slideDate').value, datePos: $('datePosition').value, size: $('slideSize').value,
     textSize: $('textSize').value, textAlign: $('textAlign').value, showNums: $('showSlideNumbers').checked, photoPos: $('photoPlacement').value, bgStyle: $('backgroundStyle').value,
     overlayOn: $('overlayToggle').checked, overlayOp: parseInt($('overlayOpacity').value, 10) || 0, palette,
-    fonts: { title: $('titleFont').value, body: $('bodyFont').value }, showFootnote: $('showFootnotes').checked
+    fonts: { title: $('titleFont').value, body: $('bodyFont').value }, showFootnote: $('enableDrdp').checked && $('showFootnotes').checked, reserveBandLines: 0
   };
 }
 function lastFilled(arr) { for (let i = arr.length - 1; i >= 0; i--) if (arr[i]) return arr[i]; return null; }
@@ -1726,7 +1803,7 @@ async function updateFitGuide() {
     const num = n => Math.round(n).toLocaleString('en-US');
     let html = '', missingPhoto = false;
     slides.forEach((sl, i) => {
-      const o = Object.assign({}, opts, { slidePhoto: photoForSlide(i) });
+      const o = Object.assign({}, opts, { slidePhoto: photoForSlide(i), reserveBandLines: opts.showFootnote ? 2 : 0 });
       if (opts.photoPos !== 'none' && !o.slidePhoto) missingPhoto = true;
       const plan = planSlide(fitCtx, sl, o);
       const cap = fullSizeCapacity(fitCtx, sl, o, plan);
@@ -1895,7 +1972,11 @@ async function generate() {
         showStatus('Matching DRDP keywords...', 'info');
         drdpResult = kwAnalysis(slides);
       }
-      slides.forEach((sl, i) => { sl.drdpMeasures = drdpResult.measures.filter(m => m.slideNumbers && m.slideNumbers.indexOf(i + 1) >= 0).map(m => m.code); });
+      slides.forEach((sl, i) => {
+        const mine = drdpResult.measures.filter(m => m.slideNumbers && m.slideNumbers.indexOf(i + 1) >= 0);
+        sl.drdpMeasures = mine.map(m => m.code);
+        sl.drdpItems = mine.map(m => ({ code: m.code, name: m.name }));
+      });
     }
 
     btn.textContent = 'Rendering slides...';
@@ -1910,7 +1991,7 @@ async function generate() {
       const canvas = document.createElement('canvas');
       const info = renderSlide(canvas, slides[i], i, total, Object.assign({}, opts, { slidePhoto: getSlidePhoto(i), bgImg: getBgImg(i) }));
       if (info.cut) cutSlides.push({ n: i + 1, hidden: info.hidden }); else if (info.f < 1) smallSlides.push({ n: i + 1, pct: Math.round(info.f * 100) });
-      addSlideCard(canvas, 'Slide ' + (i + 1), 'slide-' + String(i + 1).padStart(2, '0') + '.jpg', slides[i].drdpMeasures && slides[i].drdpMeasures[0], false);
+      addSlideCard(canvas, 'Slide ' + (i + 1), 'slide-' + String(i + 1).padStart(2, '0') + '.jpg', slides[i].drdpMeasures && slides[i].drdpMeasures.slice(0, 4).join(' · ') + (slides[i].drdpMeasures.length > 4 ? ' +' + (slides[i].drdpMeasures.length - 4) : ''), false);
     }
     if ($('includeBonusSlide').checked) {
       const q = generateBonusQuote();
@@ -2192,7 +2273,7 @@ function init() {
   window.addEventListener('pageshow', e => { if (e.persisted) { lastUpdateCheck = 0; checkForUpdate(); } });
   $('slideText').addEventListener('input', scheduleFitGuide);
   $('slidesFieldContainer').addEventListener('input', scheduleFitGuide);
-  ['slideSize', 'textSize', 'photoPlacement', 'photoMode', 'titleFont', 'bodyFont'].forEach(id => $(id).addEventListener('change', scheduleFitGuide));
+  ['slideSize', 'textSize', 'photoPlacement', 'photoMode', 'titleFont', 'bodyFont', 'enableDrdp', 'showFootnotes'].forEach(id => $(id).addEventListener('change', scheduleFitGuide));
   document.addEventListener('click', e => { if (e.target.closest && e.target.closest('.mode-btn, .add-slide-btn, .remove-slide-btn')) scheduleFitGuide(); });
   $('photoPlacement').addEventListener('change', e => { $('photoUploadSection').style.display = e.target.value !== 'none' ? 'block' : 'none'; });
   $('photoMode').addEventListener('change', e => { ['single', 'multiple', 'assign'].forEach(m => { $(m + 'PhotoUpload').style.display = e.target.value === m ? 'block' : 'none'; }); if (e.target.value === 'assign') updatePhotoAssignUI(); });
