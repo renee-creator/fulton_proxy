@@ -144,6 +144,18 @@ input[type=file]{width:100%;padding:.5rem;border:2px dashed #7A8B6F;border-radiu
 .save-overlay img{width:100%;height:auto;display:block;border-radius:8px;background:white;-webkit-touch-callout:default;user-select:auto;-webkit-user-select:auto}
 button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,.accordion-header:focus-visible{outline:2px solid #5A6B50;outline-offset:2px}
 
+.build-tag{font-size:.68rem;color:#9aa39a;margin-left:.4rem;white-space:nowrap}
+.update-banner{display:none;background:#2C3E50;color:white;padding:.75rem 1rem;border-radius:12px;margin-bottom:1rem;align-items:center;justify-content:space-between;gap:1rem}
+.update-banner.show{display:flex}
+.update-banner p{margin:0;font-size:.9rem;line-height:1.35}
+.update-banner button{background:white;color:#2C3E50;border:none;padding:.5rem 1rem;border-radius:6px;font-weight:600;cursor:pointer;white-space:nowrap;min-height:40px}
+.fit-guide{margin-top:.6rem;background:#f8f9f7;border:1px solid #e0e4dc;border-radius:8px;padding:.6rem .75rem}
+.fit-title{font-weight:600;color:#5A6B50;font-size:.8rem;margin-bottom:.3rem}
+.fit-line{font-size:.75rem;line-height:1.4;color:#3d4a3a;margin:.2rem 0;padding-left:.6rem;border-left:3px solid #7A8B6F}
+.fit-line.small{border-left-color:#C99A2E;color:#6b5200}
+.fit-line.over{border-left-color:#B5483A;color:#7a2318;font-weight:600}
+.fit-line.note{border-left-color:#bbb;color:#777}
+
 </style>
 </head>
 <body>
@@ -153,9 +165,13 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
     <button type="button" id="installBannerOk">Got it</button>
     <button type="button" class="close-btn" id="installBannerClose" aria-label="Close">×</button>
   </div>
+  <div class="update-banner" id="updateBanner" role="status">
+    <p>A newer version of the generator is ready. Finish what you are doing, then press Update.</p>
+    <button type="button" id="updateNow">Update</button>
+  </div>
   <div class="header">
     <h1>Fulton Documentation Generator <span class="badge">DRDP 2025</span></h1>
-    <p class="subtitle">Create documentation slides with DRDP 2025 analysis</p>
+    <p class="subtitle">Create documentation slides with DRDP 2025 analysis <span class="build-tag" id="buildTag"></span></p>
   </div>
 
   <div class="main-content">
@@ -212,6 +228,7 @@ content: More content..."></textarea>
             </div>
             <button type="button" class="add-slide-btn" onclick="addSlideField()">+ Add Another Slide</button>
           </div>
+          <div class="fit-guide" id="fitGuide" aria-live="polite" hidden></div>
         </div>
       </div>
 
@@ -236,8 +253,9 @@ content: More content..."></textarea>
             <div class="row">
               <div><label for="slideSize">Slide Size</label>
                 <select id="slideSize">
-                  <option value="square">Square 1080×1080</option>
-                  <option value="letter">Letter 2550×3300</option>
+                  <option value="square">Square for screens 1080×1080</option>
+                  <option value="squareprint">Square for print 8.5 in</option>
+                  <option value="letter">Letter for print 8.5×11 in</option>
                 </select>
               </div>
               <div><label for="textSize">Text Size</label>
@@ -248,6 +266,7 @@ content: More content..."></textarea>
                 </select>
               </div>
             </div>
+            <p class="help-text">For wall displays choose a print size. Print sizes are made at 300 dots per inch, so photos stay sharp on paper.</p>
             <div><label for="textAlign">Text Alignment</label>
               <select id="textAlign">
                 <option value="left">Left</option>
@@ -260,15 +279,17 @@ content: More content..."></textarea>
               <div class="checkbox-row"><input type="checkbox" id="showSlideNumbers" checked><label for="showSlideNumbers">Slide Numbers</label></div>
             </div>
             <div class="section-divider"><div class="section-title">Photo Placement</div></div>
-            <div><label for="photoPlacement">Default Position</label>
+            <div><label for="photoPlacement">Photo Position</label>
               <select id="photoPlacement">
                 <option value="none">No photos</option>
-                <option value="top">Top</option>
-                <option value="bottom">Bottom</option>
-                <option value="left">Left</option>
-                <option value="right">Right</option>
-                <option value="center">Center (text overlay)</option>
+                <option value="auto">Largest photo (automatic)</option>
+                <option value="top">Photo on top</option>
+                <option value="bottom">Photo on bottom</option>
+                <option value="left">Photo on left</option>
+                <option value="right">Photo on right</option>
+                <option value="center">Full page photo, words over it</option>
               </select>
+              <p class="help-text">The photo is always made as large as your words allow. Largest photo picks the arrangement that gives the biggest picture on each slide.</p>
             </div>
             <div id="photoUploadSection" style="display:none">
               <select id="photoMode" aria-label="Photo mode">
@@ -672,8 +693,10 @@ const DRDP = {
 
 const PROXY_URL = 'https://fulton-proxy.onrender.com';
 const MAX_AI_PHOTOS = 3;
-const SIZES = { square: { w: 1080, h: 1080, s: 1 }, letter: { w: 2550, h: 3300, s: 2.36 } };
+const BUILD = '2026.10.06.4';
+const SIZES = { square: { w: 1080, h: 1080, s: 1 }, squareprint: { w: 2550, h: 2550, s: 2.36 }, letter: { w: 2550, h: 3300, s: 2.36 } };
 const API_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const CLAUDE_PHOTO_MAX_BYTES = 20 * 1024 * 1024;   // largest photo file Claude accepts from a page
 
 let generatedSlides = [];          // [{ canvas, name, label }]
 let uploadedBgImg = null, uploadedBgImgs = [];
@@ -881,6 +904,7 @@ function loadImg(file, cb) {
     r.readAsDataURL(file);
   });
   pendingLoads.push(p);
+  p.then(() => { if (typeof scheduleFitGuide === 'function') scheduleFitGuide(); });
   return p;
 }
 
@@ -904,7 +928,7 @@ function updatePhotoAssignUI() {
 function assignPhoto(idx, slide) {
   for (const k in assignedPhotos) if (assignedPhotos[k] && assignedPhotos[k].idx === idx) delete assignedPhotos[k];
   if (slide) { const p = assignedPhotoList[idx]; assignedPhotos[slide] = { image: p.img, b64: p.b64, idx }; }
-  updatePhotoAssignUI();
+  updatePhotoAssignUI();  scheduleFitGuide();
 }
 
 // ---------- Quotes ----------
@@ -1194,17 +1218,18 @@ const SAMPLE_MESSAGES = {
 async function analyzeViaClaude(sample, promptWith, promptWithout, photos) {
   let blobs = [];
   if (photos.length) {
-    let limits = null;
-    try { limits = await sample.limits(); } catch (e) { limits = null; }
-    if (limits && limits.images) {
-      const max = Math.min(limits.images.maxCount || MAX_AI_PHOTOS, MAX_AI_PHOTOS);
-      const okTypes = limits.images.mediaTypes && limits.images.mediaTypes.length ? limits.images.mediaTypes : API_IMAGE_TYPES;
-      for (const p of photos.slice(0, max)) {
-        let url = p.b64;
-        const raw = (url.split(',')[1] || '').length * 0.75;
-        if (okTypes.indexOf(dataUrlType(url)) < 0 || (limits.images.maxInputBytes && raw > limits.images.maxInputBytes)) url = await reencodeJpeg(url, limits.images.maxInputBytes || 0);
-        if (url) blobs.push(dataUrlToBlob(url));
-      }
+    // The limits check says what this Claude screen accepts. Photos are offered to Claude even when the
+    // check lists no photo support. Claude then answers images_unavailable and the notes are analyzed alone.
+    let il = null;
+    try { const limits = await sample.limits(); il = (limits && limits.images) || null; } catch (e) { il = null; }
+    const max = Math.min((il && il.maxCount) || MAX_AI_PHOTOS, MAX_AI_PHOTOS);
+    const okTypes = il && il.mediaTypes && il.mediaTypes.length ? il.mediaTypes : API_IMAGE_TYPES;
+    const maxBytes = (il && il.maxInputBytes) || CLAUDE_PHOTO_MAX_BYTES;
+    for (const p of photos.slice(0, max)) {
+      let url = p.b64;
+      const raw = (url.split(',')[1] || '').length * 0.75;
+      if (okTypes.indexOf(dataUrlType(url)) < 0 || raw > maxBytes) url = await reencodeJpeg(url, maxBytes);
+      if (url) blobs.push(dataUrlToBlob(url));
     }
   }
   showStatus(blobs.length ? 'Claude is studying ' + blobs.length + (blobs.length === 1 ? ' photo' : ' photos') + ' and your notes. This can take a minute...' : 'Claude is studying your notes. This can take a minute...', 'info');
@@ -1219,13 +1244,14 @@ async function analyzeViaClaude(sample, promptWith, promptWithout, photos) {
       throw err;
     }
   };
-  let photoNote = photos.length && !blobs.length ? 'Photos could not be sent to Claude in this view. The analysis used your notes only.' : '';
+  const photoNote = photos.length && !blobs.length ? 'The photos could not be prepared for Claude. The analysis used your notes only.' : '';
   try {
     return { text: await ask(blobs.length ? promptWith : promptWithout, blobs), photosUsed: blobs.length, photoNote };
   } catch (e) {
     if (!blobs.length || (e.code !== 'image_rejected' && e.code !== 'images_unavailable')) throw e;
     showStatus('Claude could not use the photos. Analyzing your notes only...', 'info');
-    return { text: await ask(promptWithout, []), photosUsed: 0, photoNote: 'The photos could not be analyzed. The analysis used your notes only.' };
+    const why = e.code === 'images_unavailable' ? 'Claude does not accept photos on this screen (images_unavailable).' : 'Claude could not read the photos (image_rejected).';
+    return { text: await ask(promptWithout, []), photosUsed: 0, photoNote: why + ' The analysis used your notes only.' };
   }
 }
 
@@ -1264,27 +1290,295 @@ async function ensureFonts(fonts) {
 }
 
 // ---------- Slide rendering ----------
+const TEXT_SCALE = { small: 0.75, medium: 1, large: 1.25 };
+// When text does not fit, it is printed smaller in these steps. 1 is the size the teacher chose.
+const FIT_STEPS = [1, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6];
+
+// A large photo drawn small loses detail if it is shrunk in one jump. Halving it in steps keeps it sharp.
+function drawSharp(ctx, img, x, y, w, h) {
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  let src = img;
+  try {
+    let sw = img.naturalWidth || img.width, sh = img.naturalHeight || img.height;
+    let guard = 0;
+    while (sw / 2 >= w && sh / 2 >= h && guard++ < 6) {
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(sw / 2)); c.height = Math.max(1, Math.round(sh / 2));
+      const cx = c.getContext('2d');
+      cx.imageSmoothingEnabled = true; cx.imageSmoothingQuality = 'high';
+      cx.drawImage(src, 0, 0, c.width, c.height);
+      if (src !== img) { src.width = 0; src.height = 0; }
+      src = c; sw = c.width; sh = c.height;
+    }
+    ctx.drawImage(src, x, y, w, h);
+  } catch (e) {
+    ctx.drawImage(img, x, y, w, h);
+  }
+  if (src !== img) { src.width = 0; src.height = 0; }
+}
+
 function drawPhoto(ctx, img, x, y, w, h, accent, s) {
   const r = Math.round(12 * s);
-  ctx.save(); ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.clip(); ctx.drawImage(img, x, y, w, h); ctx.restore();
+  ctx.save(); ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.clip(); drawSharp(ctx, img, x, y, w, h); ctx.restore();
   ctx.strokeStyle = accent; ctx.lineWidth = Math.max(4, Math.round(4 * s)); ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.stroke();
+}
+
+// Word widths are remembered so that planning a slide many times stays fast.
+const wordWidths = new Map();   // font -> Map(word -> width)
+function fontWidths(ctx) {
+  const key = ctx.font;
+  let m = wordWidths.get(key);
+  if (!m) { m = new Map(); wordWidths.set(key, m); }
+  return m;
+}
+function wordW(ctx, word, fm) {
+  let v = fm.get(word);
+  if (v === undefined) { v = ctx.measureText(word).width; if (fm.size > 20000) fm.clear(); fm.set(word, v); }
+  return v;
+}
+function wrapWords(ctx, text, maxW) {
+  const lines = [];
+  const fm = fontWidths(ctx);
+  const sp = wordW(ctx, ' ', fm);
+  let cur = '', curW = 0;
+  for (let word of String(text || '').split(/\s+/)) {
+    if (!word) continue;
+    let ww = wordW(ctx, word, fm);
+    // A single word wider than the line is split so it never runs off the slide.
+    while (ww > maxW && word.length > 1) {
+      let n = word.length - 1;
+      while (n > 1 && ctx.measureText(word.slice(0, n)).width > maxW) n--;
+      if (cur) { lines.push(cur); cur = ''; curW = 0; }
+      lines.push(word.slice(0, n));
+      word = word.slice(n); ww = wordW(ctx, word, fm);
+    }
+    const next = cur ? curW + sp + ww : ww;
+    if (next > maxW && cur) { lines.push(cur); cur = word; curW = ww; } else { cur = cur ? cur + ' ' + word : word; curW = next; }
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+function slideParts(slide) {
+  const head = [], body = [];
+  if (slide.title) head.push({ kind: 'title', text: slide.title });
+  if (slide.subtitle) head.push({ kind: 'subtitle', text: slide.subtitle });
+  (slide.content || []).forEach(c => { const p = parseContentLine(c); body.push({ kind: p.type, text: p.text || '' }); });
+  while (body.length && body[body.length - 1].kind === 'space') body.pop();
+  const count = list => list.reduce((n, it) => n + (it.text ? it.text.length : 0), 0);
+  return { head, body, chars: count(head) + count(body) };
+}
+
+// Works out every line of a block of slide text at a given width and size. Nothing is drawn here.
+function measureItems(ctx, items, tW, f, env) {
+  const px = n => Math.max(1, Math.round(n * env.s * env.tm * f));
+  const gp = n => Math.round(n * env.s * f);
+  const rows = [];
+  let y = 0, bottom = 0, headGap = false;
+  for (const it of items) {
+    if (it.kind === 'space') { y += gp(30); continue; }
+    if (!it.text) continue;
+    let font, lh, after, indent = 0;
+    if (it.kind === 'title') { font = 'bold ' + px(64) + 'px ' + env.titleFont; lh = px(76); after = gp(40); }
+    else if (it.kind === 'subtitle') { font = '600 ' + px(36) + 'px ' + env.bodyFont; lh = px(44); after = gp(15); }
+    else if (it.kind === 'header') { font = '600 ' + px(38) + 'px ' + env.bodyFont; lh = px(48); after = gp(20); }
+    else if (it.kind === 'bullet-dark' || it.kind === 'bullet-accent') { font = '400 ' + px(32) + 'px ' + env.bodyFont; lh = px(42); indent = gp(40); after = px(60) - lh; }
+    else { font = '400 ' + px(32) + 'px ' + env.bodyFont; lh = px(42); after = gp(30); }
+    const isHead = it.kind === 'title' || it.kind === 'subtitle';
+    if (headGap && !isHead) { y += gp(40); headGap = false; }
+    ctx.font = font;
+    const lines = wrapWords(ctx, it.text, Math.max(10, tW - indent));
+    if (!lines.length) continue;
+    rows.push({ kind: it.kind, font, lh, lines, y, indent, maxW: Math.max(10, tW - indent) });
+    y += lines.length * lh; bottom = y; y += after;
+    if (isHead) headGap = true;
+  }
+  return { rows, height: bottom };
+}
+
+// Keeps only the lines that fit in maxH. Reports how many characters were left out.
+// The last line that stays ends with three dots, and words are dropped from it until the dots fit.
+function clipBlock(ctx, block, maxH) {
+  const rows = [];
+  let hidden = 0;
+  for (const row of block.rows) {
+    const keep = row.lines.filter((_, i) => row.y + (i + 1) * row.lh <= maxH);
+    row.lines.slice(keep.length).forEach(l => { hidden += l.length; });
+    if (keep.length) rows.push(Object.assign({}, row, { lines: keep.slice() }));
+  }
+  if (hidden && rows.length) {
+    const last = rows[rows.length - 1];
+    let line = last.lines[last.lines.length - 1].replace(/[\s.,;:]+$/, '');
+    ctx.font = last.font;
+    while (ctx.measureText(line + '…').width > last.maxW && /\s/.test(line)) { const cutAt = line.lastIndexOf(' '); hidden += line.length - cutAt; line = line.slice(0, cutAt).replace(/[\s.,;:]+$/, ''); }
+    last.lines[last.lines.length - 1] = line + '…';
+  }
+  const bottom = rows.length ? rows[rows.length - 1].y + rows[rows.length - 1].lines.length * rows[rows.length - 1].lh : 0;
+  return { rows, height: bottom, hidden };
+}
+
+function drawRows(ctx, rows, x, y, tW, align, palette) {
+  ctx.textBaseline = 'top';
+  for (const row of rows) {
+    ctx.font = row.font;
+    if (row.kind === 'bullet-dark' || row.kind === 'bullet-accent') {
+      ctx.textAlign = 'left';
+      ctx.fillStyle = row.kind === 'bullet-accent' ? palette.accent : palette.dark;
+      ctx.fillText(row.kind === 'bullet-accent' ? '✓' : '•', x, y + row.y);
+      ctx.fillStyle = palette.dark;
+      row.lines.forEach((l, i) => ctx.fillText(l, x + row.indent, y + row.y + i * row.lh));
+    } else {
+      ctx.textAlign = align;
+      ctx.fillStyle = row.kind === 'subtitle' ? palette.accent : palette.dark;
+      const lx = align === 'center' ? x + tW / 2 : align === 'right' ? x + tW : x;
+      row.lines.forEach((l, i) => ctx.fillText(l, lx, y + row.y + i * row.lh));
+    }
+  }
+}
+
+// Decides where the photo and the text go on one slide.
+// The date band at the top and the footer band at the bottom are never used for photos or slide text.
+// The photo is made as large as the text allows. If the text is long the photo gives way first,
+// then the text is printed smaller. Only when neither is enough is the text shortened, and that is reported.
+function planSlide(ctx, slide, opts) {
+  const { w, h, s } = SIZES[opts.size];
+  const tm = TEXT_SCALE[opts.textSize] || 1;
+  const R = n => Math.round(n * s);
+  const env = { s, tm, titleFont: fontStack(opts.fonts.title, 'sans-serif'), bodyFont: fontStack(opts.fonts.body, 'sans-serif') };
+  const mg = R(80), X0 = mg, Wc = w - mg * 2;
+  const TB = h - R(88);     // slide text ends here. The footer sits below.
+  const PB = h - R(110);    // photos end here.
+  const parts = slideParts(slide);
+  const all = parts.head.concat(parts.body);
+  const hasBody = parts.body.some(it => it.text);
+  const hasText = hasBody || parts.head.length > 0;
+  const ph = opts.photoPos !== 'none' ? opts.slidePhoto : null;
+  const base = { pos: 'none', f: 1, cut: false, hidden: 0, photo: null, panel: null, texts: [], chars: parts.chars, share: 0, w, h };
+  const finish = p => { if (p.photo) p.share = (p.photo.w * p.photo.h) / (w * h); return p; };
+  const score = p => (p.cut ? 0 : 1e9) + p.f * 1e6 + (p.photo ? (p.photo.w * p.photo.h) / (w * h) * 1e5 : 0);
+
+  // No photo. Text starts under the date line.
+  if (!ph) {
+    const Y0 = mg + R(60), room = TB - Y0;
+    for (const f of FIT_STEPS) {
+      const blk = measureItems(ctx, all, Wc, f, env);
+      if (blk.height <= room) return Object.assign({}, base, { f, texts: [{ rows: blk.rows, x: X0, y: Y0, w: Wc }] });
+    }
+    const f = FIT_STEPS[FIT_STEPS.length - 1];
+    const c = clipBlock(ctx, measureItems(ctx, all, Wc, f, env), room);
+    return Object.assign({}, base, { f, cut: true, hidden: c.hidden, texts: [{ rows: c.rows, x: X0, y: Y0, w: Wc }] });
+  }
+
+  const pa = (ph.naturalWidth || ph.width) / (ph.naturalHeight || ph.height) || 1;
+  const Y0 = mg;
+
+  // Photo above the text or below it.
+  const stack = pos => {
+    const bottomLimit = pos === 'top' ? TB : PB;
+    const Hc = bottomLimit - Y0;
+    const gap = hasText ? R(40) : 0;
+    const natural = Wc / pa;
+    const want = Math.min(natural, 0.40 * Hc), least = Math.min(natural, 0.25 * Hc);
+    const tryF = f => { const blk = measureItems(ctx, all, Wc, f, env); return { f, blk, pH: Math.min(natural, Hc - gap - blk.height) }; };
+    let pick = null, cut = false, hidden = 0;
+    for (const f of FIT_STEPS) { if (f < 0.7) break; const c = tryF(f); if (c.pH >= want - 0.5) { pick = c; break; } }
+    if (!pick) for (const f of FIT_STEPS) { const c = tryF(f); if (c.pH >= least - 0.5) { pick = c; break; } }
+    if (!pick) {
+      pick = tryF(FIT_STEPS[FIT_STEPS.length - 1]);
+      pick.pH = least;
+      const c = clipBlock(ctx, pick.blk, Hc - gap - least);
+      pick.blk = c; cut = true; hidden = c.hidden;
+    }
+    const pH = Math.floor(pick.pH), pW = Math.floor(pH * pa);
+    const photo = { x: X0 + (Wc - pW) / 2, y: pos === 'top' ? Y0 : PB - pH, w: pW, h: pH };
+    const ty = pos === 'top' ? Y0 + pH + gap : Y0;
+    return finish(Object.assign({}, base, { pos, f: pick.f, cut, hidden, photo, texts: [{ rows: pick.blk.rows, x: X0, y: ty, w: Wc }] }));
+  };
+
+  // Photo beside the text. The title runs across the top. The photo and the words share the space below it.
+  const side = pos => {
+    const g = R(50);
+    const tryF = f => {
+      const head = measureItems(ctx, parts.head, Wc, f, env);
+      const top = Y0 + (head.height ? head.height + Math.round(40 * s * f) : 0);
+      const Hr = PB - top, textRoom = TB - top;
+      if (Hr < R(160)) return null;
+      const maxW = Math.min(Hr * pa, hasBody ? Wc - g - 0.30 * Wc : Wc);
+      const least = Math.min(maxW, 0.28 * Wc);
+      const bodyAt = pW => measureItems(ctx, parts.body, Wc - g - pW, f, env);
+      let pW = maxW, body = hasBody ? bodyAt(pW) : { rows: [], height: 0 };
+      if (hasBody && body.height > textRoom) {
+        let lo = least, hi = maxW;
+        const loBody = bodyAt(lo);
+        if (loBody.height > textRoom) return { f, head, top, textRoom, pW: lo, body: loBody, fits: false, maxW, least };
+        body = loBody;
+        for (let i = 0; i < 14; i++) { const mid = (lo + hi) / 2; const b = bodyAt(mid); if (b.height <= textRoom) { lo = mid; body = b; } else hi = mid; }
+        pW = lo;
+      }
+      return { f, head, top, textRoom, pW, body, fits: true, maxW, least };
+    };
+    let pick = null, cut = false, hidden = 0;
+    for (const f of FIT_STEPS) { if (f < 0.7) break; const c = tryF(f); if (c && c.fits && c.pW >= Math.min(c.maxW, 0.45 * Wc) - 0.5) { pick = c; break; } }
+    if (!pick) for (const f of FIT_STEPS) { const c = tryF(f); if (c && c.fits) { pick = c; break; } }
+    if (!pick) {
+      pick = tryF(FIT_STEPS[FIT_STEPS.length - 1]);
+      if (!pick) return null;
+      const c = clipBlock(ctx, pick.body, pick.textRoom);
+      pick.body = c; cut = true; hidden = c.hidden;
+    }
+    const pW = Math.floor(pick.pW), pH = Math.floor(pW / pa);
+    const px = !hasBody ? X0 + (Wc - pW) / 2 : pos === 'left' ? X0 : X0 + Wc - pW;
+    const colW = Wc - g - pW, colX = pos === 'left' ? X0 + pW + g : X0;
+    const texts = [];
+    if (pick.head.rows.length) texts.push({ rows: pick.head.rows, x: X0, y: Y0, w: Wc });
+    if (hasBody) texts.push({ rows: pick.body.rows, x: colX, y: pick.top, w: colW });
+    return finish(Object.assign({}, base, { pos, f: pick.f, cut, hidden, photo: { x: px, y: pick.top, w: pW, h: pH }, texts }));
+  };
+
+  // Photo fills the page. The words sit on a pale panel across the lower part of the photo.
+  const overlay = () => {
+    const Hb = PB - Y0;
+    const pW = Math.floor(Math.min(Wc, Hb * pa)), pH = Math.floor(pW / pa);
+    const photo = { x: X0 + (Wc - pW) / 2, y: Y0 + (Hb - pH) / 2, w: pW, h: pH };
+    if (!hasText) return finish(Object.assign({}, base, { pos: 'center', photo }));
+    const inset = R(24), pad = R(28);
+    const panelW = pW - inset * 2, tW = panelW - pad * 2;
+    const maxText = 0.62 * pH - pad * 2;
+    // The words may cover up to about six tenths of the photo. If they need more than that even when
+    // printed smaller, the slide falls back to photo on top so nothing is lost.
+    let f = 1, blk = null;
+    for (const step of FIT_STEPS) { if (step < 0.7) break; const b = measureItems(ctx, all, tW, step, env); if (b.height <= maxText) { f = step; blk = b; break; } }
+    if (!blk) return null;
+    const cut = false, hidden = 0;
+    const panelH = blk.height + pad * 2;
+    const panel = { x: photo.x + inset, y: photo.y + pH - inset - panelH, w: panelW, h: panelH, r: R(10) };
+    return finish(Object.assign({}, base, { pos: 'center', f, cut, hidden, photo, panel, texts: [{ rows: blk.rows, x: panel.x + pad, y: panel.y + pad, w: tW }] }));
+  };
+
+  if (opts.photoPos === 'top' || opts.photoPos === 'bottom') return stack(opts.photoPos);
+  if (opts.photoPos === 'left' || opts.photoPos === 'right') return side(opts.photoPos) || stack('top');
+  if (opts.photoPos === 'center') return overlay() || stack('top');
+  // Largest photo. Both arrangements are worked out and the one with the bigger photo is used.
+  const a = stack('top'), b = side('left');
+  return b && score(b) > score(a) ? b : a;
 }
 
 function renderSlide(canvas, slide, idx, total, opts) {
   const ctx = canvas.getContext('2d');
   const { w, h, s } = SIZES[opts.size];
-  const tm = { small: 0.75, medium: 1, large: 1.25 }[opts.textSize] || 1;
+  const tm = TEXT_SCALE[opts.textSize] || 1;
   canvas.width = w; canvas.height = h;
   const mg = Math.round(80 * s);
   const R = n => Math.round(n * s);
-  const titleFont = fontStack(opts.fonts.title, 'sans-serif');
   const bodyFont = fontStack(opts.fonts.body, 'sans-serif');
   const bgRgb = hexToRgb(opts.palette.bg), acRgb = hexToRgb(opts.palette.accent), dkRgb = hexToRgb(opts.palette.dark);
-  const backing = (x, y, bw, bh, r) => { ctx.fillStyle = 'rgba(' + bgRgb.r + ',' + bgRgb.g + ',' + bgRgb.b + ',.65)'; ctx.beginPath(); ctx.roundRect(x, y, bw, bh, R(r)); ctx.fill(); };
-  let cut = false;
+  const backing = (x, y, bw, bh, r, a) => { ctx.fillStyle = 'rgba(' + bgRgb.r + ',' + bgRgb.g + ',' + bgRgb.b + ',' + (a || 0.65) + ')'; ctx.beginPath(); ctx.roundRect(x, y, bw, bh, r); ctx.fill(); };
+  const info = { cut: false, f: 1, hidden: 0, share: 0, pos: 'none', chars: 0 };
 
   // Background
   if (opts.bgStyle === 'image' && opts.bgImg) {
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(opts.bgImg, 0, 0, w, h);
     if (opts.overlayOn) { ctx.fillStyle = 'rgba(' + bgRgb.r + ',' + bgRgb.g + ',' + bgRgb.b + ',' + (opts.overlayOp / 100) + ')'; ctx.fillRect(0, 0, w, h); }
   } else if (opts.bgStyle === 'gradient') {
@@ -1303,135 +1597,29 @@ function renderSlide(canvas, slide, idx, total, opts) {
     ctx.beginPath(); ctx.arc(w - R(100), R(100), R(150), 0, Math.PI * 2); ctx.fill();
   }
 
-  let y = mg + R(60), textEndY = h - R(100), tLeft = mg, tRight = w - mg;
   const ph = opts.photoPos !== 'none' ? opts.slidePhoto : null;
-  let sideBottom = 0;
-  let pX = 0, pY = 0, pW = 0, pH = 0;
-
-  if (ph) {
-    const pa = ph.width / ph.height;
-    if (opts.photoPos === 'top') {
-      pH = Math.round(h * 0.6); pW = pH * pa;
-      if (pW > w - mg * 2) { pW = w - mg * 2; pH = pW / pa; }
-      pX = (w - pW) / 2; pY = mg;
-      y = pY + pH + R(60);
-    } else if (opts.photoPos === 'bottom') {
-      pH = Math.round(h * 0.6); pW = pH * pa;
-      if (pW > w - mg * 2) { pW = w - mg * 2; pH = pW / pa; }
-      pX = (w - pW) / 2; pY = h - pH - mg; textEndY = pY - R(20); y = mg;
-    } else if (opts.photoPos === 'left' || opts.photoPos === 'right') {
-      if (pa < 1) { pH = Math.round(h * 0.6); pW = pH * pa; } else { pW = Math.round(w * 0.4); pH = pW / pa; }
-      pX = opts.photoPos === 'left' ? mg : w - pW - mg;
-    } else if (opts.photoPos === 'center') {
-      const mx = Math.round(Math.min(w, h) * 0.65);
-      if (pa < 1) { pH = mx; pW = mx * pa; } else { pW = mx; pH = mx / pa; }
-      pX = (w - pW) / 2; pY = (h - pH) / 2;
-    }
-    if (opts.photoPos !== 'left' && opts.photoPos !== 'right' && !slide.isBonus) drawPhoto(ctx, ph, pX, pY, pW, pH, opts.palette.accent, s);
-  }
-
-  let tW = tRight - tLeft;
-  const align = opts.textAlign;
-  const tX = () => (align === 'center' ? tLeft + tW / 2 : align === 'right' ? tRight : tLeft);
   ctx.textBaseline = 'top';
 
   if (!slide.isBonus) {
-    // Title
-    ctx.font = 'bold ' + Math.round(64 * s * tm) + 'px ' + titleFont;
-    ctx.textAlign = align;
-    const tLines = wrapText(ctx, slide.title || '', tW);
-    const tLH = Math.round(76 * s * tm);
-    if (ph && opts.photoPos === 'center' && tLines.length) backing(tLeft - R(15), y - R(10), tW + R(30), tLines.length * tLH + R(15), 8);
-    ctx.fillStyle = opts.palette.dark;
-    for (const l of tLines) { ctx.fillText(l, tX(), y); y += tLH; }
-    y += R(40);
-
-    // Subtitle
-    if (slide.subtitle) {
-      ctx.font = '600 ' + Math.round(36 * s * tm) + 'px ' + bodyFont;
-      ctx.textAlign = align;
-      const sLines = wrapText(ctx, slide.subtitle, tW);
-      const sLH = Math.round(44 * s * tm);
-      if (ph && opts.photoPos === 'center') backing(tLeft - R(15), y - R(10), tW + R(30), sLines.length * sLH + R(15), 8);
-      ctx.fillStyle = opts.palette.accent;
-      for (const l of sLines) { ctx.fillText(l, tX(), y); y += sLH; }
-      y += R(15);
-    }
-
-    // Side photo sits under the title. Text runs beside it.
-    if (ph && (opts.photoPos === 'left' || opts.photoPos === 'right')) {
-      pY = y + R(60);
-      const room = h - R(110) - pY;
-      if (pH > room && room > 0) { const k = room / pH; pH = room; pW = pW * k; if (opts.photoPos === 'right') pX = w - pW - mg; }
-      drawPhoto(ctx, ph, pX, pY, pW, pH, opts.palette.accent, s);
-      if (opts.photoPos === 'left') tLeft = pX + pW + R(60); else tRight = pX - R(60);
-      tW = tRight - tLeft; y = pY; sideBottom = pY + pH;
-    }
-    y += R(40);
-
-    // Content
-    ctx.textAlign = align;
-    for (let n = 0; n < slide.content.length; n++) {
-      const p = parseContentLine(slide.content[n]);
-      if (p.type === 'space') { y += R(30); continue; }
-      // Below a side photo the text goes back to the full width of the slide.
-      if (sideBottom && y >= sideBottom + R(10)) { y = Math.max(y, sideBottom + R(30)); tLeft = mg; tRight = w - mg; tW = tRight - tLeft; sideBottom = 0; }
-      if (y > textEndY - R(50)) { cut = true; break; }
-      const cX = tX();
-      if (p.type === 'header') {
-        ctx.font = '600 ' + Math.round(38 * s * tm) + 'px ' + bodyFont;
-        const lh = Math.round(48 * s * tm);
-        let lines = wrapText(ctx, p.text, tW);
-        const keep = lines.filter((_, i) => y + (i + 1) * lh <= textEndY + R(12));
-        if (keep.length < lines.length) cut = true;
-        lines = keep.length ? keep : lines.slice(0, 1);
-        if (ph && opts.photoPos === 'center') backing(tLeft - R(15), y - R(10), tW + R(30), lines.length * lh + R(20), 8);
-        ctx.fillStyle = opts.palette.dark;
-        for (const l of lines) { ctx.fillText(l, cX, y); y += lh; }
-        y += R(20);
-      } else if (p.type === 'bullet-dark' || p.type === 'bullet-accent') {
-        ctx.font = '400 ' + Math.round(32 * s * tm) + 'px ' + bodyFont;
-        const lh = Math.round(42 * s * tm);
-        let lines = wrapText(ctx, p.text, tW - R(40));
-        const keep = lines.filter((_, i) => y + (i + 1) * lh <= textEndY + R(12));
-        if (keep.length < lines.length) cut = true;
-        lines = keep.length ? keep : lines.slice(0, 1);
-        if (ph && opts.photoPos === 'center') backing(tLeft - R(15), y - R(8), tW + R(30), lines.length * lh + R(18), 8);
-        ctx.fillStyle = p.type === 'bullet-accent' ? opts.palette.accent : opts.palette.dark;
-        ctx.textAlign = 'left';
-        ctx.fillText(p.type === 'bullet-accent' ? '✓' : '•', tLeft, y);
-        ctx.fillStyle = opts.palette.dark;
-        for (let i = 0; i < lines.length; i++) { ctx.fillText(lines[i], tLeft + R(40), y); if (i < lines.length - 1) y += lh; }
-        ctx.textAlign = align;
-        y += Math.round(60 * s * tm);
-      } else {
-        ctx.font = '400 ' + Math.round(32 * s * tm) + 'px ' + bodyFont;
-        const lh = Math.round(42 * s * tm);
-        let lines = wrapText(ctx, p.text, tW);
-        const keep = lines.filter((_, i) => y + (i + 1) * lh <= textEndY + R(12));
-        if (keep.length < lines.length) cut = true;
-        lines = keep.length ? keep : lines.slice(0, 1);
-        if (ph && opts.photoPos === 'center') backing(tLeft - R(15), y - R(8), tW + R(30), lines.length * lh + R(30), 8);
-        ctx.fillStyle = opts.palette.dark;
-        for (const l of lines) { ctx.fillText(l, cX, y); y += lh; }
-        y += R(30);
-      }
-      if (cut) break;
-    }
+    const plan = planSlide(ctx, slide, opts);
+    if (plan.photo) drawPhoto(ctx, ph, plan.photo.x, plan.photo.y, plan.photo.w, plan.photo.h, opts.palette.accent, s);
+    if (plan.panel) backing(plan.panel.x, plan.panel.y, plan.panel.w, plan.panel.h, plan.panel.r, 0.84);
+    plan.texts.forEach(t => drawRows(ctx, t.rows, t.x, t.y, t.w, opts.textAlign, opts.palette));
+    info.cut = plan.cut; info.f = plan.f; info.hidden = plan.hidden; info.share = plan.share; info.pos = plan.pos; info.chars = plan.chars;
   } else {
-    // Bonus quote slide. The photo is always centered.
+    // Bonus quote slide. The photo is centered between the date line and the footer.
     if (ph) {
-      const pa = ph.width / ph.height;
-      const mx = Math.round(Math.min(w, h) * 0.85);
-      const bW = pa < 1 ? mx * pa : mx, bH = pa < 1 ? mx : mx / pa;
-      drawPhoto(ctx, ph, (w - bW) / 2, (h - bH) / 2, bW, bH, opts.palette.accent, s);
+      const pa = (ph.naturalWidth || ph.width) / (ph.naturalHeight || ph.height) || 1;
+      const boxW = w - mg * 2, boxH = h - R(110) - mg;
+      const bW = Math.floor(Math.min(boxW, boxH * pa)), bH = Math.floor(bW / pa);
+      drawPhoto(ctx, ph, mg + (boxW - bW) / 2, mg + (boxH - bH) / 2, bW, bH, opts.palette.accent, s);
     }
     ctx.font = 'italic ' + Math.round(42 * s * tm) + 'px ' + bodyFont;
     ctx.textAlign = 'center';
     const qLines = wrapText(ctx, '"' + slide.quote + '"', w - mg * 3);
     const qLH = Math.round(56 * s * tm);
     let qy = h / 2 - R(100);
-    if (ph) backing(mg + R(40), qy - R(30), w - mg * 2 - R(80), qLines.length * qLH + R(150), 12);
+    if (ph) backing(mg + R(40), qy - R(30), w - mg * 2 - R(80), qLines.length * qLH + R(150), R(12));
     ctx.fillStyle = opts.palette.dark;
     for (const l of qLines) { ctx.fillText(l, w / 2, qy); qy += qLH; }
     qy += R(40);
@@ -1462,10 +1650,97 @@ function renderSlide(canvas, slide, idx, total, opts) {
     ctx.font = '400 ' + Math.round(22 * s * tm) + 'px ' + bodyFont;
     ctx.fillStyle = 'rgba(' + dkRgb.r + ',' + dkRgb.g + ',' + dkRgb.b + ',.5)';
     ctx.textAlign = 'right';
-    const topEdge = ph && !slide.isBonus && (opts.photoPos === 'top' || opts.photoPos === 'bottom');
-    ctx.fillText(dateStr, w - mg, topEdge ? mg - R(38) : mg);
+    // With a photo on the slide the date moves up into the top margin so the photo never covers it.
+    ctx.fillText(dateStr, w - mg, ph ? mg - R(38) : mg);
   }
-  return { cut };
+  return info;
+}
+
+// ---------- How the text fits ----------
+const FILLER = 'the children noticed and wondered together about what they had found in the garden today ';
+function withExtraText(slide, extra) {
+  let filler = '';
+  while (filler.length < extra) filler += FILLER;
+  filler = filler.slice(0, extra).trim();
+  const content = (slide.content || []).slice();
+  let i = content.length - 1;
+  while (i >= 0 && !content[i]) i--;
+  if (i >= 0 && parseContentLine(content[i]).type === 'text') content[i] = content[i] + ' ' + filler; else content.push(filler);
+  return Object.assign({}, slide, { content });
+}
+function withFewerChars(slide, keep) {
+  let left = keep;
+  const take = str => { const t = String(str || '').slice(0, Math.max(0, left)); left -= String(str || '').length; return t; };
+  const title = take(slide.title), subtitle = take(slide.subtitle);
+  const content = [];
+  for (const c of slide.content || []) { if (left <= 0) break; if (!c) { content.push(c); continue; } content.push(take(c)); }
+  return Object.assign({}, slide, { title, subtitle, content });
+}
+// About how many characters this slide can hold before the text has to be printed smaller.
+function fullSizeCapacity(ctx, slide, opts, plan) {
+  const full = p => !p.cut && p.f === 1;
+  if (full(plan)) {
+    let lo = 0, hi = 3000;
+    if (full(planSlide(ctx, withExtraText(slide, hi), opts))) return plan.chars + hi;
+    for (let i = 0; i < 10; i++) { const mid = Math.round((lo + hi) / 2); if (full(planSlide(ctx, withExtraText(slide, mid), opts))) lo = mid; else hi = mid; }
+    return plan.chars + lo;
+  }
+  let lo = 0, hi = plan.chars;
+  for (let i = 0; i < 10; i++) { const mid = Math.round((lo + hi) / 2); if (full(planSlide(ctx, withFewerChars(slide, mid), opts))) lo = mid; else hi = mid; }
+  return lo;
+}
+
+function readOptions() {
+  const cf = $('colorFamily').value;
+  const palette = cf === 'custom' ? { bg: $('bgColor').value, accent: $('accentColor').value, dark: $('darkColor').value } : COLOR_FAMILIES[cf];
+  return {
+    brand: $('brandName').value, date: $('slideDate').value, datePos: $('datePosition').value, size: $('slideSize').value,
+    textSize: $('textSize').value, textAlign: $('textAlign').value, showNums: $('showSlideNumbers').checked, photoPos: $('photoPlacement').value, bgStyle: $('backgroundStyle').value,
+    overlayOn: $('overlayToggle').checked, overlayOp: parseInt($('overlayOpacity').value, 10) || 0, palette,
+    fonts: { title: $('titleFont').value, body: $('bodyFont').value }, showFootnote: $('showFootnotes').checked
+  };
+}
+function lastFilled(arr) { for (let i = arr.length - 1; i >= 0; i--) if (arr[i]) return arr[i]; return null; }
+function photoForSlide(i) {
+  const photoMode = $('photoMode').value;
+  if ($('photoPlacement').value === 'none') return null;
+  if (photoMode === 'single') return uploadedSlidePhoto;
+  if (photoMode === 'multiple') return uploadedSlidePhotos[i] || lastFilled(uploadedSlidePhotos);
+  if (photoMode === 'assign') return assignedPhotos[i + 1] ? assignedPhotos[i + 1].image : null;
+  return null;
+}
+
+let fitTimer = null, fitCtx = null;
+function scheduleFitGuide() { clearTimeout(fitTimer); fitTimer = setTimeout(updateFitGuide, 400); }
+async function updateFitGuide() {
+  const box = $('fitGuide');
+  if (!box) return;
+  try {
+    await Promise.all(pendingLoads);
+    const slides = parseSlideText(getSlideText());
+    if (!slides.length) { box.hidden = true; box.innerHTML = ''; return; }
+    const opts = readOptions();
+    await ensureFonts(opts.fonts);
+    wordWidths.clear();
+    if (!fitCtx) fitCtx = document.createElement('canvas').getContext('2d');
+    const num = n => Math.round(n).toLocaleString('en-US');
+    let html = '', missingPhoto = false;
+    slides.forEach((sl, i) => {
+      const o = Object.assign({}, opts, { slidePhoto: photoForSlide(i) });
+      if (opts.photoPos !== 'none' && !o.slidePhoto) missingPhoto = true;
+      const plan = planSlide(fitCtx, sl, o);
+      const cap = fullSizeCapacity(fitCtx, sl, o, plan);
+      const photo = plan.photo ? ' The photo covers ' + Math.round(plan.share * 100) + ' percent of the page.' : '';
+      let cls = 'ok', text;
+      if (plan.cut) { cls = 'over'; text = 'Slide ' + (i + 1) + ' has ' + num(plan.chars) + ' characters. That is about ' + num(plan.hidden) + ' too many, even at the smallest text. Shorten it or split it across two slides.'; }
+      else if (plan.f < 1) { cls = 'small'; text = 'Slide ' + (i + 1) + ' has ' + num(plan.chars) + ' characters, about ' + num(Math.max(1, plan.chars - cap)) + ' more than fit at this text size. The text will print at ' + Math.round(plan.f * 100) + ' percent size.' + photo; }
+      else { text = 'Slide ' + (i + 1) + ' has ' + num(plan.chars) + ' characters. Room for about ' + num(Math.max(0, cap - plan.chars)) + ' more at this text size.' + photo; }
+      html += '<p class="fit-line ' + cls + '">' + escHtml(text) + '</p>';
+    });
+    if (missingPhoto) html += '<p class="fit-line note">Add your photo to see the true fit. A photo leaves less room for words.</p>';
+    box.innerHTML = '<div class="fit-title">How your words fit</div>' + html;
+    box.hidden = false;
+  } catch (e) { console.error('Fit guide failed', e); box.hidden = true; }
 }
 
 // DRDP summary. Every measure and every line of evidence is printed. Extra pages are added when needed.
@@ -1582,27 +1857,14 @@ async function generate() {
     await Promise.all(pendingLoads); pendingLoads = [];
     const slides = parseSlideText(getSlideText());
     if (!slides.length) { showStatus('No slides found. Start each slide with a line like "Slide 1:" then add a title and content.', 'error'); return; }
-    const cf = $('colorFamily').value;
-    const palette = cf === 'custom' ? { bg: $('bgColor').value, accent: $('accentColor').value, dark: $('darkColor').value } : COLOR_FAMILIES[cf];
-    const photoMode = $('photoMode').value, imgMode = $('imageMode').value, photoPos = $('photoPlacement').value, bgStyle = $('backgroundStyle').value;
-    const lastOf = arr => { for (let i = arr.length - 1; i >= 0; i--) if (arr[i]) return arr[i]; return null; };
-    const getSlidePhoto = i => {
-      if (photoPos === 'none') return null;
-      if (photoMode === 'single') return uploadedSlidePhoto;
-      if (photoMode === 'multiple') return uploadedSlidePhotos[i] || lastOf(uploadedSlidePhotos);
-      if (photoMode === 'assign') return assignedPhotos[i + 1] ? assignedPhotos[i + 1].image : null;
-      return null;
-    };
+    const opts = readOptions();
+    const photoMode = $('photoMode').value, imgMode = $('imageMode').value, photoPos = opts.photoPos, bgStyle = opts.bgStyle;
+    const lastOf = lastFilled;
+    const getSlidePhoto = photoForSlide;
     const getBgImg = i => {
       if (bgStyle !== 'image') return null;
       if (imgMode === 'single') return uploadedBgImg;
       return uploadedBgImgs[i] || lastOf(uploadedBgImgs);
-    };
-    const opts = {
-      brand: $('brandName').value, date: $('slideDate').value, datePos: $('datePosition').value, size: $('slideSize').value,
-      textSize: $('textSize').value, textAlign: $('textAlign').value, showNums: $('showSlideNumbers').checked, photoPos, bgStyle,
-      overlayOn: $('overlayToggle').checked, overlayOp: parseInt($('overlayOpacity').value, 10) || 0, palette,
-      fonts: { title: $('titleFont').value, body: $('bodyFont').value }, showFootnote: $('showFootnotes').checked
     };
     const enableDrdp = $('enableDrdp').checked;
     const mode = $('analysisMode').value || 'ai';
@@ -1642,11 +1904,12 @@ async function generate() {
     prepared = { all: null, pdf: null };
     $('slidesGrid').innerHTML = '';
     const total = slides.length;
-    const cutSlides = [];
+    const cutSlides = [], smallSlides = [];
+    wordWidths.clear();
     for (let i = 0; i < slides.length; i++) {
       const canvas = document.createElement('canvas');
       const info = renderSlide(canvas, slides[i], i, total, Object.assign({}, opts, { slidePhoto: getSlidePhoto(i), bgImg: getBgImg(i) }));
-      if (info.cut) cutSlides.push(i + 1);
+      if (info.cut) cutSlides.push({ n: i + 1, hidden: info.hidden }); else if (info.f < 1) smallSlides.push({ n: i + 1, pct: Math.round(info.f * 100) });
       addSlideCard(canvas, 'Slide ' + (i + 1), 'slide-' + String(i + 1).padStart(2, '0') + '.jpg', slides[i].drdpMeasures && slides[i].drdpMeasures[0], false);
     }
     if ($('includeBonusSlide').checked) {
@@ -1672,7 +1935,8 @@ async function generate() {
     else lines.push('✓ Generated ' + generatedSlides.length + ' slides!' + (enableDrdp && mode === 'ai' ? ' AI analysis complete.' : ''));
     notes.forEach(n => lines.push(n));
     if (enableDrdp && drdpResult && !drdpResult.measures.length) lines.push('No DRDP measures matched this text.');
-    if (cutSlides.length) lines.push((cutSlides.length === 1 ? 'Slide ' + cutSlides[0] + ' has' : 'Slides ' + cutSlides.join(', ') + ' have') + ' more text than fits. Use a smaller text size or split the content across slides.');
+    smallSlides.forEach(x => lines.push('Slide ' + x.n + ' has a lot of text, so its words print at ' + x.pct + ' percent size.'));
+    cutSlides.forEach(x => lines.push('Slide ' + x.n + ' has about ' + x.hidden.toLocaleString('en-US') + ' more characters than fit, even at the smallest text. Shorten it or split it across two slides.'));
     showStatus(lines.join('\n'), aiProblem ? 'error' : (notes.length || cutSlides.length ? 'warn' : 'success'));
     if (window.innerWidth < 900) $('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) {
@@ -1728,10 +1992,10 @@ async function buildPDF(canvases) {
   obj(2, () => push('<< /Type /Pages /Kids [' + canvases.map((_, i) => pageNum(i) + ' 0 R').join(' ') + '] /Count ' + n + ' >>'));
   for (let i = 0; i < n; i++) {
     const c = canvases[i];
-    const jpeg = new Uint8Array(await (await canvasToBlob(c, 'image/jpeg', 0.92)).arrayBuffer());
-    // Letter slides become true 8.5 by 11 inch pages. Square slides keep one point per pixel.
-    const isLetter = c.width === SIZES.letter.w && c.height === SIZES.letter.h;
-    const pw = isLetter ? 612 : c.width, ph = isLetter ? 792 : c.height;
+    const jpeg = new Uint8Array(await (await canvasToBlob(c, 'image/jpeg', 0.95)).arrayBuffer());
+    // Print sizes are 300 dots per inch, so they become true inch pages. The screen square keeps one point per pixel.
+    const print = c.width >= 2000;
+    const pw = print ? Math.round(c.width * 72 / 300) : c.width, ph = print ? Math.round(c.height * 72 / 300) : c.height;
     const imgNum = 3 + i * 3, contNum = imgNum + 1;
     obj(imgNum, () => { push('<< /Type /XObject /Subtype /Image /Width ' + c.width + ' /Height ' + c.height + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + jpeg.length + ' >>\nstream\n'); push(jpeg); push('\nendstream'); });
     const cs = 'q\n' + pw + ' 0 0 ' + ph + ' 0 0 cm\n/Img' + i + ' Do\nQ\n';
@@ -1904,8 +2168,32 @@ async function describeAISource() {
   if (awake) set('The AI server is ready.'); else set('The AI server is not responding. Keyword matching will be used until it is back.', true);
 }
 
+// ---------- Version ----------
+// A page left open, or saved to a phone's Home Screen, can keep running an old copy for days.
+// This looks for a newer copy on the web address and offers a one press update.
+let lastUpdateCheck = 0, newerBuild = '';
+async function checkForUpdate() {
+  if (inClaude || !/^https?:$/.test(location.protocol)) return;
+  if (Date.now() - lastUpdateCheck < 10 * 60 * 1000) return;
+  lastUpdateCheck = Date.now();
+  try {
+    const res = await fetch(location.pathname + '?fresh=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) return;
+    const m = new RegExp('const BUILD' + " = '([^']+)'").exec(await res.text());
+    if (m && m[1] !== BUILD) { newerBuild = m[1]; $('updateBanner').classList.add('show'); }
+  } catch (e) { /* offline. It tries again later. */ }
+}
+
 // ---------- Wiring ----------
 function init() {
+  $('buildTag').textContent = 'Version ' + BUILD;
+  $('updateNow').addEventListener('click', () => { location.replace(location.pathname + '?v=' + encodeURIComponent(newerBuild || Date.now())); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkForUpdate(); });
+  window.addEventListener('pageshow', e => { if (e.persisted) { lastUpdateCheck = 0; checkForUpdate(); } });
+  $('slideText').addEventListener('input', scheduleFitGuide);
+  $('slidesFieldContainer').addEventListener('input', scheduleFitGuide);
+  ['slideSize', 'textSize', 'photoPlacement', 'photoMode', 'titleFont', 'bodyFont'].forEach(id => $(id).addEventListener('change', scheduleFitGuide));
+  document.addEventListener('click', e => { if (e.target.closest && e.target.closest('.mode-btn, .add-slide-btn, .remove-slide-btn')) scheduleFitGuide(); });
   $('photoPlacement').addEventListener('change', e => { $('photoUploadSection').style.display = e.target.value !== 'none' ? 'block' : 'none'; });
   $('photoMode').addEventListener('change', e => { ['single', 'multiple', 'assign'].forEach(m => { $(m + 'PhotoUpload').style.display = e.target.value === m ? 'block' : 'none'; }); if (e.target.value === 'assign') updatePhotoAssignUI(); });
   $('backgroundStyle').addEventListener('change', e => { $('imageUploadSection').style.display = e.target.value === 'image' ? 'block' : 'none'; });
@@ -1942,6 +2230,8 @@ function init() {
   $('slideDate').value = localDateString();
   generateAppIcon();
   setTimeout(checkInstallBanner, 2000);
+  setTimeout(checkForUpdate, 4000);
+  scheduleFitGuide();
   describeAISource();
 }
 
