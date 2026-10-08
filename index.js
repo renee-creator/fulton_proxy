@@ -332,4 +332,6 @@ server.listen(PORT, () => {
   console.log(k.state === 'ok' ? 'API key loaded from ' + safeName(k.name) : 'API KEY PROBLEM. ' + keyMessage(k));
   console.log(LOCKED ? 'School sign-in is on. Passcodes set ' + PASSCODES.length : 'School sign-in is off');
   if (PASSCODES_TOO_SHORT) console.log('A passcode shorter than six characters was ignored');
+  // One-time accuracy test, only when MODEL_TEST=bench is set.
+  if (process.env.MODEL_TEST === 'bench' && k.state === 'ok') setTimeout(() => { try { require('./bench')(k.key, requestAnthropic); } catch (e) { console.error('BENCH failed to start', e && e.message); } }, 3000);
 });
