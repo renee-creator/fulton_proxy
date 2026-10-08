@@ -26,6 +26,22 @@ module.exports = function runBench(key, requestAnthropic) {
   const jobs = [];
   P.cases.forEach((c, i) => { for (const cfg of ['old', 'new']) jobs.push({ i, c, cfg }); });
   let next = 0, done = 0;
+  const results = [];
+  const summarize = () => {
+    for (const view of ['all', 'ptk', 'it']) for (const cfg of ['old', 'new']) {
+      const R = results.filter(r => r.cfg === cfg && (view === 'all' || r.view === view));
+      const found = R.filter(r => r.ladder.indexOf(r.got) >= 0);
+      const steps = found.map(r => r.ladder.indexOf(r.got) - r.ladder.indexOf(r.target));
+      const pct = x => Math.round(1000 * x / Math.max(1, R.length)) / 10;
+      const avg = a => a.length ? Math.round(10 * a.reduce((x, y) => x + y, 0) / a.length) / 10 : 0;
+      console.log('BENCH SUMMARY ' + JSON.stringify({ view, cfg, cases: R.length,
+        exact: pct(steps.filter(d => d === 0).length), within1: pct(steps.filter(d => Math.abs(d) <= 1).length),
+        higher: pct(steps.filter(d => d > 0).length), lower: pct(steps.filter(d => d < 0).length),
+        notListed: pct(R.filter(r => r.got === 'NF').length), emptyLevel: pct(R.filter(r => r.got === '').length),
+        other: pct(R.filter(r => r.got !== 'NF' && r.got !== '' && r.ladder.indexOf(r.got) < 0).length),
+        exactWhenListed: Math.round(1000 * steps.filter(d => d === 0).length / Math.max(1, steps.length)) / 10, within1WhenListed: Math.round(1000 * steps.filter(d => Math.abs(d) <= 1).length / Math.max(1, steps.length)) / 10, avgStepsOff: avg(steps.map(Math.abs)), avgMeasures: avg(R.map(r => r.n)), avgMs: avg(R.map(r => r.ms)), avgIn: avg(R.map(r => r.inp)), avgOut: avg(R.map(r => r.out)) }));
+    }
+  };
   console.log('BENCH start ' + jobs.length + ' requests');
   const worker = () => {
     if (next >= jobs.length) return;
@@ -40,8 +56,9 @@ module.exports = function runBench(key, requestAnthropic) {
       const text = (blocks.find(b => b && b.type === 'text') || {}).text || '';
       const r = status === 200 ? answerLevel(text, j.c.code, P.ladders[j.c.view][j.c.code]) : { got: 'HTTP' + status, codes: [] };
       console.log('BENCH ' + JSON.stringify({ i: j.i, cfg: j.cfg, ms: Date.now() - t0, inp: o.usage && o.usage.input_tokens, out: o.usage && o.usage.output_tokens, stop: o.stop_reason || '', got: r.got, codes: r.codes, err: err ? String(err.message || err) : (o.error ? String(o.error.message).slice(0, 120) : '') }));
+      results.push({ i: j.i, cfg: j.cfg, view: j.c.view, ms: Date.now() - t0, inp: (o.usage && o.usage.input_tokens) || 0, out: (o.usage && o.usage.output_tokens) || 0, got: r.got, n: r.codes.length, target: j.c.level, ladder: P.ladders[j.c.view][j.c.code] });
       done++;
-      if (done === jobs.length) console.log('BENCH done');
+      if (done === jobs.length) { summarize(); console.log('BENCH done'); }
       setTimeout(worker, 300);
     });
   };
