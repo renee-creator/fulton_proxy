@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Fulton Documentation Generator</title>
-<meta name="application-name" content="Fulton Documentation Generator">
-<meta name="description" content="Create documentation slides with DRDP 2025 developmental analysis">
+<title>TREE</title>
+<meta name="application-name" content="TREE">
+<meta name="description" content="TREE Pedagogical Documentation Studio. Documentation slides with DRDP (2025) analysis.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Fulton Docs">
+<meta name="apple-mobile-web-app-title" content="TREE">
 <meta name="theme-color" content="#5A6B50">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://fulton-proxy.onrender.com">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%235A6B50' width='180' height='180' rx='40'/><rect fill='white' x='45' y='40' width='100' height='75'/><rect fill='%235A6B50' x='55' y='55' width='60' height='6'/><rect fill='%237A8B6F' x='55' y='68' width='80' height='4'/><rect fill='%237A8B6F' x='55' y='78' width='70' height='4'/><rect fill='white' x='50' y='125' width='15' height='30'/><rect fill='white' x='70' y='115' width='15' height='40'/><rect fill='white' x='90' y='105' width='15' height='50'/><rect fill='white' x='110' y='120' width='15' height='35'/></svg>">
@@ -170,6 +170,11 @@ h1.brand{font-size:1.5rem;letter-spacing:.08em;line-height:1.2}
 .gate-msg.bad{color:#7a2318;font-weight:600}
 .link-btn{background:none;border:none;color:#5A6B50;font-size:.68rem;text-decoration:underline;cursor:pointer;padding:.2rem .4rem}
 
+.gate-privacy{font-size:.75rem;line-height:1.45;color:#5f6b5a;border-top:1px solid #e3e6df;padding-top:.7rem}
+.page-privacy{font-size:.72rem;line-height:1.45;color:#6b6b6b;max-width:640px;margin:.4rem auto 0;text-align:center}
+.drdp-measures-heading{font-size:.85rem;font-weight:600;color:#5A6B50;margin:.25rem 0 .5rem}
+.drdp-caution{font-size:.72rem;color:#666;font-style:italic;margin-top:.6rem;line-height:1.4}
+
 </style>
 </head>
 <body>
@@ -180,7 +185,7 @@ h1.brand{font-size:1.5rem;letter-spacing:.08em;line-height:1.2}
     <button type="button" class="close-btn" id="installBannerClose" aria-label="Close">×</button>
   </div>
   <div class="update-banner" id="updateBanner" role="status">
-    <p>A newer version of the generator is ready. Finish what you are doing, then press Update.</p>
+    <p>A newer version of TREE is ready. Finish what you are doing, then press Update.</p>
     <button type="button" id="updateNow">Update</button>
   </div>
   <div class="header">
@@ -445,6 +450,7 @@ content: More content..."></textarea>
     </div>
   </div>
   <p class="build-line"><span class="build-tag" id="buildTag"></span> <button type="button" class="link-btn" id="signOutBtn" hidden>Sign out</button></p>
+  <p class="page-privacy">Photos and notes are used only to create the analysis. TREE does not keep them.</p>
 </div>
 
 <div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
@@ -459,6 +465,7 @@ content: More content..."></textarea>
     <div class="checkbox-row"><input type="checkbox" id="gateShow"><label for="gateShow">Show passcode</label></div>
     <button type="submit" class="button button-primary" id="gateBtn" disabled>Sign in</button>
     <p class="gate-msg" id="gateMsg" role="status" aria-live="polite"></p>
+    <p class="gate-privacy" id="gatePrivacy">Photos and notes are sent to Anthropic&#39;s AI only to create the analysis. TREE does not keep them. Anthropic deletes them within 30 days and does not use them to train its AI. Please share photos of children only as your family permissions allow.</p>
   </form>
 </div>
 
@@ -470,7 +477,7 @@ content: More content..."></textarea>
 </div>
 
 <script>
-const COLOR_FAMILIES = {"warm-neutral":{"bg":"#FFFBF5","accent":"#D4A574","dark":"#2C3E50"},"sage-green":{"bg":"#F5F5F0","accent":"#B8A398","dark":"#4A5C4E"},"ocean-blue":{"bg":"#F0F7FA","accent":"#7BA7BC","dark":"#2C4251"},"forest":{"bg":"#F5F7F2","accent":"#8B9A7E","dark":"#3D4A3A"},"lavender":{"bg":"#F8F5FA","accent":"#B8A5C8","dark":"#4A3D56"},"coral":{"bg":"#FFF7F5","accent":"#E8A598","dark":"#2C4A51"},"earthy":{"bg":"#F7F3EE","accent":"#B89D85","dark":"#3D3026"},"minimal":{"bg":"#FFFFFF","accent":"#808080","dark":"#000000"},"sunset":{"bg":"#FFF5ED","accent":"#E8937A","dark":"#4A3326"}};
+const COLOR_FAMILIES = {"warm-neutral":{"bg":"#FFFBF5","accent":"#B28B61","dark":"#2C3E50"},"sage-green":{"bg":"#F5F5F0","accent":"#9B8980","dark":"#4A5C4E"},"ocean-blue":{"bg":"#F0F7FA","accent":"#6C93A5","dark":"#2C4251"},"forest":{"bg":"#F5F7F2","accent":"#849278","dark":"#3D4A3A"},"lavender":{"bg":"#F8F5FA","accent":"#9787A4","dark":"#4A3D56"},"coral":{"bg":"#FFF7F5","accent":"#B78278","dark":"#2C4A51"},"earthy":{"bg":"#F7F3EE","accent":"#A08974","dark":"#3D3026"},"minimal":{"bg":"#FFFFFF","accent":"#808080","dark":"#000000"},"sunset":{"bg":"#FFF5ED","accent":"#C57D68","dark":"#4A3326"}};
 
 const QUOTES = [
   ["The environment is the third teacher.","Loris Malaguzzi"],
@@ -607,8 +614,6 @@ const QUOTES = [
   ["I go to nature to be soothed and healed, and to have my senses put in order.","John Burroughs"],
   ["Keep close to Nature's heart and break clear away, once in a while, and climb a mountain or spend a week in the woods.","John Muir"],
   ["The child is made of one hundred. The child has a hundred languages, a hundred hands, a hundred thoughts.","Loris Malaguzzi"],
-  ["Knowledge is not something that is delivered; it is something that is constructed.","Constructivist Philosophy"],
-  ["Children have their own ways of seeing, thinking, and knowing.","Reggio Emilia Philosophy"],
   ["The atelier is a place where children's different languages can be explored and developed.","Vea Vecchi"],
   ["If you have a garden and a library, you have everything you need.","Cicero"],
   ["The greatest fine art of the future will be the making of a comfortable living from a small piece of land.","Abraham Lincoln"],
@@ -616,7 +621,6 @@ const QUOTES = [
   ["A garden is a friend you can visit any time.","Proverb"],
   ["What we learn to do, we learn by doing.","Aristotle"],
   ["Children learn as they play. Most importantly, in play children learn how to learn.","O. Fred Donaldson"],
-  ["Every moment is a teachable moment.","Childhood Education Wisdom"],
   ["Connection is why we're here; it is what gives purpose and meaning to our lives.","Brené Brown"]
 ];
 
@@ -716,16 +720,16 @@ const DRDP = {
 };
 
 // ============================================================
-// Fulton Documentation Generator
+// TREE, Pedagogical Documentation Studio
 // One file that runs in three places.
 //   1. Inside Claude as an artifact. AI analysis runs through Claude itself.
-//   2. On its own web address. AI analysis runs through the Fulton proxy.
+//   2. On its own web address. AI analysis runs through the TREE server on Render.
 //   3. Anywhere else. Keyword matching still works.
 // ============================================================
 
 const PROXY_URL = 'https://fulton-proxy.onrender.com';
 const MAX_AI_PHOTOS = 3;
-const BUILD = '2026.10.07.1';
+const BUILD = '2026.10.07.3';
 const SIZES = { square: { w: 1080, h: 1080, s: 1 }, squareprint: { w: 2550, h: 2550, s: 2.36 }, letter: { w: 2550, h: 3300, s: 2.36 } };
 const API_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const CLAUDE_PHOTO_MAX_BYTES = 20 * 1024 * 1024;   // largest photo file Claude accepts from a page
@@ -1006,23 +1010,46 @@ function getCap(name) {
   return capCache[name];
 }
 
-// DRDP (2025) developmental levels, in order. The Infant/Toddler view ends at Building Earlier.
-// The Preschool/TK/K view ends at Integrating Later. Personal care measures end at Integrating Earlier.
-const LEVELS = ['Responding Earlier', 'Responding Later', 'Exploring Earlier', 'Exploring Middle', 'Exploring Later', 'Building Earlier', 'Building Middle', 'Building Later', 'Integrating Earlier', 'Integrating Middle', 'Integrating Later'];
+// DRDP (2025) developmental levels. Each measure uses its own set of levels, so each measure has its own list here.
+// Source: DRDP (2025) Technical Assistance Guide, rating fields 39 to 110 (Desired Results Access Project, 07/17/2026).
+// Checked against the DRDP (2025) IT and PTK instruments and the DRDP (2025) Views and Ratings per Measure table.
+// The Infant/Toddler view uses the same lists and stops at Building Earlier.
+const LV = { RE: 'Responding Earlier', RL: 'Responding Later', EE: 'Exploring Earlier', EM: 'Exploring Middle', EL: 'Exploring Later', BE: 'Building Earlier', BM: 'Building Middle', BL: 'Building Later', IE: 'Integrating Earlier', IM: 'Integrating Middle', IL: 'Integrating Later' };
+const LEVELS = Object.keys(LV).map(k => LV[k]);
 const ELD_LEVELS = ['Discovering Language', 'Discovering English', 'Exploring English', 'Developing English', 'Building English', 'Integrating English'];
+const LADDERS = [
+  ['RE RL EE EL BE BM BL IE IM IL', ['ATL 1', 'ATL 2', 'ATL 3', 'SED 1', 'SED 2', 'SED 3', 'SED 4', 'SED 5', 'COG 1', 'MATH 1', 'MATH 2', 'MATH 3', 'SCI 1', 'SCI 2', 'PD 1', 'HLTH 1']],
+  ['RE RL EE EM EL BE BM BL IE IM IL', ['FLD 1', 'FLD 2', 'FLD 3', 'PD 2', 'PD 3', 'PD 4']],
+  ['EM EL BE BM BL IE IM IL', ['FLD 4', 'FLD 5', 'FLD 6']],
+  ['EE EL BE BM BL IE IM IL', ['MATH 4', 'MATH 5', 'SCI 3']],
+  ['EL BE BM BL IE IM IL', ['ATL 4', 'HLTH 2']],
+  ['RE RL EE EL BE BM BL IE', ['HLTH 3']],
+  ['RE RL EE EL BE BL IE', ['HLTH 4', 'HLTH 5']]
+];
 function levelsFor(ag, code) {
   if (/^ELD /.test(code)) return ELD_LEVELS;
-  if (ag === 'it') return LEVELS.slice(0, 6);
-  if (/^HLTH [345]$/.test(code)) return LEVELS.slice(0, 9);
-  return LEVELS;
+  const row = LADDERS.find(r => r[1].indexOf(code) >= 0);
+  if (!row) return [];
+  const list = row[0].split(' ').map(k => LV[k]);
+  return ag === 'it' ? list.slice(0, list.indexOf(LV.BE) + 1) : list;
 }
-// Returns the official level name, or an empty string when the text is not a level this measure uses.
+// Returns the official level name, or an empty string when the text does not name exactly one level this measure uses.
 function officialLevel(text, ag, code) {
-  const t = String(text || '').toLowerCase().replace(/[^a-z]+/g, ' ').trim();
-  if (!t) return '';
-  const list = levelsFor(ag, code);
-  for (const name of list) { const parts = name.toLowerCase().split(' '); if (t.indexOf(parts[0]) >= 0 && t.indexOf(parts[1]) >= 0) return name; }
-  return '';
+  const t = ' ' + String(text || '').toLowerCase().replace(/[^a-z]+/g, ' ').trim() + ' ';
+  const named = LEVELS.concat(ELD_LEVELS).filter(name => t.indexOf(' ' + name.toLowerCase() + ' ') >= 0);
+  if (named.length !== 1) return '';
+  return levelsFor(ag, code).indexOf(named[0]) >= 0 ? named[0] : '';
+}
+// The levels each measure of this view uses, written out for the AI. Measures that share a list share a line.
+function levelGuide(ag) {
+  const groups = [];
+  for (const dom of Object.values(DRDP[ag])) for (const code of Object.keys(dom.measures)) {
+    const key = levelsFor(ag, code).join(', ');
+    let g = groups.find(x => x.key === key);
+    if (!g) { g = { key, codes: [] }; groups.push(g); }
+    g.codes.push(code);
+  }
+  return groups.map(g => g.codes.join(', ') + ': ' + g.key).join('\n');
 }
 
 function findMeasure(db, code) {
@@ -1047,11 +1074,10 @@ function buildPrompt(slides, photos, ag) {
     'Documentation:' + content + '\n\n' + photoLine + '\n\n' +
     'Use only measure codes from the list above. slideNumbers lists the slides that show evidence for the measure.\n' +
     (ag === 'ptk' ? 'ELD measures apply only when the documentation shows the child speaks a home language other than English and is learning English. Otherwise leave ELD out.\n' : '') +
-    'estimatedLevel must be exactly one of these DRDP (2025) levels, from earliest to latest: ' + levelsFor(ag, 'ATL 1').join(', ') + '.' +
-    (ag === 'ptk' ? ' For ELD measures use one of: ' + ELD_LEVELS.join(', ') + '. HLTH 3, HLTH 4 and HLTH 5 end at Integrating Earlier.' : '') +
-    ' Choose the level the evidence best supports. If the evidence is too thin to estimate a level, use an empty string.\n' +
+    'estimatedLevel must be exactly one of the DRDP (2025) levels that the measure uses. Levels by measure, from earliest to latest:\n' + levelGuide(ag) + '\n' +
+    'Choose the level the evidence best supports. Give one level only, never a range. If the evidence is too thin to estimate a level, use an empty string.\n' +
     'Return ONLY a JSON object. Use straight double quotes only. No apostrophes in values - rephrase instead. No newlines in string values. No trailing commas.\n' +
-    '{"measures":[{"code":"ATL 1","name":"measure name","domain":"domain name","domainCode":"ATL","estimatedLevel":"Building Middle","evidence":"specific evidence","slideNumbers":[1]}],"photoAnalysis":"what the photos show","narrativeSummary":"two sentence summary"}';
+    '{"measures":[{"code":"ATL 1","name":"measure name","domain":"domain name","domainCode":"ATL","estimatedLevel":"Building Earlier","evidence":"specific evidence","slideNumbers":[1]}],"photoAnalysis":"what the photos show","narrativeSummary":"two sentence summary"}';
 }
 
 // Distinct photos with the slides they sit on, in slide order.
@@ -1215,7 +1241,7 @@ async function postToProxy(content) {
 }
 
 async function analyzeViaProxy(promptWith, promptWithout, photos) {
-  if (location.protocol === 'file:') throw new Error('This saved copy cannot reach the AI server. Open the generator at its web address.');
+  if (location.protocol === 'file:') throw new Error('This saved copy cannot reach the AI server. Open TREE at its web address.');
   showStatus('Connecting to the AI server...', 'info');
   const awake = await proxyAwake(() => showStatus('The AI server is waking up. This takes about a minute the first time.', 'info'));
   if (!awake) throw new Error('The AI server did not respond.');
@@ -1306,7 +1332,7 @@ async function aiAnalysis(slides, photoB64s) {
   let answer;
   if (inClaude) {
     const sample = await getCap('sample');
-    if (!sample) throw new Error('AI analysis is not available in this view. Open the generator inside Claude or at its web address.');
+    if (!sample) throw new Error('AI analysis is not available in this view. Open TREE inside Claude or at its web address.');
     answer = await analyzeViaClaude(sample, promptWith, promptWithout, photos);
   } else {
     answer = await analyzeViaProxy(promptWith, promptWithout, photos);
@@ -1867,6 +1893,7 @@ function renderSummarySlides(analysis, opts) {
   const bodyFam = fontStack(opts.fonts.body, 'sans-serif');
   const bodyF = '400 ' + R(22) + 'px ' + bodyFam, labelF = '600 ' + R(22) + 'px ' + bodyFam, lineH = R(32);
   const pages = [];
+  const words = summaryWords(analysis);
   let ctx = null, y = 0;
 
   const newPage = () => {
@@ -1876,7 +1903,7 @@ function renderSummarySlides(analysis, opts) {
     ctx.fillStyle = '#FAFAFA'; ctx.fillRect(0, 0, w, h);
     ctx.fillStyle = opts.palette.accent; ctx.fillRect(0, 0, w, R(110));
     ctx.fillStyle = 'white'; ctx.font = '600 ' + R(38) + 'px ' + titleFont; ctx.textAlign = 'center';
-    ctx.fillText('DRDP (2025) Measures Identified', w / 2, R(72));
+    ctx.fillText(words.title, w / 2, R(72));
     pages.push(canvas);
     y = R(150);
   };
@@ -1894,7 +1921,7 @@ function renderSummarySlides(analysis, opts) {
 
   need(R(35) + R(35) + R(120));
   ctx.strokeStyle = opts.palette.accent; ctx.lineWidth = Math.max(2, R(2)); ctx.beginPath(); ctx.moveTo(mg, y); ctx.lineTo(w - mg, y); ctx.stroke(); y += R(35);
-  ctx.fillStyle = opts.palette.accent; ctx.font = labelF; ctx.textAlign = 'left'; ctx.fillText('📊 Measures Observed', mg, y); y += R(35);
+  ctx.fillStyle = opts.palette.accent; ctx.font = labelF; ctx.textAlign = 'left'; ctx.fillText(words.heading, mg, y); y += R(35);
 
   for (const m of analysis.measures) {
     const nameF = '600 ' + R(24) + 'px ' + bodyFam, badgeF = '600 ' + R(16) + 'px ' + bodyFam, levelF = '500 ' + R(20) + 'px ' + bodyFam, evF = '400 ' + R(18) + 'px ' + bodyFam;
@@ -1923,6 +1950,7 @@ function renderSummarySlides(analysis, opts) {
     for (const l of evLines) { need(R(28)); ctx.font = evF; ctx.fillStyle = '#666'; ctx.textAlign = 'left'; ctx.fillText(l, mg + R(10), y); y += R(28); }
     y += R(35);
   }
+  block(words.caution, 'italic 400 ' + R(18) + 'px ' + bodyFam, '#666', mg, textW, R(26));   // the caution line closes the list
 
   const dk = hexToRgb(opts.palette.dark);
   pages.forEach((canvas, i) => {
@@ -1935,6 +1963,16 @@ function renderSummarySlides(analysis, opts) {
 }
 
 // ---------- DRDP panel ----------
+// Words for the summary. Keyword matching only suggests possible connections. AI levels are suggestions for teacher review.
+function summaryWords(r) {
+  const kw = !!(r && r.source === 'keyword');
+  return {
+    title: kw ? 'DRDP (2025) Possible Connections' : 'DRDP (2025) Measures Identified',
+    heading: kw ? '🔍 Possible Connections' : '📊 Measures Observed',
+    caution: kw ? 'These connections come from matching words in the notes. Please review them before use.'
+                : 'Levels are AI suggestions for teacher review. They are not a formal DRDP (2025) rating.'
+  };
+}
 function displayDRDP(r, notice) {
   const panel = $('drdpPanel'), div = $('drdpResults');
   if (!r || !r.measures || !r.measures.length) { panel.style.display = 'none'; return; }
@@ -1942,14 +1980,15 @@ function displayDRDP(r, notice) {
   if (notice) html += '<div class="drdp-notice">' + escHtml(notice) + '</div>';
   if (r.photoAnalysis) html += '<div class="drdp-photo-analysis"><strong>📷 Photo Analysis:</strong><p>' + escHtml(r.photoAnalysis) + '</p></div>';
   if (r.narrativeSummary) html += '<div class="drdp-narrative"><strong>📝 Summary:</strong><p>' + escHtml(r.narrativeSummary) + '</p></div>';
-  html += '<div class="drdp-measures-list">';
+  const words = summaryWords(r);
+  html += '<div class="drdp-measures-heading">' + escHtml(words.heading) + '</div><div class="drdp-measures-list">';
   for (const m of r.measures) {
     html += '<div class="drdp-result"><span class="drdp-domain">' + escHtml(m.domainCode) + '</span> <strong>' + escHtml(m.code) + ':</strong> ' + escHtml(m.name) +
       (m.estimatedLevel ? '<div class="drdp-level">' + escHtml(m.estimatedLevel) + '</div>' : '') +
       (m.evidence ? '<div class="drdp-evidence">' + escHtml(m.evidence) + '</div>' : '') +
       (m.slideNumbers && m.slideNumbers.length ? '<div class="drdp-slides">Slides: ' + m.slideNumbers.join(', ') + '</div>' : '') + '</div>';
   }
-  div.innerHTML = html + '</div>';
+  div.innerHTML = html + '</div><div class="drdp-caution">' + escHtml(words.caution) + '</div>';
   panel.style.display = 'block';
 }
 
@@ -2013,7 +2052,8 @@ async function generate() {
       slides.forEach((sl, i) => {
         const mine = drdpResult.measures.filter(m => m.slideNumbers && m.slideNumbers.indexOf(i + 1) >= 0);
         sl.drdpMeasures = mine.map(m => m.code);
-        sl.drdpItems = mine.map(m => ({ code: m.code, name: m.name }));
+        // Keyword guesses stay off the slides. They appear only on the summary, as possible connections.
+        sl.drdpItems = drdpResult.source === 'keyword' ? [] : mine.map(m => ({ code: m.code, name: m.name }));
       });
     }
 
@@ -2474,7 +2514,15 @@ async function buildDocx(doc) {
     const q = [];
     if (doc.quotePhoto) {
       const ref = await photoRef(doc.quotePhoto);
-      const maxW = Wc * 0.62, maxH = (unitsH - 190) * 0.5, k = Math.min(maxW / ref.w, maxH / ref.h);
+      // The photo takes the room the quote leaves, so a long quote in large text still fits on the one page.
+      // The words are measured a quarter wider than they draw here, because Word may set the same font wider.
+      const mc = document.createElement('canvas').getContext('2d');
+      mc.font = 'italic ' + Math.round(42 * tm * 1.25) + 'px ' + bodyFont;
+      const quoteRows = wrapText(mc, '"' + doc.quote.quote + '"', Wc - 80).length + 1;
+      mc.font = 'bold ' + Math.round(32 * tm * 1.25) + 'px ' + bodyFont;
+      const nameRows = wrapText(mc, '— ' + doc.quote.author, Wc - 40).length;   // a long name can take two lines
+      const wordsH = quoteRows * 56 * tm + 40 + nameRows * 46 * tm;
+      const maxW = Wc * 0.62, maxH = Math.max(120, Math.min((unitsH - 190) * 0.5, unitsH - 180 - 50 - wordsH - 24)), k = Math.min(maxW / ref.w, maxH / ref.h);
       q.push(docPara(picture(ref, ref.w * k, ref.h * k, 'Photo for the quote page'), { align: 'center', after: tw(50) }));
     }
     q.push(docPara(docRun('"' + doc.quote.quote + '"', { font: bodyFont, italic: true, size: hp(42 * tm), color: dark }), { align: 'center', after: tw(40), line: tw(56 * tm), indLeft: tw(40), indRight: tw(40) }));
@@ -2487,10 +2535,11 @@ async function buildDocx(doc) {
   const d = doc.drdp;
   if (doc.summary && d && d.measures && d.measures.length) {
     const s = [];
+    const words = summaryWords(d);
     const label = text => docPara(docRun(text, { font: bodyFont, bold: true, size: hp(22), color: accent }), { keepNext: true, after: tw(6), line: tw(34) });
     if (d.photoAnalysis) { s.push(label('📷 Photo Analysis')); s.push(docPara(docRun(d.photoAnalysis, { font: bodyFont, size: hp(22), color: '444444' }), { after: tw(18), line: tw(32) })); }
     if (d.narrativeSummary) { s.push(label('📝 Summary')); s.push(docPara(docRun(d.narrativeSummary, { font: bodyFont, italic: true, size: hp(22), color: '444444' }), { after: tw(30), line: tw(32) })); }
-    s.push(docPara(docRun('📊 Measures Observed', { font: bodyFont, bold: true, size: hp(22), color: accent }), { borderTop: { color: accent, size: 12, space: 14 }, keepNext: true, after: tw(14), line: tw(35) }));
+    s.push(docPara(docRun(words.heading, { font: bodyFont, bold: true, size: hp(22), color: accent }), { borderTop: { color: accent, size: 12, space: 14 }, keepNext: true, after: tw(14), line: tw(35) }));
     for (const m of d.measures) {
       s.push(docPara(
         docRun(NBSP + m.domainCode + NBSP, { font: bodyFont, bold: true, size: hp(16), color: 'FFFFFF', fill: accent }) +
@@ -2499,11 +2548,12 @@ async function buildDocx(doc) {
         { style: 'Heading3', keepNext: !!m.evidence, after: tw(2), line: tw(30) }));
       s.push(docPara(m.evidence ? docRun(m.evidence, { font: bodyFont, size: hp(18), color: '666666' }) : '', { after: tw(35), line: tw(28), indLeft: tw(10) }));
     }
+    s.push(docPara(docRun(words.caution, { font: bodyFont, italic: true, size: hp(18), color: '666666' }), { after: 0, line: tw(26) }));
     // The colored band across the top is the page header, so it repeats if the summary runs onto another page.
     const band = '<w:tbl><w:tblPr><w:tblW w:w="12240" w:type="dxa"/><w:tblInd w:w="' + (-tw(80)) + '" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="0" w:type="dxa"/><w:right w:w="0" w:type="dxa"/></w:tblCellMar></w:tblPr>' +
       '<w:tblGrid><w:gridCol w:w="12240"/></w:tblGrid><w:tr><w:trPr><w:trHeight w:val="' + tw(110) + '" w:hRule="exact"/></w:trPr>' +
       '<w:tc><w:tcPr><w:tcW w:w="12240" w:type="dxa"/><w:shd w:val="clear" w:color="auto" w:fill="' + accent + '"/><w:vAlign w:val="center"/></w:tcPr>' +
-      docPara(docRun('DRDP (2025) Measures Identified', { font: titleFont, bold: true, size: hp(38), color: 'FFFFFF' }), { align: 'center', after: 0 }) +
+      docPara(docRun(words.title, { font: titleFont, bold: true, size: hp(38), color: 'FFFFFF' }), { align: 'center', after: 0 }) +
       '</w:tc></w:tr></w:tbl>' + docPara('', { after: 0, line: 20, exact: true });
     body.push(s.join(''));
     body.push({ sect: section(addHeader(band), addFooter(footerLine('')), { top: 150, header: 0 }) });

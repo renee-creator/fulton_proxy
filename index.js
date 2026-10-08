@@ -1,4 +1,4 @@
-// Fulton proxy
+// TREE server (Fulton proxy)
 // Forwards documentation generator requests to the Anthropic API.
 // Every failure returns a clear message. Nothing here can stop the server.
 //
@@ -16,10 +16,12 @@ const UPSTREAM_TIMEOUT_MS = Number(process.env.UPSTREAM_TIMEOUT_MS) || 120000;
 
 // Models are tried in this order. If Anthropic retires one, the next takes over.
 // Set ANTHROPIC_MODEL on Render to put a different model first.
-const MODELS = [process.env.ANTHROPIC_MODEL, 'claude-haiku-4-5-20251001', 'claude-opus-4-5', 'claude-sonnet-5-5', 'claude-sonnet-4-6']
+const MODELS = [process.env.ANTHROPIC_MODEL, 'claude-haiku-5-5', 'claude-haiku-4-5-20251001', 'claude-opus-4-5', 'claude-sonnet-5-5', 'claude-sonnet-4-6']
   .map(m => (m || '').trim())
   .filter((m, i, all) => m && all.indexOf(m) === i);
 let modelIndex = 0;
+// Extra settings for a model. Haiku 5.5 thinks before it answers, so it gets more room for the answer and low effort thinking.
+const MODEL_SETTINGS = { 'claude-haiku-5-5': { max_tokens: 5000, output_config: { effort: 'low' } } };
 
 // Websites allowed to send analysis requests. Add more on Render with ALLOWED_ORIGINS, comma separated.
 // A future iPhone app built with Capacitor sends the origin capacitor://localhost.
@@ -180,7 +182,8 @@ function callAnthropic(key, maxTokens, content, done) {
   let cancelled = false;
   const attempt = () => {
     const model = MODELS[modelIndex];
-    cancel = requestAnthropic(key, { model, max_tokens: maxTokens, messages: [{ role: 'user', content }] }, (err, status, text) => {
+    const body = Object.assign({ model, max_tokens: maxTokens, messages: [{ role: 'user', content }] }, MODEL_SETTINGS[model] || {});
+    cancel = requestAnthropic(key, body, (err, status, text) => {
       if (cancelled) return;
       if (!err && isRetiredModel(status, text) && modelIndex < MODELS.length - 1) {
         console.error('Model ' + model + ' is not available. Switching to ' + MODELS[modelIndex + 1]);
@@ -222,10 +225,10 @@ function statusPage(res) {
   const fresh = lastTest.at && Date.now() - lastTest.at < (lastTest.ok ? 300000 : 20000);
   (fresh ? Promise.resolve(lastTest) : runSelfTest()).then(t => {
     const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-    const html = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Fulton proxy status</title></head>' +
+    const html = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>TREE server status</title></head>' +
       '<body style="font-family:system-ui,sans-serif;font-size:18px;line-height:1.5;max-width:640px;margin:32px auto;padding:0 16px">' +
-      '<h1 style="font-size:22px">Fulton proxy status</h1>' +
-      '<p>The proxy is running.</p>' +
+      '<h1 style="font-size:22px">TREE server status</h1>' +
+      '<p>The TREE server is running.</p>' +
       '<p style="font-weight:600;color:' + (t.ok ? '#1a7f37' : '#b42318') + '">' + (t.ok ? 'WORKING. ' : 'NOT WORKING. ') + esc(t.line) + '</p>' +
       '<p style="color:#555;font-size:15px">Model in use ' + esc(MODELS[modelIndex]) + '</p>' +
       '<p style="color:#555;font-size:15px">' + (LOCKED ? 'School sign-in is on. Passcodes set ' + PASSCODES.length + '.' : 'School sign-in is off. Anyone who opens the generator can run analyses.') + (PASSCODES_TOO_SHORT ? ' ' + PASSCODES_TOO_SHORT + ' passcode on Render is shorter than six characters and is being ignored.' : '') + '</p></body></html>';
