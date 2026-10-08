@@ -3,7 +3,7 @@
 **Traces • Reflection • Evidence • Experience**
 Pedagogical Documentation Studio for Fulton Community School & Farm
 
-TREE turns classroom observations and photos into documentation slides for Reggio-inspired walls, with suggested DRDP (2025) measures for teacher review.
+TREE turns classroom observations and photos into documentation slides for Reggio-inspired walls, with suggested DRDP (2025) measures for educator review.
 
 ## What is in this repository
 
@@ -20,4 +20,4 @@ The repository and server keep the fulton_proxy name so saved links and Home Scr
 
 ## Privacy
 
-Photos and notes are sent to Anthropic's AI only for the analysis. TREE does not store them. Anthropic deletes them within 30 days and does not use them to train its AI. The AI's levels are suggestions for teacher review and are not a formal DRDP rating.
+Photos and notes are sent to Anthropic's AI only for the analysis. TREE does not store them. Anthropic deletes them within 30 days and does not use them to train its AI. The AI's levels are suggestions for educator review and are not a formal DRDP rating.

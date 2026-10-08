@@ -729,7 +729,7 @@ const DRDP = {
 
 const PROXY_URL = 'https://fulton-proxy.onrender.com';
 const MAX_AI_PHOTOS = 3;
-const BUILD = '2026.10.07.3';
+const BUILD = '2026.10.07.4';
 const SIZES = { square: { w: 1080, h: 1080, s: 1 }, squareprint: { w: 2550, h: 2550, s: 2.36 }, letter: { w: 2550, h: 3300, s: 2.36 } };
 const API_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const CLAUDE_PHOTO_MAX_BYTES = 20 * 1024 * 1024;   // largest photo file Claude accepts from a page
@@ -993,12 +993,12 @@ function kwAnalysis(slides) {
       for (const [mc, m] of Object.entries(dom.measures)) {
         const score = m.kw.filter(k => kwMatches(txt, k)).length;
         if (score < 1) continue;
-        if (!map.has(mc)) map.set(mc, { code: mc, name: m.name, domain: dom.name, domainCode: dc, estimatedLevel: '', evidence: 'Keyword matches found in text', slideNumbers: [i + 1], score });
+        if (!map.has(mc)) map.set(mc, { code: mc, name: m.name, domain: dom.name, domainCode: dc, estimatedLevel: '', evidence: '', slideNumbers: [i + 1], score });
         else { map.get(mc).slideNumbers.push(i + 1); map.get(mc).score += score; }
       }
     }
   });
-  return { measures: Array.from(map.values()).sort((a, b) => b.score - a.score).slice(0, 6), photoAnalysis: '', narrativeSummary: 'Analysis based on keyword matching. Developmental levels are not estimated in this mode.', source: 'keyword' };
+  return { measures: Array.from(map.values()).sort((a, b) => b.score - a.score).slice(0, 6), photoAnalysis: '', narrativeSummary: '', source: 'keyword' };
 }
 
 // ---------- AI analysis ----------
@@ -1063,7 +1063,7 @@ function buildPrompt(slides, photos, ag) {
   for (const [dc, dom] of Object.entries(db)) ref += dc + ' (' + dom.name + '): ' + Object.entries(dom.measures).map(([c, m]) => c + '-' + m.name).join(', ') + '\n';
   let content = '';
   slides.forEach((sl, i) => { content += '\nSlide ' + (i + 1) + ': ' + [sl.title, sl.subtitle].concat(sl.content.filter(c => c)).filter(Boolean).join(' '); });
-  let photoLine = 'No photos.';
+  let photoLine = 'No photos. photoAnalysis must be an empty string.';
   if (photos.length) {
     photoLine = 'Photos attached - describe what you observe: actions, materials, interactions, expressions, environment.\n' +
       photos.map((p, i) => 'Photo ' + (i + 1) + ' is on slide ' + p.slides.join(', ') + '.').join('\n');
@@ -1072,10 +1072,11 @@ function buildPrompt(slides, photos, ag) {
     'Age Group: ' + (ag === 'ptk' ? 'Preschool/TK/K (3-6)' : 'Infant/Toddler (0-3)') + '\n' +
     'DRDP Measures:\n' + ref + '\n' +
     'Documentation:' + content + '\n\n' + photoLine + '\n\n' +
-    'Use only measure codes from the list above. slideNumbers lists the slides that show evidence for the measure.\n' +
+    'Write as classroom documentation for families and educators. Call the adults who work with children educators, never teachers, even when the notes say teacher. Describe what the child did and what it shows about learning. Do not write about what is missing, unclear, not recorded or not visible, and do not add cautions or disclaimers. TREE prints its own note about AI levels.\n' +
+    'Include only measures the documentation or photos clearly show. Use only measure codes from the list above. slideNumbers lists the slides that show evidence for the measure.\n' +
     (ag === 'ptk' ? 'ELD measures apply only when the documentation shows the child speaks a home language other than English and is learning English. Otherwise leave ELD out.\n' : '') +
     'estimatedLevel must be exactly one of the DRDP (2025) levels that the measure uses. Levels by measure, from earliest to latest:\n' + levelGuide(ag) + '\n' +
-    'Choose the level the evidence best supports. Give one level only, never a range. If the evidence is too thin to estimate a level, use an empty string.\n' +
+    'For each measure, choose the latest level the evidence shows the child has mastered, reading the evidence against the DRDP (2025) descriptors for that measure. Credit what the child shows. Give one level only, never a range. Use an empty string only when the evidence shows no level.\n' +
     'Return ONLY a JSON object. Use straight double quotes only. No apostrophes in values - rephrase instead. No newlines in string values. No trailing commas.\n' +
     '{"measures":[{"code":"ATL 1","name":"measure name","domain":"domain name","domainCode":"ATL","estimatedLevel":"Building Earlier","evidence":"specific evidence","slideNumbers":[1]}],"photoAnalysis":"what the photos show","narrativeSummary":"two sentence summary"}';
 }
@@ -1359,7 +1360,7 @@ async function ensureFonts(fonts) {
 
 // ---------- Slide rendering ----------
 const TEXT_SCALE = { small: 0.75, medium: 1, large: 1.25 };
-// When text does not fit, it is printed smaller in these steps. 1 is the size the teacher chose.
+// When text does not fit, it is printed smaller in these steps. 1 is the size the educator chose.
 const FIT_STEPS = [1, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6];
 
 // A large photo drawn small loses detail if it is shrunk in one jump. Halving it in steps keeps it sharp.
@@ -1963,14 +1964,14 @@ function renderSummarySlides(analysis, opts) {
 }
 
 // ---------- DRDP panel ----------
-// Words for the summary. Keyword matching only suggests possible connections. AI levels are suggestions for teacher review.
+// Words for the summary. Keyword matching only suggests possible connections. AI levels are suggestions for educator review.
 function summaryWords(r) {
   const kw = !!(r && r.source === 'keyword');
   return {
     title: kw ? 'DRDP (2025) Possible Connections' : 'DRDP (2025) Measures Identified',
     heading: kw ? '🔍 Possible Connections' : '📊 Measures Observed',
     caution: kw ? 'These connections come from matching words in the notes. Please review them before use.'
-                : 'Levels are AI suggestions for teacher review. They are not a formal DRDP (2025) rating.'
+                : 'Levels are AI suggestions for educator review. They are not a formal DRDP (2025) rating.'
   };
 }
 function displayDRDP(r, notice) {
@@ -1988,7 +1989,7 @@ function displayDRDP(r, notice) {
       (m.evidence ? '<div class="drdp-evidence">' + escHtml(m.evidence) + '</div>' : '') +
       (m.slideNumbers && m.slideNumbers.length ? '<div class="drdp-slides">Slides: ' + m.slideNumbers.join(', ') + '</div>' : '') + '</div>';
   }
-  div.innerHTML = html + '</div><div class="drdp-caution">' + escHtml(words.caution) + '</div>';
+  div.innerHTML = html + '</div>';
   panel.style.display = 'block';
 }
 
@@ -2291,7 +2292,7 @@ async function downloadPdf() {
 // ---------- Word export ----------
 // Builds a .docx file in the browser. Each page of the Word file is laid out like its slide, with the same
 // page shape, background color, fonts, sizes, photo placement, measures strip, date and school name.
-// Everything is ordinary editable text, so a teacher can revise it in Word, Pages or Google Docs.
+// Everything is ordinary editable text, so an educator can revise it in Word, Pages or Google Docs.
 let lastDoc = null;   // what the last Generate produced, kept for the Word export
 
 function docText(s) {
@@ -2672,7 +2673,7 @@ async function describeAISource() {
 
 // ---------- School sign-in ----------
 // When the server has a school passcode set, the web version asks for it once on each device.
-// The server does the checking. The passcode is kept on this device so teachers are not asked again.
+// The server does the checking. The passcode is kept on this device so educators are not asked again.
 const ACCESS_KEY = 'tree.access';
 let accessCode = '';
 let serverLocked = false;
@@ -2724,7 +2725,7 @@ async function startAccess() {
   serverLocked = !!(lastHealth && lastHealth.locked);
   if (!serverLocked) { hideGate(); updateSignOut(); return; }
   if (!accessCode) { showGate('ready'); return; }
-  // A saved passcode lets the teacher start right away. It is checked in the background.
+  // A saved passcode lets the educator start right away. It is checked in the background.
   const res = await checkAccess(accessCode);
   if (res === 'denied') { saveAccess(''); showGate('ready', 'The school passcode has changed. Enter the new one.'); }
   updateSignOut();
