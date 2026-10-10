@@ -206,11 +206,11 @@ h1.brand{font-size:1.5rem;letter-spacing:.08em;line-height:1.2}
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
             <label for="slideText" style="margin:0">Slide Content</label>
             <div class="input-mode-toggle">
-              <button type="button" id="textModeBtn" class="mode-btn active" onclick="setInputMode('text')">Text</button>
-              <button type="button" id="fieldModeBtn" class="mode-btn" onclick="setInputMode('fields')">Fields</button>
+              <button type="button" id="fieldModeBtn" class="mode-btn active" onclick="setInputMode('fields')">Fields</button>
+              <button type="button" id="textModeBtn" class="mode-btn" onclick="setInputMode('text')">Text</button>
             </div>
           </div>
-          <div id="textModeInput">
+          <div id="textModeInput" style="display:none">
             <div class="format-guide">
               <div class="format-title">Slide Format</div>
               <div class="format-content">
@@ -234,7 +234,7 @@ Slide 2:
 title: Next Slide
 content: More content..."></textarea>
           </div>
-          <div id="fieldModeInput" style="display:none">
+          <div id="fieldModeInput">
             <div class="slides-field-container" id="slidesFieldContainer">
               <div class="slide-fields" data-slide="1">
                 <div class="slide-field-header">
@@ -729,7 +729,7 @@ const DRDP = {
 
 const PROXY_URL = 'https://fulton-proxy.onrender.com';
 const MAX_AI_PHOTOS = 3;
-const BUILD = '2026.10.07.4';
+const BUILD = '2026.10.10.1';
 const SIZES = { square: { w: 1080, h: 1080, s: 1 }, squareprint: { w: 2550, h: 2550, s: 2.36 }, letter: { w: 2550, h: 3300, s: 2.36 } };
 const API_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const CLAUDE_PHOTO_MAX_BYTES = 20 * 1024 * 1024;   // largest photo file Claude accepts from a page
@@ -739,7 +739,7 @@ let uploadedBgImg = null, uploadedBgImgs = [];
 let uploadedSlidePhoto = null, uploadedSlidePhotos = [];
 let uploadedSlidePhotoB64 = null, uploadedSlidePhotosB64 = [];
 let assignedPhotos = {}, assignedPhotoList = [];
-let currentMode = 'text';
+let currentMode = 'fields';   // TREE opens with the Fields view
 let usedQ = [];
 let pendingLoads = [];
 
@@ -1104,7 +1104,9 @@ function reencodeJpeg(b64url, maxBytes) {
         if (maxBytes) { const raw = (b64url.split(',')[1] || '').length * 0.75; if (raw > maxBytes) ratio = Math.sqrt(maxBytes / raw) * 0.9; }
         c.width = Math.max(1, Math.round(img.width * ratio));
         c.height = Math.max(1, Math.round(img.height * ratio));
-        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        const cx = c.getContext('2d');
+        cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height);   // a see-through photo gets a white background
+        cx.drawImage(img, 0, 0, c.width, c.height);
         let q = 0.92, result = c.toDataURL('image/jpeg', q);
         while (maxBytes && (result.split(',')[1].length * 0.75) > maxBytes && q > 0.5) { q -= 0.05; result = c.toDataURL('image/jpeg', q); }
         res(result);
@@ -1115,12 +1117,13 @@ function reencodeJpeg(b64url, maxBytes) {
   });
 }
 
-// Photos go to the AI at full quality. A photo is only resized when it is over the size the AI accepts.
+// Photos go to the AI at high quality. A photo is only made smaller when it is over the size the AI accepts.
 async function prepareForAPI(b64url) {
   const MAX = 3.5 * 1024 * 1024;
-  const raw = (b64url.split(',')[1] || '').length * 0.75;
   let out = b64url;
-  if (raw > MAX || API_IMAGE_TYPES.indexOf(dataUrlType(b64url)) < 0) out = await reencodeJpeg(b64url, MAX);
+  // Every photo is redrawn before it leaves the device. Redrawing keeps the picture and drops the hidden data a camera
+  // stores inside the file, such as the location, the date and the phone model.
+  out = await reencodeJpeg(b64url, MAX);
   if (!out) return null;
   return { mediaType: dataUrlType(out), data: out.split(',')[1] };
 }
@@ -1292,12 +1295,9 @@ async function analyzeViaClaude(sample, promptWith, promptWithout, photos) {
     let il = null;
     try { const limits = await sample.limits(); il = (limits && limits.images) || null; } catch (e) { il = null; }
     const max = Math.min((il && il.maxCount) || MAX_AI_PHOTOS, MAX_AI_PHOTOS);
-    const okTypes = il && il.mediaTypes && il.mediaTypes.length ? il.mediaTypes : API_IMAGE_TYPES;
     const maxBytes = (il && il.maxInputBytes) || CLAUDE_PHOTO_MAX_BYTES;
     for (const p of photos.slice(0, max)) {
-      let url = p.b64;
-      const raw = (url.split(',')[1] || '').length * 0.75;
-      if (okTypes.indexOf(dataUrlType(url)) < 0 || raw > maxBytes) url = await reencodeJpeg(url, maxBytes);
+      const url = await reencodeJpeg(p.b64, maxBytes);   // redrawn so the hidden data inside the file stays on the device
       if (url) blobs.push(dataUrlToBlob(url));
     }
   }
